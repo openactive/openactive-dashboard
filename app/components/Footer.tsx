@@ -5,7 +5,7 @@ export function PreFooterCTA() {
   return (
     <section className="bg-oa-grey-100 py-16" aria-labelledby="cta-heading">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col items-center gap-12 md:flex-row md:justify-between md:items-start">
+        <div className="flex flex-col items-center gap-12 md:flex-row md:justify-between">
           {/* Logo */}
           <div className="flex-shrink-0">
             <Image
