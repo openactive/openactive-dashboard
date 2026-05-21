@@ -1,24 +1,22 @@
-import {
-  activities,
-  localAuthorities,
-  publishers,
-  regions,
-  type Activity,
-  type LocalAuthority,
-  type Publisher,
-} from "../data/mock-feeds";
+import type { CrossTabRow } from "./explore-csv";
+import type { GeoHierarchy } from "./geo-hierarchy";
+import { getAreaNamesInScope } from "./geo-hierarchy";
 
 /** Sentinel value for unfiltered dimensions */
 export const ALL_FILTER = "all" as const;
 
 export type ExplorerFilters = {
-  region: string;
+  /** Specific local area (district_name in CSV) */
+  district: string;
+  /** Geographic scope when no specific area: all | country:{id} | region:{country}:{region} */
+  areaScope: string;
   publisher: string;
   activity: string;
 };
 
 export const DEFAULT_EXPLORER_FILTERS: ExplorerFilters = {
-  region: ALL_FILTER,
+  district: ALL_FILTER,
+  areaScope: ALL_FILTER,
   publisher: ALL_FILTER,
   activity: ALL_FILTER,
 };
@@ -35,137 +33,192 @@ export type ExplorerSummary = {
   activityCount: number;
 };
 
-/** Publishers matching the current filter selection */
-export function getFilteredPublishers(filters: ExplorerFilters): Publisher[] {
-  let list = publishers;
+export type DistrictCount = {
+  district: string;
+  count: number;
+};
 
-  if (filters.region !== ALL_FILTER) {
-    list = list.filter((p) => p.regionId === filters.region);
-  }
+type FilterKey = keyof ExplorerFilters;
 
-  if (filters.activity !== ALL_FILTER) {
-    list = list.filter((p) => p.activityIds.includes(filters.activity));
-  }
-
-  if (filters.publisher !== ALL_FILTER) {
-    list = list.filter((p) => p.id === filters.publisher);
-  }
-
-  return list;
-}
-
-/** Activities available for the current publisher / region context */
-export function getFilteredActivities(filters: ExplorerFilters): Activity[] {
-  const activePublishers = getFilteredPublishers(filters);
-  const activityIds = new Set(activePublishers.flatMap((p) => p.activityIds));
-
-  let list = activities.filter((a) => activityIds.has(a.id));
-
-  if (filters.activity !== ALL_FILTER) {
-    list = list.filter((a) => a.id === filters.activity);
-  }
-
-  return list;
-}
-
-/**
- * Local authorities for the map and area count.
- * Opportunity counts are adjusted when filters narrow the contributing publishers.
- */
-export function getFilteredLocalAuthorities(
-  filters: ExplorerFilters
-): LocalAuthority[] {
-  const activePublishers = getFilteredPublishers(filters);
-
-  if (filters.publisher !== ALL_FILTER) {
-    const publisher = publishers.find((p) => p.id === filters.publisher);
-    if (!publisher) return [];
-    return allocatePublisherOpportunities(publisher);
-  }
-
-  let las = localAuthorities;
-
-  if (filters.region !== ALL_FILTER) {
-    las = las.filter((la) => la.regionId === filters.region);
-  }
-
-  if (activePublishers.length === publishers.length && filters.activity === ALL_FILTER) {
-    return las;
-  }
-
-  const relevantLaIds = new Set(
-    activePublishers.flatMap((p) => p.localAuthorityIds)
-  );
-
-  return las
-    .filter((la) => relevantLaIds.has(la.id))
-    .map((la) => scaleLocalAuthorityByPublishers(la, activePublishers));
-}
-
-/** Summary metrics for the explorer sidebar */
-export function computeExplorerSummary(filters: ExplorerFilters): ExplorerSummary {
-  const las = getFilteredLocalAuthorities(filters);
-  const activePublishers = getFilteredPublishers(filters);
-  const activeActivities = getFilteredActivities(filters);
-
+/** Apply a specific area and clear broader scope */
+export function selectArea(
+  filters: ExplorerFilters,
+  areaName: string
+): ExplorerFilters {
   return {
-    totalOpportunities: las.reduce((sum, la) => sum + la.opportunities, 0),
-    areaCount: las.length,
-    publisherCount: activePublishers.length,
-    activityCount: activeActivities.length,
+    ...filters,
+    district: areaName,
+    areaScope: ALL_FILTER,
   };
 }
 
-export function buildRegionOptions(): ExplorerFilterOption[] {
-  return [
-    { value: ALL_FILTER, label: "All regions" },
-    ...regions.map((r) => ({ value: r.id, label: r.name })),
-  ];
+/** Apply country or region scope (no single area) */
+export function selectAreaScope(
+  filters: ExplorerFilters,
+  scope: string
+): ExplorerFilters {
+  return {
+    ...filters,
+    district: ALL_FILTER,
+    areaScope: scope === ALL_FILTER ? ALL_FILTER : scope,
+  };
+}
+
+/** Rows matching all active filters */
+export function filterRows(
+  rows: CrossTabRow[],
+  filters: ExplorerFilters,
+  hierarchy?: GeoHierarchy
+): CrossTabRow[] {
+  const scopeNames =
+    filters.district === ALL_FILTER &&
+    filters.areaScope !== ALL_FILTER &&
+    hierarchy
+      ? new Set(getAreaNamesInScope(hierarchy, filters.areaScope))
+      : null;
+
+  return rows.filter((row) => {
+    if (filters.district !== ALL_FILTER) {
+      if (row.district !== filters.district) return false;
+    } else if (scopeNames && scopeNames.size > 0) {
+      if (row.district && !scopeNames.has(row.district)) return false;
+    }
+
+    if (
+      filters.publisher !== ALL_FILTER &&
+      row.publisher !== filters.publisher
+    ) {
+      return false;
+    }
+    if (filters.activity !== ALL_FILTER && row.activity !== filters.activity) {
+      return false;
+    }
+    return true;
+  });
+}
+
+/** Filter rows while ignoring one dimension (for building dropdown options) */
+function filterRowsExcept(
+  rows: CrossTabRow[],
+  filters: ExplorerFilters,
+  except: FilterKey,
+  hierarchy?: GeoHierarchy
+): CrossTabRow[] {
+  const areaExcept = except === "district" || except === "areaScope";
+  const patched: ExplorerFilters = areaExcept
+    ? { ...filters, district: ALL_FILTER, areaScope: ALL_FILTER }
+    : filters;
+
+  return filterRows(rows, patched, hierarchy);
+}
+
+function uniqueSorted(values: string[]): string[] {
+  return [...new Set(values)].sort((a, b) =>
+    a.localeCompare(b, "en", { sensitivity: "base" })
+  );
+}
+
+/** Summary metrics for the explorer sidebar */
+export function computeExplorerSummary(
+  filtered: CrossTabRow[]
+): ExplorerSummary {
+  const districts = new Set<string>();
+  const publishers = new Set<string>();
+  const activities = new Set<string>();
+  let totalOpportunities = 0;
+
+  for (const row of filtered) {
+    totalOpportunities += row.count;
+    if (row.district) districts.add(row.district);
+    if (row.publisher) publishers.add(row.publisher);
+    if (row.activity) activities.add(row.activity);
+  }
+
+  return {
+    totalOpportunities,
+    areaCount: districts.size,
+    publisherCount: publishers.size,
+    activityCount: activities.size,
+  };
+}
+
+/** Opportunity counts per district for the choropleth (geo_name join) */
+export function getDistrictCounts(filtered: CrossTabRow[]): DistrictCount[] {
+  const totals = new Map<string, number>();
+
+  for (const row of filtered) {
+    if (!row.district) continue;
+    totals.set(row.district, (totals.get(row.district) ?? 0) + row.count);
+  }
+
+  return [...totals.entries()]
+    .map(([district, count]) => ({ district, count }))
+    .sort((a, b) => b.count - a.count);
 }
 
 export function buildPublisherOptions(
-  filters: Pick<ExplorerFilters, "region" | "activity">
+  rows: CrossTabRow[],
+  filters: Pick<ExplorerFilters, "district" | "areaScope" | "activity">,
+  hierarchy?: GeoHierarchy
 ): ExplorerFilterOption[] {
-  const list = getFilteredPublishers({
-    ...DEFAULT_EXPLORER_FILTERS,
-    region: filters.region,
-    activity: filters.activity,
-    publisher: ALL_FILTER,
-  });
+  const scoped = filterRowsExcept(
+    rows,
+    { ...DEFAULT_EXPLORER_FILTERS, ...filters, publisher: ALL_FILTER },
+    "publisher",
+    hierarchy
+  );
+  const publishers = uniqueSorted(
+    scoped.map((r) => r.publisher).filter(Boolean)
+  );
 
   return [
     { value: ALL_FILTER, label: "All publishers" },
-    ...list.map((p) => ({ value: p.id, label: p.name })),
+    ...publishers.map((p) => ({ value: p, label: p })),
   ];
 }
 
 export function buildActivityOptions(
-  filters: Pick<ExplorerFilters, "region" | "publisher">
+  rows: CrossTabRow[],
+  filters: Pick<ExplorerFilters, "district" | "areaScope" | "publisher">,
+  hierarchy?: GeoHierarchy
 ): ExplorerFilterOption[] {
-  const list = getFilteredActivities({
-    ...DEFAULT_EXPLORER_FILTERS,
-    region: filters.region,
-    publisher: filters.publisher,
-    activity: ALL_FILTER,
-  });
+  const scoped = filterRowsExcept(
+    rows,
+    { ...DEFAULT_EXPLORER_FILTERS, ...filters, activity: ALL_FILTER },
+    "activity",
+    hierarchy
+  );
+  const activities = uniqueSorted(
+    scoped.map((r) => r.activity).filter(Boolean)
+  );
 
   return [
     { value: ALL_FILTER, label: "All activities and facilities" },
-    ...list.map((a) => ({ value: a.id, label: a.name })),
+    ...activities.map((a) => ({ value: a, label: a })),
   ];
 }
 
-/**
- * When the current selection is invalid after a parent filter changes,
- * reset child filters to "all".
- */
-export function normalizeExplorerFilters(filters: ExplorerFilters): ExplorerFilters {
+/** Reset child filters when a parent filter change makes them invalid */
+export function normalizeExplorerFilters(
+  rows: CrossTabRow[],
+  filters: ExplorerFilters,
+  hierarchy?: GeoHierarchy
+): ExplorerFilters {
   const normalized = { ...filters };
 
-  const publisherOptions = buildPublisherOptions({
-    region: normalized.region,
-    activity: normalized.activity,
-  });
+  if (normalized.district !== ALL_FILTER) {
+    normalized.areaScope = ALL_FILTER;
+  }
+
+  const publisherOptions = buildPublisherOptions(
+    rows,
+    {
+      district: normalized.district,
+      areaScope: normalized.areaScope,
+      activity: normalized.activity,
+    },
+    hierarchy
+  );
   if (
     normalized.publisher !== ALL_FILTER &&
     !publisherOptions.some((o) => o.value === normalized.publisher)
@@ -173,10 +226,15 @@ export function normalizeExplorerFilters(filters: ExplorerFilters): ExplorerFilt
     normalized.publisher = ALL_FILTER;
   }
 
-  const activityOptions = buildActivityOptions({
-    region: normalized.region,
-    publisher: normalized.publisher,
-  });
+  const activityOptions = buildActivityOptions(
+    rows,
+    {
+      district: normalized.district,
+      areaScope: normalized.areaScope,
+      publisher: normalized.publisher,
+    },
+    hierarchy
+  );
   if (
     normalized.activity !== ALL_FILTER &&
     !activityOptions.some((o) => o.value === normalized.activity)
@@ -184,47 +242,13 @@ export function normalizeExplorerFilters(filters: ExplorerFilters): ExplorerFilt
     normalized.activity = ALL_FILTER;
   }
 
+  const scopedRows = filterRows(rows, normalized, hierarchy);
+  if (
+    normalized.district !== ALL_FILTER &&
+    !scopedRows.some((r) => r.district === normalized.district)
+  ) {
+    normalized.district = ALL_FILTER;
+  }
+
   return normalized;
-}
-
-function allocatePublisherOpportunities(publisher: Publisher): LocalAuthority[] {
-  const las = localAuthorities.filter((la) =>
-    publisher.localAuthorityIds.includes(la.id)
-  );
-  const weightSum = las.reduce((sum, la) => sum + la.opportunities, 0) || 1;
-
-  return las.map((la) => ({
-    ...la,
-    opportunities: Math.round(
-      (publisher.opportunities * la.opportunities) / weightSum
-    ),
-  }));
-}
-
-function scaleLocalAuthorityByPublishers(
-  la: LocalAuthority,
-  activePublishers: Publisher[]
-): LocalAuthority {
-  const covering = activePublishers.filter((p) =>
-    p.localAuthorityIds.includes(la.id)
-  );
-
-  if (covering.length === 0) {
-    return { ...la, opportunities: 0 };
-  }
-
-  const activeTotal = covering.reduce((sum, p) => sum + p.opportunities, 0);
-  const allCovering = publishers.filter((p) =>
-    p.localAuthorityIds.includes(la.id)
-  );
-  const corpusTotal = allCovering.reduce((sum, p) => sum + p.opportunities, 0);
-
-  if (corpusTotal === 0) {
-    return la;
-  }
-
-  return {
-    ...la,
-    opportunities: Math.round((la.opportunities * activeTotal) / corpusTotal),
-  };
 }

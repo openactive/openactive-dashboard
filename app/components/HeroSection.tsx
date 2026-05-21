@@ -10,7 +10,7 @@ export function HeroSection() {
       className="relative min-h-[90vh] flex items-center overflow-hidden bg-oa-navy"
       aria-labelledby="hero-heading"
     >
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-16 w-full">
+      <div className="mx-auto w-full max-w-448 px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-16 2xl:px-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left — Text + CTAs */}
           <div className="max-w-xl">
