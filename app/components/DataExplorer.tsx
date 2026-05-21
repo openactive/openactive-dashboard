@@ -3,6 +3,10 @@
 import { useCallback, useMemo, useState } from "react";
 import { ExplorerFilterBar } from "./ExplorerFilterBar";
 import { ExplorerSummary } from "./ExplorerSummary";
+import {
+  ExplorerMobileChrome,
+  type MobilePanel,
+} from "./ExplorerMobileChrome";
 import { OpportunityMap } from "./OpportunityMap";
 import type { CrossTabRow } from "../lib/explore-csv";
 import type { GeoHierarchy } from "../lib/geo-hierarchy";
@@ -26,12 +30,13 @@ interface DataExplorerProps {
 }
 
 /**
- * Map-first explorer
+ * Map-first explorer: floating glass panels on desktop; compact dock + sheets on mobile/tablet.
  */
 export function DataExplorer({ rows, hierarchy }: DataExplorerProps) {
   const [filters, setFilters] = useState<ExplorerFilters>(
     DEFAULT_EXPLORER_FILTERS
   );
+  const [mobilePanel, setMobilePanel] = useState<MobilePanel>("none");
 
   const districtsWithData = useMemo(
     () => new Set(rows.map((r) => r.district).filter(Boolean)),
@@ -111,7 +116,9 @@ export function DataExplorer({ rows, hierarchy }: DataExplorerProps) {
 
   return (
     <div
-      className="relative mt-10 min-h-[min(88vh,780px)] overflow-hidden rounded-xl shadow-[0_12px_48px_rgba(34,53,130,0.12)] ring-1 ring-oa-grey-300/60 [&_.oa-glass]:overflow-visible"
+      className={`relative mt-10 min-h-[min(88vh,780px)] overflow-hidden rounded-xl shadow-[0_12px_48px_rgba(34,53,130,0.12)] ring-1 ring-oa-grey-300/60 [&_.oa-glass]:overflow-visible ${
+        mobilePanel !== "none" ? "max-lg:touch-none" : ""
+      }`}
       aria-label="Interactive map explorer"
     >
       {/* Full-bleed map */}
@@ -126,8 +133,8 @@ export function DataExplorer({ rows, hierarchy }: DataExplorerProps) {
         />
       </div>
 
-      {/* Floating filters — top-left on desktop; full-width top on mobile */}
-      <div className="absolute top-4 left-4 right-4 z-20 pointer-events-none sm:top-5 sm:left-5 sm:right-5 lg:right-auto lg:w-[min(18rem,calc(100%-30rem))] xl:w-[min(20rem,calc(100%-32rem))]">
+      {/* Desktop — vertical filters top-left */}
+      <div className="absolute top-4 left-4 z-20 hidden pointer-events-none sm:top-5 sm:left-5 lg:block lg:w-[min(18rem,calc(100%-30rem))] xl:w-[min(20rem,calc(100%-32rem))]">
         <div className="pointer-events-auto w-full">
           <ExplorerFilterBar
             layout="overlay"
@@ -143,7 +150,7 @@ export function DataExplorer({ rows, hierarchy }: DataExplorerProps) {
         </div>
       </div>
 
-      {/* Floating summary — top-right (desktop) */}
+      {/* Desktop — summary top-right */}
       <div
         className="absolute z-20 pointer-events-none hidden lg:block top-5 right-5 w-[24rem] xl:right-6 xl:w-104 2xl:w-md"
         aria-labelledby="explorer-summary-heading"
@@ -160,22 +167,23 @@ export function DataExplorer({ rows, hierarchy }: DataExplorerProps) {
         </div>
       </div>
 
-      {/* Summary — bottom sheet on mobile */}
-      <div
-        className="absolute bottom-4 left-4 right-4 z-20 pointer-events-none lg:hidden"
-        aria-labelledby="explorer-summary-heading-mobile"
-      >
-        <h3 id="explorer-summary-heading-mobile" className="sr-only">
-          Summary statistics
-        </h3>
-        <div className="pointer-events-auto max-h-[42vh] overflow-y-auto">
-          <ExplorerSummary
-            layout="overlay"
-            summary={summary}
-            selectionLabel={selectionLabel}
-          />
-        </div>
-      </div>
+      {/* Mobile & tablet — map-first dock + sheets */}
+      <ExplorerMobileChrome
+        panel={mobilePanel}
+        onPanelChange={setMobilePanel}
+        summary={summary}
+        selectionLabel={selectionLabel}
+        filterProps={{
+          hierarchy,
+          filters,
+          districtsWithData,
+          publisherOptions,
+          activityOptions,
+          onFiltersChange: setFiltersNormalized,
+          onPublisherChange: (value) => updateFilter("publisher", value),
+          onActivityChange: (value) => updateFilter("activity", value),
+        }}
+      />
     </div>
   );
 }

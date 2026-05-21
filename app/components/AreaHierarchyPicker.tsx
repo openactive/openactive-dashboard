@@ -21,7 +21,7 @@ interface AreaHierarchyPickerProps {
   filters: ExplorerFilters;
   districtsWithData: Set<string>;
   onChange: (filters: ExplorerFilters) => void;
-  variant?: "default" | "glass";
+  variant?: "default" | "glass" | "sheet";
 }
 
 /**
@@ -35,6 +35,7 @@ export function AreaHierarchyPicker({
   variant = "default",
 }: AreaHierarchyPickerProps) {
   const isGlass = variant === "glass";
+  const isSheet = variant === "sheet";
   const [open, setOpen] = useState(false);
   const [drill, setDrill] = useState<DrillLevel>({ type: "root" });
   const [query, setQuery] = useState("");
@@ -195,7 +196,7 @@ export function AreaHierarchyPicker({
         className={
           isGlass
             ? "flex w-full cursor-pointer items-center gap-2 rounded-lg border border-white/80 bg-white/70 px-3 py-2.5 text-left text-sm text-oa-navy shadow-sm backdrop-blur-sm transition-colors hover:border-oa-cyan/50 hover:bg-white/85 focus:outline-none focus:border-oa-cyan focus:ring-2 focus:ring-oa-cyan/25"
-            : "flex w-full cursor-pointer items-center gap-2 rounded-sm border border-oa-grey-300 bg-oa-grey-50 px-3 py-2.5 text-left text-sm text-oa-navy transition-colors hover:border-oa-cyan hover:bg-white focus:outline-none focus:border-oa-cyan focus:ring-1 focus:ring-oa-cyan"
+            : "flex w-full cursor-pointer items-center gap-2 rounded-lg border border-oa-grey-300 bg-oa-grey-50 px-3 py-2.5 text-left text-sm text-oa-navy transition-colors hover:border-oa-cyan hover:bg-white focus:outline-none focus:border-oa-cyan focus:ring-2 focus:ring-oa-cyan/25"
         }
         onClick={() => setOpen(!open)}
         aria-haspopup="listbox"
@@ -211,10 +212,12 @@ export function AreaHierarchyPicker({
 
       {open && (
         <div
-          className={`absolute left-0 right-0 z-50 mt-1 w-full max-w-full min-w-0 overflow-hidden border bg-white ${
+          className={`absolute left-0 right-0 z-50 mt-1 w-full max-w-full min-w-0 border bg-white ${
             isGlass
-              ? "rounded-lg border-white/90 bg-white/95 shadow-lg backdrop-blur-md"
-              : "rounded-sm border-oa-navy shadow-[6px_6px_0_0_#223582]"
+              ? "overflow-hidden rounded-lg border-white/90 bg-white/95 shadow-lg backdrop-blur-md"
+              : isSheet
+                ? "overflow-hidden rounded-lg border-oa-grey-200 shadow-lg"
+                : "overflow-hidden rounded-sm border-oa-navy shadow-[6px_6px_0_0_#223582]"
           }`}
           role="presentation"
         >
@@ -261,7 +264,11 @@ export function AreaHierarchyPicker({
             id={listboxId}
             role="listbox"
             aria-label={panelTitle}
-            className="max-h-64 overflow-y-auto"
+            className={
+              isSheet
+                ? "max-h-[min(36dvh,380px)] overflow-y-auto"
+                : "max-h-20 overflow-y-auto"
+            }
           >
             {renderListItems()}
           </ul>
