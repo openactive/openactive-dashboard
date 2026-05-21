@@ -20,7 +20,7 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="bg-white border-b border-oa-grey-200" role="banner">
+    <header className="relative bg-white border-b border-oa-grey-200" role="banner">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Desktop layout */}
         <div className="flex items-center justify-between h-16">
@@ -92,8 +92,8 @@ export function Header() {
 
         {/* Mobile menu */}
         {mobileMenuOpen && (
-          <nav id="mobile-menu" className="md:hidden pb-4 border-t border-oa-grey-200" aria-label="Mobile navigation">
-            <ul className="mt-4 space-y-2">
+          <nav id="mobile-menu" className="absolute top-16 inset-x-0 z-50 md:hidden bg-white border-b border-oa-grey-200 shadow-lg pb-4" aria-label="Mobile navigation">
+            <ul className="mt-4 space-y-2 px-4">
               {navLinks.map((link) => (
                 <li key={link.href}>
                   <Link
@@ -106,7 +106,7 @@ export function Header() {
                 </li>
               ))}
             </ul>
-            <ul className="mt-4 pt-4 border-t border-oa-grey-100 space-y-2" aria-label="Utility links">
+            <ul className="mt-4 pt-4 border-t border-oa-grey-100 space-y-2 px-4" aria-label="Utility links">
               {utilityLinks.map((link) => (
                 <li key={link.href}>
                   <a
