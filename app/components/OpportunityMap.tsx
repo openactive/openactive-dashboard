@@ -228,7 +228,7 @@ export function OpportunityMap({
     (scopeAreaNames && scopeAreaNames.length > 0 && scopeAreaNames.length <= 8);
 
   const zoomControlsClass = isImmersive
-    ? "absolute bottom-[7.5rem] left-4 z-30 flex flex-col gap-0.5 oa-glass rounded-lg p-1 shadow-sm sm:bottom-[8rem] sm:left-5 lg:bottom-5 lg:left-auto lg:right-5"
+    ? "absolute top-3 right-3 z-30 flex flex-col gap-0.5 oa-glass rounded-md p-0.5 shadow-sm sm:top-4 sm:right-4 lg:top-auto lg:bottom-5 lg:right-5 lg:rounded-lg lg:p-1"
     : "absolute bottom-14 right-3 z-20 flex flex-col gap-0.5 oa-glass rounded-lg p-1 shadow-sm sm:bottom-16";
 
   const legendClass = isImmersive
@@ -279,6 +279,7 @@ export function OpportunityMap({
         {status === "ready" && (
           <MapZoomControls
             className={zoomControlsClass}
+            compact={isImmersive}
             onZoomIn={() => zoomBy(1.35)}
             onZoomOut={() => zoomBy(1 / 1.35)}
             onReset={resetView}
