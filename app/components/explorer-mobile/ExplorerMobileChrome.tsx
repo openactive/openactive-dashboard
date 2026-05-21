@@ -45,7 +45,7 @@ export function ExplorerMobileChrome({
           {panel === "filters" ? (
             <ExplorerFilterBar layout="sheet" {...filterProps} />
           ) : (
-            <ExplorerSummary layout="stacked" summary={summary} selectionLabel={selectionLabel} />
+            <ExplorerSummary layout="sheet" summary={summary} selectionLabel={selectionLabel} />
           )}
         </ExplorerMobileSheet>
       )}

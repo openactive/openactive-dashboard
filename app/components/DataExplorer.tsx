@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMediaQuery } from "../hooks/useMediaQuery";
 import { ExplorerFilterBar } from "./ExplorerFilterBar";
 import { ExplorerSummary } from "./ExplorerSummary";
 import {
@@ -37,6 +38,11 @@ export function DataExplorer({ rows, hierarchy }: DataExplorerProps) {
     DEFAULT_EXPLORER_FILTERS
   );
   const [mobilePanel, setMobilePanel] = useState<MobilePanel>("none");
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
+
+  useEffect(() => {
+    if (isDesktop) setMobilePanel("none");
+  }, [isDesktop]);
 
   const districtsWithData = useMemo(
     () => new Set(rows.map((r) => r.district).filter(Boolean)),
@@ -167,23 +173,25 @@ export function DataExplorer({ rows, hierarchy }: DataExplorerProps) {
         </div>
       </div>
 
-      {/* Mobile & tablet — map-first dock + sheets */}
-      <ExplorerMobileChrome
-        panel={mobilePanel}
-        onPanelChange={setMobilePanel}
-        summary={summary}
-        selectionLabel={selectionLabel}
-        filterProps={{
-          hierarchy,
-          filters,
-          districtsWithData,
-          publisherOptions,
-          activityOptions,
-          onFiltersChange: setFiltersNormalized,
-          onPublisherChange: (value) => updateFilter("publisher", value),
-          onActivityChange: (value) => updateFilter("activity", value),
-        }}
-      />
+      {/* Mobile & tablet — hidden at lg; panel state cleared on resize to desktop */}
+      <div className="lg:hidden">
+        <ExplorerMobileChrome
+          panel={mobilePanel}
+          onPanelChange={setMobilePanel}
+          summary={summary}
+          selectionLabel={selectionLabel}
+          filterProps={{
+            hierarchy,
+            filters,
+            districtsWithData,
+            publisherOptions,
+            activityOptions,
+            onFiltersChange: setFiltersNormalized,
+            onPublisherChange: (value) => updateFilter("publisher", value),
+            onActivityChange: (value) => updateFilter("activity", value),
+          }}
+        />
+      </div>
     </div>
   );
 }
