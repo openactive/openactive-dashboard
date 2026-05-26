@@ -1,11 +1,11 @@
 /**
- * Cross-tab row from newdata.csv
- * district_name → district, activity_or_facility → activity
+ * Cross-tab opportunity row from newdata-geocoded.csv.
+ * `geoCode` matches combined-boundaries `geo_code`; `district` is the resolved `geo_name`.
  */
 export type CrossTabRow = {
+  geoCode: string;
   district: string;
   publisher: string;
-  provider: string;
   activity: string;
   count: number;
 };
@@ -34,7 +34,7 @@ function parseCsvLine(line: string): string[] {
   return fields;
 }
 
-/** Parse newdata.csv into typed cross-tab rows */
+/** Parse geocode,publisher,activity_or_facility,row_count */
 export function parseExplorerCsv(content: string): CrossTabRow[] {
   const lines = content.trim().split("\n");
   if (lines.length < 2) return [];
@@ -45,16 +45,14 @@ export function parseExplorerCsv(content: string): CrossTabRow[] {
     const line = lines[i];
     if (!line.trim()) continue;
 
-    const [district, publisher, provider, activity, countStr] =
-      parseCsvLine(line);
+    const [geoCode, publisher, activity, countStr] = parseCsvLine(line);
     const count = Number.parseInt(countStr, 10);
-
     if (Number.isNaN(count) || count < 0) continue;
 
     rows.push({
-      district: district ?? "",
+      geoCode: geoCode ?? "",
+      district: "",
       publisher: publisher ?? "",
-      provider: provider ?? "",
       activity: activity ?? "",
       count,
     });

@@ -1,13 +1,11 @@
-import { readFileSync } from "fs";
-import { join } from "path";
+import { Suspense } from "react";
 import { DataExplorer } from "./DataExplorer";
-import { parseExplorerCsv } from "../lib/explore-csv";
-import { loadGeoHierarchy } from "../lib/geo-hierarchy.server";
+import { ExplorerSectionLoading } from "./ExplorerSectionLoading";
+import { loadExplorerData } from "../lib/explore-data.server";
 
-function loadExplorerRows() {
-  const csvPath = join(process.cwd(), "app/data/newdata.csv");
-  const content = readFileSync(csvPath, "utf8");
-  return parseExplorerCsv(content);
+async function DataExplorerLoaded() {
+  const { rows, hierarchy } = await loadExplorerData();
+  return <DataExplorer rows={rows} hierarchy={hierarchy} />;
 }
 
 /**
@@ -15,9 +13,6 @@ function loadExplorerRows() {
  * Anchored at #data for in-page navigation from the hero CTA.
  */
 export function DataExplorerSection() {
-  const rows = loadExplorerRows();
-  const hierarchy = loadGeoHierarchy();
-
   return (
     <section
       id="data"
@@ -39,7 +34,9 @@ export function DataExplorerSection() {
           </p>
         </header>
 
-        <DataExplorer rows={rows} hierarchy={hierarchy} />
+        <Suspense fallback={<ExplorerSectionLoading />}>
+          <DataExplorerLoaded />
+        </Suspense>
       </div>
     </section>
   );

@@ -6,7 +6,7 @@ import { getAreaNamesInScope } from "./geo-hierarchy";
 export const ALL_FILTER = "all" as const;
 
 export type ExplorerFilters = {
-  /** Specific local area (district_name in CSV) */
+  /** Specific local area (geo_name, resolved from geocode in CSV) */
   district: string;
   /** Geographic scope when no specific area: all | country:{id} | region:{country}:{region} */
   areaScope: string;
