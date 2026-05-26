@@ -248,7 +248,7 @@ export function OpportunityMap({
           <p
             className={`absolute z-10 text-[10px] font-semibold uppercase tracking-wider text-oa-navy ${
               isImmersive
-                ? "bottom-42 left-4 oa-glass rounded-lg px-3 py-1.5 lg:bottom-20 lg:left-5"
+                ? "bottom-42 left-4 oa-glass rounded-lg px-3 py-1.5 lg:hidden"
                 : "top-3 left-3 bg-oa-navy px-2.5 py-1 text-oa-aqua rounded-sm"
             }`}
             aria-hidden="true"
