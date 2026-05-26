@@ -8,7 +8,11 @@ import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 const navLinks = [
   { href: "/", label: "Dashboard" },
   { href: "/#data", label: "Explore Data" },
-  { href: "/about", label: "About" },
+  {
+    href: "https://www.openactive.io/about/",
+    label: "About",
+    external: true,
+  },
 ];
 
 const utilityLinks = [
@@ -61,12 +65,24 @@ export function Header() {
               <ul className="flex gap-1">
                 {navLinks.map((link) => (
                   <li key={link.href}>
-                    <Link
-                      href={link.href}
-                      className="relative px-4 py-2 text-sm font-medium text-oa-indigo hover:text-oa-purple transition-colors after:absolute after:bottom-0 after:left-4 after:right-4 after:h-0.5 after:bg-oa-purple after:scale-x-0 after:origin-center after:transition-transform hover:after:scale-x-100"
-                    >
-                      {link.label}
-                    </Link>
+                    {link.external ? (
+                      <a
+                        href={link.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="relative px-4 py-2 text-sm font-medium text-oa-indigo hover:text-oa-purple transition-colors after:absolute after:bottom-0 after:left-4 after:right-4 after:h-0.5 after:bg-oa-purple after:scale-x-0 after:origin-center after:transition-transform hover:after:scale-x-100"
+                      >
+                        {link.label}
+                        <span className="sr-only"> (opens in new tab)</span>
+                      </a>
+                    ) : (
+                      <Link
+                        href={link.href}
+                        className="relative px-4 py-2 text-sm font-medium text-oa-indigo hover:text-oa-purple transition-colors after:absolute after:bottom-0 after:left-4 after:right-4 after:h-0.5 after:bg-oa-purple after:scale-x-0 after:origin-center after:transition-transform hover:after:scale-x-100"
+                      >
+                        {link.label}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -96,13 +112,26 @@ export function Header() {
             <ul className="mt-4 space-y-2 px-4">
               {navLinks.map((link) => (
                 <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="block px-3 py-2 text-sm font-medium text-oa-indigo hover:bg-oa-grey-50 rounded-md focus:outline-none focus:ring-2 focus:ring-oa-indigo"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    {link.label}
-                  </Link>
+                  {link.external ? (
+                    <a
+                      href={link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block px-3 py-2 text-sm font-medium text-oa-indigo hover:bg-oa-grey-50 rounded-md focus:outline-none focus:ring-2 focus:ring-oa-indigo"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      {link.label}
+                      <span className="sr-only"> (opens in new tab)</span>
+                    </a>
+                  ) : (
+                    <Link
+                      href={link.href}
+                      className="block px-3 py-2 text-sm font-medium text-oa-indigo hover:bg-oa-grey-50 rounded-md focus:outline-none focus:ring-2 focus:ring-oa-indigo"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      {link.label}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>

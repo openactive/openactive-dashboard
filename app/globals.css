@@ -62,6 +62,9 @@
   --color-oa-grey-700: var(--oa-grey-700);
   --color-oa-grey-800: var(--oa-grey-800);
   --color-oa-grey-900: var(--oa-grey-900);
+
+  /* Wide homepage content (hero + data explorer) — 120rem / 1920px */
+  --max-width-448: 120rem;
 }
 
 body {

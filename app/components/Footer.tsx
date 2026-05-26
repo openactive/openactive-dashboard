@@ -5,6 +5,9 @@ export function PreFooterCTA() {
   return (
     <section className="bg-oa-grey-100 py-16" aria-labelledby="cta-heading">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <h2 id="cta-heading" className="sr-only">
+          Get in touch with OpenActive
+        </h2>
         <div className="flex flex-col items-center gap-12 md:flex-row md:justify-between">
           {/* Logo */}
           <div className="flex-shrink-0">
