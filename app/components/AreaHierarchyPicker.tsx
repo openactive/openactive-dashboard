@@ -267,7 +267,7 @@ export function AreaHierarchyPicker({
             className={
               isSheet
                 ? "max-h-[min(36dvh,380px)] overflow-y-auto"
-                : "max-h-20 overflow-y-auto"
+                : "max-h-60 overflow-y-auto"
             }
           >
             {renderListItems()}
