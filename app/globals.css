@@ -2,7 +2,33 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #333333;
+
+  /* OpenActive Brand Palette (from status repo) */
+  --oa-aqua: #74cbf2;
+  --oa-cyan: #009de1;
+  --oa-blue: #0065af;
+  --oa-indigo: #433a8f;
+  --oa-navy: #223582;
+  --oa-purple: #952082;
+  --oa-magenta: #e21483;
+  --oa-orange: #e73b2e;
+  --oa-yellow: #f7a836;
+  --oa-turquoise: #009dc3;
+  --oa-lilac: #a64895;
+  --oa-scarlet: #be1622;
+
+  /* Neutrals */
+  --oa-grey-50: #f8f9fa;
+  --oa-grey-100: #f3f4f6;
+  --oa-grey-200: #e5e7eb;
+  --oa-grey-300: #d1d5db;
+  --oa-grey-400: #9ca3af;
+  --oa-grey-500: #6b7280;
+  --oa-grey-600: #4b5563;
+  --oa-grey-700: #374151;
+  --oa-grey-800: #1f2937;
+  --oa-grey-900: #111827;
 }
 
 @theme inline {
@@ -10,17 +36,36 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Brand colors */
+  --color-oa-aqua: var(--oa-aqua);
+  --color-oa-cyan: var(--oa-cyan);
+  --color-oa-blue: var(--oa-blue);
+  --color-oa-indigo: var(--oa-indigo);
+  --color-oa-navy: var(--oa-navy);
+  --color-oa-purple: var(--oa-purple);
+  --color-oa-magenta: var(--oa-magenta);
+  --color-oa-orange: var(--oa-orange);
+  --color-oa-yellow: var(--oa-yellow);
+  --color-oa-turquoise: var(--oa-turquoise);
+  --color-oa-lilac: var(--oa-lilac);
+  --color-oa-scarlet: var(--oa-scarlet);
+
+  /* Neutrals */
+  --color-oa-grey-50: var(--oa-grey-50);
+  --color-oa-grey-100: var(--oa-grey-100);
+  --color-oa-grey-200: var(--oa-grey-200);
+  --color-oa-grey-300: var(--oa-grey-300);
+  --color-oa-grey-400: var(--oa-grey-400);
+  --color-oa-grey-500: var(--oa-grey-500);
+  --color-oa-grey-600: var(--oa-grey-600);
+  --color-oa-grey-700: var(--oa-grey-700);
+  --color-oa-grey-800: var(--oa-grey-800);
+  --color-oa-grey-900: var(--oa-grey-900);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
 }
