@@ -48,9 +48,9 @@ export function FilterDropdown({
     selectIndex,
     setOptionRef,
     handleTriggerKeyDown,
-    handleListboxKeyDown,
+    handleRootKeyDown,
     handleOptionKeyDown,
-    handleRootBlur,
+    handleFocusLeave,
   } = useListbox({ options, value, onChange, idPrefix: id });
 
   const selectedOption = options.find((o) => o.value === value);
@@ -75,7 +75,6 @@ export function FilterDropdown({
       aria-labelledby={isField ? labelId : undefined}
       aria-label={isField ? undefined : label}
       className={listClass}
-      onKeyDown={handleListboxKeyDown}
     >
       {options.map((option, index) => {
         const selected = option.value === value;
@@ -111,7 +110,8 @@ export function FilterDropdown({
     <div
       ref={rootRef}
       className={isField ? "relative w-full" : "relative inline-block"}
-      onBlur={handleRootBlur}
+      onBlur={handleFocusLeave}
+      onKeyDown={handleRootKeyDown}
     >
       {trigger}
       {listbox}

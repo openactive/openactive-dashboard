@@ -2,6 +2,10 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useClickOutside } from "../hooks/useClickOutside";
+import { useDisclosureTriggerKeyDown } from "../hooks/useDisclosureTriggerKeyDown";
+import { useEscapeClose } from "../hooks/useEscapeClose";
+import { useFocusLeaveClose } from "../hooks/useFocusLeaveClose";
+import { useTabExitClose } from "../hooks/useTabExitClose";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -41,7 +45,11 @@ export function AreaHierarchyPicker({
   const [drill, setDrill] = useState<DrillLevel>({ type: "root" });
   const [query, setQuery] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
+  const backRef = useRef<HTMLButtonElement>(null);
   const listboxId = useId();
+  const titleId = `${listboxId}-title`;
+
   const triggerLabel = getAreaSelectionLabel(
     hierarchy,
     filters.district,
@@ -49,7 +57,16 @@ export function AreaHierarchyPicker({
   );
 
   const closePicker = useCallback(() => setOpen(false), []);
+  const openPicker = useCallback(() => setOpen(true), []);
   useClickOutside(containerRef, open, closePicker);
+  useEscapeClose(open, closePicker);
+  const handleTriggerKeyDown = useDisclosureTriggerKeyDown({
+    open,
+    onOpen: openPicker,
+    onClose: closePicker,
+  });
+  const handleFocusLeave = useFocusLeaveClose(containerRef, open, closePicker);
+  const handleTabExit = useTabExitClose(containerRef, open, closePicker);
 
   useEffect(() => {
     if (!open) {
@@ -57,6 +74,31 @@ export function AreaHierarchyPicker({
       setDrill({ type: "root" });
     }
   }, [open]);
+
+  const goBack = useCallback(() => {
+    setDrill((current) => {
+      if (current.type === "region") {
+        return { type: "country", country: current.country };
+      }
+      return { type: "root" };
+    });
+    setQuery("");
+  }, []);
+
+  const focusPanelEntry = useCallback(() => {
+    requestAnimationFrame(() => {
+      if (backRef.current) {
+        backRef.current.focus();
+        return;
+      }
+      listRef.current?.querySelector<HTMLButtonElement>("button")?.focus();
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    focusPanelEntry();
+  }, [open, drill, focusPanelEntry]);
 
   function applyScope(scope: string) {
     onChange(selectAreaScope(filters, scope));
@@ -66,6 +108,27 @@ export function AreaHierarchyPicker({
   function applyArea(name: string) {
     onChange(selectArea(filters, name));
     setOpen(false);
+  }
+
+  function drillToCountry(country: GeoCountry) {
+    if (country.regions.length === 1) {
+      const region = country.regions[0];
+      if (region.areas.length <= 1 && region.areas[0]) {
+        applyArea(region.areas[0].name);
+        return;
+      }
+      setDrill({ type: "region", country, region });
+      return;
+    }
+    setDrill({ type: "country", country });
+  }
+
+  function drillToRegion(country: GeoCountry, region: GeoRegion) {
+    if (region.areas.length === 1 && region.areas[0]) {
+      applyArea(region.areas[0].name);
+      return;
+    }
+    setDrill({ type: "region", country, region });
   }
 
   function renderListItems() {
@@ -83,18 +146,7 @@ export function AreaHierarchyPicker({
               label={country.label}
               subLabel={`${country.regions.length} regions`}
               hasChildren
-              onSelect={() => {
-                if (country.regions.length === 1) {
-                  const region = country.regions[0];
-                  if (region.areas.length <= 1 && region.areas[0]) {
-                    applyArea(region.areas[0].name);
-                  } else {
-                    setDrill({ type: "region", country, region });
-                  }
-                } else {
-                  setDrill({ type: "country", country });
-                }
-              }}
+              onSelect={() => drillToCountry(country)}
             />
           ))}
         </>
@@ -116,13 +168,7 @@ export function AreaHierarchyPicker({
               label={region.label}
               subLabel={`${region.areas.length} areas`}
               hasChildren
-              onSelect={() => {
-                if (region.areas.length === 1 && region.areas[0]) {
-                  applyArea(region.areas[0].name);
-                } else {
-                  setDrill({ type: "region", country, region });
-                }
-              }}
+              onSelect={() => drillToRegion(country, region)}
             />
           ))}
         </>
@@ -158,9 +204,9 @@ export function AreaHierarchyPicker({
           />
         ))}
         {areas.length === 0 && (
-          <p className="px-4 py-6 text-sm text-oa-grey-500 text-center">
+          <li className="px-4 py-6 text-center text-sm text-oa-grey-500">
             No areas match your search.
-          </p>
+          </li>
         )}
       </>
     );
@@ -173,11 +219,57 @@ export function AreaHierarchyPicker({
         ? drill.country.label
         : `${drill.country.label} › ${drill.region.label}`;
 
+  const backLabel =
+    drill.type === "region"
+      ? `Back to ${drill.country.label} regions`
+      : drill.type === "country"
+        ? "Back to all countries"
+        : "";
+
+  const focusSiblingOption = (current: HTMLElement, direction: 1 | -1) => {
+    const options = listRef.current
+      ? Array.from(
+          listRef.current.querySelectorAll<HTMLButtonElement>(
+            "button[data-picker-option]"
+          )
+        )
+      : [];
+    const index = options.indexOf(current as HTMLButtonElement);
+    if (index < 0) return;
+    const next = options[index + direction];
+    next?.focus();
+  };
+
+  const handlePanelKeyDown = (e: React.KeyboardEvent) => {
+    handleTabExit(e);
+
+    const target = e.target as HTMLElement;
+    if (e.key === "ArrowDown" && target.matches("[data-picker-option]")) {
+      e.preventDefault();
+      focusSiblingOption(target, 1);
+    } else if (e.key === "ArrowUp" && target.matches("[data-picker-option]")) {
+      e.preventDefault();
+      focusSiblingOption(target, -1);
+    } else if (
+      e.key === "ArrowLeft" &&
+      target.matches("[data-picker-option]") &&
+      drill.type !== "root"
+    ) {
+      e.preventDefault();
+      goBack();
+    }
+  };
+
   return (
-    <div ref={containerRef} className="relative w-full">
+    <div
+      ref={containerRef}
+      className="relative w-full"
+      onBlur={handleFocusLeave}
+      onKeyDown={handlePanelKeyDown}
+    >
       <label
         htmlFor={`${listboxId}-trigger`}
-        className={`block text-[11px] font-semibold uppercase tracking-widest mb-1.5 ${isGlass ? "text-oa-grey-500" : "font-bold tracking-[0.12em] text-oa-grey-500"}`}
+        className={`mb-1.5 block text-[11px] font-semibold uppercase tracking-widest ${isGlass ? "text-oa-grey-500" : "font-bold tracking-[0.12em] text-oa-grey-500"}`}
       >
         Area
       </label>
@@ -190,9 +282,10 @@ export function AreaHierarchyPicker({
             : "flex w-full cursor-pointer items-center gap-2 rounded-lg border border-oa-grey-300 bg-oa-grey-50 px-3 py-2.5 text-left text-sm text-oa-navy transition-colors hover:border-oa-cyan hover:bg-white focus:outline-none focus:border-oa-cyan focus:ring-2 focus:ring-oa-cyan/25"
         }
         onClick={() => setOpen(!open)}
-        aria-haspopup="listbox"
+        onKeyDown={handleTriggerKeyDown}
+        aria-haspopup="dialog"
         aria-expanded={open}
-        aria-controls={listboxId}
+        aria-controls={open ? listboxId : undefined}
       >
         <span className="flex-1 truncate font-medium">{triggerLabel}</span>
         <ChevronRightIcon
@@ -203,6 +296,10 @@ export function AreaHierarchyPicker({
 
       {open && (
         <div
+          id={listboxId}
+          role="dialog"
+          aria-modal="false"
+          aria-labelledby={titleId}
           className={`absolute left-0 right-0 z-50 mt-1 w-full max-w-full min-w-0 border bg-white ${
             isGlass
               ? "overflow-hidden rounded-lg border-white/90 bg-white/95 shadow-lg backdrop-blur-md"
@@ -210,30 +307,36 @@ export function AreaHierarchyPicker({
                 ? "overflow-hidden rounded-lg border-oa-grey-200 shadow-lg"
                 : "overflow-hidden rounded-sm border-oa-navy shadow-[6px_6px_0_0_#223582]"
           }`}
-          role="presentation"
         >
-          <div className="flex items-center gap-1 border-b border-oa-grey-200 bg-oa-grey-50 px-2 py-2">
+          <div
+            role="toolbar"
+            aria-label="Area picker navigation"
+            className="flex items-center gap-1 border-b border-oa-grey-200 bg-oa-grey-50 px-2 py-2"
+          >
             {drill.type !== "root" && (
               <button
+                ref={backRef}
                 type="button"
-                className="cursor-pointer rounded-sm p-1.5 text-oa-navy hover:bg-oa-grey-200 focus:outline-none focus:ring-1 focus:ring-oa-cyan"
-                onClick={() => {
-                  if (drill.type === "region") {
-                    setDrill({ type: "country", country: drill.country });
-                  } else {
-                    setDrill({ type: "root" });
-                  }
-                  setQuery("");
-                }}
-                aria-label="Go back"
+                className="cursor-pointer rounded-sm p-1.5 text-oa-navy hover:bg-oa-grey-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-oa-cyan"
+                onClick={goBack}
+                aria-label={backLabel}
               >
                 <ChevronLeftIcon className="h-4 w-4" aria-hidden="true" />
               </button>
             )}
-            <p className="text-xs font-bold uppercase tracking-wide text-oa-navy">
+            <p
+              id={titleId}
+              className="text-xs font-bold uppercase tracking-wide text-oa-navy"
+            >
               {panelTitle}
             </p>
           </div>
+
+          <p className="sr-only">
+            Tab through options to choose a scope. Leaving the list with Tab
+            closes this picker. Use the back button or press left arrow on an
+            option to return to the previous level.
+          </p>
 
           {drill.type === "region" && drill.region.areas.length > 8 && (
             <div className="border-b border-oa-grey-200 px-2 py-2">
@@ -252,9 +355,9 @@ export function AreaHierarchyPicker({
           )}
 
           <ul
-            id={listboxId}
-            role="listbox"
-            aria-label={panelTitle}
+            ref={listRef}
+            role="group"
+            aria-label={`${panelTitle} options`}
             className={
               isSheet
                 ? "max-h-[min(36dvh,380px)] overflow-y-auto"
@@ -283,21 +386,24 @@ function PickerRow({
   onSelect: () => void;
 }) {
   return (
-    <li role="presentation" className="border-b border-oa-grey-100 last:border-b-0">
+    <li className="border-b border-oa-grey-100 last:border-b-0">
       <button
         type="button"
-        role="option"
+        data-picker-option
         className={`flex w-full cursor-pointer items-center gap-2 px-3 py-2.5 text-left text-sm transition-colors focus:outline-none focus:bg-oa-cyan/10 focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-oa-cyan ${
           muted
             ? "text-oa-grey-400 hover:bg-oa-grey-50"
             : "text-oa-grey-800 hover:bg-oa-grey-50"
         }`}
         onClick={onSelect}
+        aria-label={
+          hasChildren ? `${label}, ${subLabel ?? ""}, opens sub-menu` : undefined
+        }
       >
-        <span className="flex-1 min-w-0">
-          <span className="block font-medium truncate">{label}</span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate font-medium">{label}</span>
           {subLabel && (
-            <span className="block text-xs text-oa-grey-500 truncate">
+            <span className="block truncate text-xs text-oa-grey-500">
               {subLabel}
             </span>
           )}

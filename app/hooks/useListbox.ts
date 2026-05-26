@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useClickOutside } from "./useClickOutside";
+import { useDisclosureTriggerKeyDown } from "./useDisclosureTriggerKeyDown";
+import { useEscapeClose } from "./useEscapeClose";
+import { useFocusLeaveClose } from "./useFocusLeaveClose";
+import { useTabExitClose } from "./useTabExitClose";
 
 export type ListboxOption = {
   value: string;
@@ -145,43 +149,26 @@ export function useListbox({
     [focusOption, options.length]
   );
 
-  const handleTriggerKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      switch (e.key) {
-        case "ArrowDown":
-        case "ArrowUp":
-          if (!open) {
-            e.preventDefault();
-            openListbox();
-          }
-          break;
-        case "Enter":
-        case " ":
-          if (!open) {
-            e.preventDefault();
-            openListbox();
-          }
-          break;
-        case "Escape":
-          if (open) {
-            e.preventDefault();
-            closeListbox();
-          }
-          break;
-      }
-    },
-    [closeListbox, open, openListbox]
-  );
-
-  const handleRootBlur = useCallback((e: React.FocusEvent) => {
-    const root = e.currentTarget;
-    const next = e.relatedTarget as Node | null;
-    if (next && root.contains(next)) return;
-    setOpen(false);
-  }, []);
-
   const closeOnClickOutside = useCallback(() => setOpen(false), []);
   useClickOutside(rootRef, open, closeOnClickOutside);
+  useEscapeClose(open, () => closeListbox());
+
+  const handleTriggerKeyDown = useDisclosureTriggerKeyDown({
+    open,
+    onOpen: openListbox,
+    onClose: () => closeListbox(),
+  });
+
+  const handleFocusLeave = useFocusLeaveClose(rootRef, open, closeOnClickOutside);
+  const handleTabExit = useTabExitClose(rootRef, open, closeOnClickOutside);
+
+  const handleRootKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      handleTabExit(e);
+      handleListboxKeyDown(e);
+    },
+    [handleListboxKeyDown, handleTabExit]
+  );
 
   const setOptionRef = useCallback(
     (index: number) => (el: HTMLButtonElement | null) => {
@@ -204,8 +191,8 @@ export function useListbox({
     selectIndex,
     setOptionRef,
     handleTriggerKeyDown,
-    handleListboxKeyDown,
+    handleRootKeyDown,
     handleOptionKeyDown,
-    handleRootBlur,
+    handleFocusLeave,
   };
 }
