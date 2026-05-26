@@ -216,6 +216,11 @@ export function OpportunityMap({
     d3.select(svg).transition().duration(400).call(zoom.transform, d3.zoomIdentity);
   }, []);
 
+  /** Tap/click must not focus the SVG — mobile browsers draw a visible focus ring. */
+  const preventMapFocusRing = useCallback((e: React.PointerEvent) => {
+    e.preventDefault();
+  }, []);
+
   const focusedCount = focusedDistrict
     ? countByDistrict.current.get(focusedDistrict)
     : undefined;
@@ -236,10 +241,11 @@ export function OpportunityMap({
     <figure className={`flex flex-col ${isImmersive ? "relative h-full min-h-0 w-full" : ""}`}>
       <div
         ref={containerRef}
-        className={`relative w-full touch-none ${
+        className={`relative w-full touch-none outline-none [-webkit-tap-highlight-color:transparent] [&_svg]:outline-none [&_svg:focus]:outline-none [&_path]:outline-none ${
           isImmersive ? "h-full min-h-[480px] flex-1" : "min-h-[360px] sm:min-h-[440px]"
         }`}
         style={{ background: "linear-gradient(165deg, #e4ecf4 0%, #d6e2ec 45%, #c8d6e2 100%)" }}
+        onPointerDown={preventMapFocusRing}
       >
         {isAutoFramed && selectedDistrict && (
           <p
@@ -268,7 +274,7 @@ export function OpportunityMap({
 
         <svg
           ref={svgRef}
-          className={`h-full w-full cursor-grab active:cursor-grabbing ${status !== "ready" ? "opacity-0" : ""}`}
+          className={`h-full w-full cursor-grab outline-none focus:outline-none active:cursor-grabbing ${status !== "ready" ? "opacity-0" : ""}`}
           aria-labelledby="map-title"
           aria-describedby={tooltipId}
           tabIndex={-1}
