@@ -1,0 +1,27 @@
+import type {
+  ExplorerFilterOption,
+  ExplorerFilters,
+  ExplorerSummary,
+} from "./explore-filters";
+import type { GeoHierarchy } from "./geo-hierarchy";
+
+export type MobilePanel = "none" | "filters" | "stats";
+
+export interface ExplorerFilterControlProps {
+  hierarchy: GeoHierarchy;
+  filters: ExplorerFilters;
+  districtsWithData: Set<string>;
+  publisherOptions: ExplorerFilterOption[];
+  activityOptions: ExplorerFilterOption[];
+  onFiltersChange: (filters: ExplorerFilters) => void;
+  onPublisherChange: (value: string) => void;
+  onActivityChange: (value: string) => void;
+}
+
+export interface ExplorerMobileChromeProps {
+  panel: MobilePanel;
+  onPanelChange: (panel: MobilePanel) => void;
+  summary: ExplorerSummary;
+  selectionLabel: string;
+  filterProps: ExplorerFilterControlProps;
+}

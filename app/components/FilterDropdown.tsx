@@ -1,29 +1,24 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import type { ReactNode } from "react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
+import { useListbox, type ListboxOption } from "../hooks/useListbox";
 
-export interface FilterOption {
-  value: string;
-  label: string;
-}
+export type FilterOption = ListboxOption;
 
 interface FilterDropdownProps {
-  /** Label displayed on the trigger button */
   label: string;
-  /** Available options */
   options: FilterOption[];
-  /** Currently selected value */
   value: string;
-  /** Callback when an option is selected */
   onChange: (value: string) => void;
-  /** Optional id for linking with external label */
   id?: string;
+  /** @deprecated use layout="field" */
+  variant?: "default" | "onDark";
+  layout?: "inline" | "field" | "glass" | "sheet";
 }
 
 /**
- * FilterDropdown — an accessible custom select/dropdown used for filtering data.
- * Uses a button + listbox pattern following WAI-ARIA guidelines.
+ * Accessible custom select 
  */
 export function FilterDropdown({
   label,
@@ -31,77 +26,149 @@ export function FilterDropdown({
   value,
   onChange,
   id,
+  variant = "default",
+  layout,
 }: FilterDropdownProps) {
-  const [open, setOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const listboxId = id ? `${id}-listbox` : `filter-${label.toLowerCase().replace(/\s+/g, "-")}-listbox`;
+  const resolvedLayout =
+    layout ?? (variant === "onDark" ? "glass" : "inline");
+  const isGlass = resolvedLayout === "glass";
+  const isSheet = resolvedLayout === "sheet";
+  const isField = resolvedLayout === "field" || isGlass || isSheet;
+
+  const {
+    open,
+    setOpen,
+    rootRef,
+    triggerRef,
+    listboxRef,
+    triggerId,
+    labelId,
+    listboxId,
+    openListbox,
+    selectIndex,
+    setOptionRef,
+    handleTriggerKeyDown,
+    handleRootKeyDown,
+    handleOptionKeyDown,
+    handleFocusLeave,
+  } = useListbox({ options, value, onChange, idPrefix: id });
 
   const selectedOption = options.find((o) => o.value === value);
 
-  // Close on outside click
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  const triggerClass = isGlass
+    ? "flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg border border-white/80 bg-white/70 px-3 py-2.5 text-left text-sm font-medium text-oa-navy shadow-sm backdrop-blur-sm hover:border-oa-cyan/50 hover:bg-white/85 focus:outline-none focus:border-oa-cyan focus:ring-2 focus:ring-oa-cyan/25"
+    : isSheet || resolvedLayout === "field"
+      ? "flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg border border-oa-grey-300 bg-oa-grey-50 px-3 py-2.5 text-left text-sm font-medium text-oa-navy hover:border-oa-cyan hover:bg-white focus:outline-none focus:border-oa-cyan focus:ring-2 focus:ring-oa-cyan/25"
+      : "inline-flex cursor-pointer items-center gap-2 rounded-sm border border-oa-grey-300 bg-white px-3 py-2 text-sm font-medium text-oa-grey-700 hover:bg-oa-grey-50 focus:outline-none focus:border-oa-cyan focus:ring-1 focus:ring-oa-cyan";
 
-  // Close on Escape
-  function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Escape") {
-      setOpen(false);
-    }
-  }
+  const listClass = isGlass
+    ? "absolute left-0 right-0 z-50 mt-1 max-h-60 w-full max-w-full min-w-0 overflow-auto rounded-lg border border-white/90 bg-white/95 py-1 shadow-lg backdrop-blur-md"
+    : isSheet
+      ? "absolute left-0 right-0 z-50 mt-1 max-h-[min(28dvh,220px)] w-full max-w-full min-w-0 overflow-auto rounded-lg border border-oa-grey-200 bg-white py-1 shadow-lg"
+      : "absolute left-0 right-0 z-50 mt-1 max-h-60 w-full max-w-full min-w-0 overflow-auto rounded-sm border border-oa-navy bg-white py-0 shadow-[4px_4px_0_0_#223582]";
 
-  return (
-    <div ref={containerRef} className="relative inline-block" onKeyDown={handleKeyDown}>
-      <button
-        type="button"
-        className="inline-flex items-center gap-2 rounded-md border border-oa-grey-300 bg-white px-3 py-2 text-sm font-medium text-oa-grey-700 shadow-sm hover:bg-oa-grey-50 focus:outline-none focus:ring-2 focus:ring-oa-cyan focus:ring-offset-1 transition-colors cursor-pointer"
-        onClick={() => setOpen(!open)}
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        aria-controls={listboxId}
-        aria-label={`${label}: ${selectedOption?.label ?? "None"}`}
-      >
-        <span className="text-oa-grey-500 font-normal">{label}:</span>
-        <span>{selectedOption?.label ?? "All"}</span>
-        <ChevronDownIcon
-          className={`h-4 w-4 text-oa-grey-400 transition-transform ${open ? "rotate-180" : ""}`}
-          aria-hidden="true"
-        />
-      </button>
-
-      {open && (
-        <ul
-          id={listboxId}
-          role="listbox"
-          aria-label={label}
-          className="absolute z-20 mt-1 max-h-60 w-full min-w-[10rem] overflow-auto rounded-md border border-oa-grey-200 bg-white py-1 shadow-lg focus:outline-none"
-        >
-          {options.map((option) => (
-            <li
-              key={option.value}
+  const listbox = open ? (
+    <ul
+      ref={listboxRef}
+      id={listboxId}
+      role="listbox"
+      aria-labelledby={isField ? labelId : undefined}
+      aria-label={isField ? undefined : label}
+      className={listClass}
+    >
+      {options.map((option, index) => {
+        const selected = option.value === value;
+        return (
+          <li
+            key={option.value}
+            role="presentation"
+            className="border-b border-oa-grey-100 last:border-b-0"
+          >
+            <button
+              ref={setOptionRef(index)}
+              type="button"
               role="option"
-              aria-selected={option.value === value}
-              className={`cursor-pointer px-3 py-2 text-sm transition-colors ${
-                option.value === value
-                  ? "bg-oa-cyan/10 text-oa-cyan font-medium"
-                  : "text-oa-grey-700 hover:bg-oa-grey-50"
+              aria-selected={selected}
+              className={`w-full cursor-pointer truncate px-3 py-2 text-left text-sm transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-oa-cyan first:rounded-t-sm last:rounded-b-sm ${
+                selected
+                  ? "bg-oa-navy font-medium text-white"
+                  : "text-oa-grey-800 hover:bg-oa-grey-50 focus:bg-oa-cyan/10"
               }`}
-              onClick={() => {
-                onChange(option.value);
-                setOpen(false);
-              }}
+              onClick={() => selectIndex(index)}
+              onKeyDown={(e) => handleOptionKeyDown(e, index)}
+              title={option.label}
             >
               {option.label}
-            </li>
-          ))}
-        </ul>
-      )}
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+  ) : null;
+
+  const root = (trigger: ReactNode) => (
+    <div
+      ref={rootRef}
+      className={isField ? "relative w-full" : "relative inline-block"}
+      onBlur={handleFocusLeave}
+      onKeyDown={handleRootKeyDown}
+    >
+      {trigger}
+      {listbox}
     </div>
+  );
+
+  if (isField) {
+    return root(
+      <>
+        <label
+          id={labelId}
+          htmlFor={triggerId}
+          className={`mb-1.5 block text-[11px] font-semibold uppercase tracking-widest ${isGlass ? "text-oa-grey-500" : "font-bold tracking-[0.12em] text-oa-grey-500"}`}
+        >
+          {label}
+        </label>
+        <button
+          ref={triggerRef}
+          id={triggerId}
+          type="button"
+          className={triggerClass}
+          onClick={() => (open ? setOpen(false) : openListbox())}
+          onKeyDown={handleTriggerKeyDown}
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          aria-controls={listboxId}
+          aria-labelledby={labelId}
+        >
+          <span className="truncate">{selectedOption?.label ?? "All"}</span>
+          <ChevronDownIcon
+            className={`h-4 w-4 shrink-0 text-oa-grey-500 transition-transform ${open ? "rotate-180" : ""}`}
+            aria-hidden="true"
+          />
+        </button>
+      </>
+    );
+  }
+
+  return root(
+    <button
+      ref={triggerRef}
+      id={triggerId}
+      type="button"
+      className={`${triggerClass} cursor-pointer`}
+      onClick={() => (open ? setOpen(false) : openListbox())}
+      onKeyDown={handleTriggerKeyDown}
+      aria-haspopup="listbox"
+      aria-expanded={open}
+      aria-controls={listboxId}
+      aria-label={`${label}: ${selectedOption?.label ?? "All"}`}
+    >
+      <span className="font-normal text-oa-grey-500">{label}:</span>
+      <span>{selectedOption?.label ?? "All"}</span>
+      <ChevronDownIcon
+        className={`h-4 w-4 text-oa-grey-500 transition-transform ${open ? "rotate-180" : ""}`}
+        aria-hidden="true"
+      />
+    </button>
   );
 }

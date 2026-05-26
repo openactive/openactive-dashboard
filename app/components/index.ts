@@ -1,3 +1,10 @@
+export { DataExplorer } from "./DataExplorer";
+export { DataExplorerSection } from "./DataExplorerSection";
+export { AreaHierarchyPicker } from "./AreaHierarchyPicker";
+export { ExplorerFilterBar } from "./ExplorerFilterBar";
+export { ExplorerSummary } from "./ExplorerSummary";
+export { OpportunityMap } from "./OpportunityMap";
+export { HeroSection } from "./HeroSection";
 export { StatCard } from "./StatCard";
 export { FilterDropdown } from "./FilterDropdown";
 export { Panel } from "./Panel";
