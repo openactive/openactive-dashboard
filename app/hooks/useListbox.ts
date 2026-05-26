@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useClickOutside } from "./useClickOutside";
 
 export type ListboxOption = {
   value: string;
@@ -31,6 +32,7 @@ export function useListbox({
   const [open, setOpen] = useState(false);
   const selectedIndex = options.findIndex((o) => o.value === value);
 
+  const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const listboxRef = useRef<HTMLUListElement>(null);
   const optionRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -178,16 +180,8 @@ export function useListbox({
     setOpen(false);
   }, []);
 
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      const root = triggerRef.current?.closest("[data-listbox-root]");
-      if (root && !root.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  const closeOnClickOutside = useCallback(() => setOpen(false), []);
+  useClickOutside(rootRef, open, closeOnClickOutside);
 
   const setOptionRef = useCallback(
     (index: number) => (el: HTMLButtonElement | null) => {
@@ -199,6 +193,7 @@ export function useListbox({
   return {
     open,
     setOpen,
+    rootRef,
     triggerRef,
     listboxRef,
     triggerId,

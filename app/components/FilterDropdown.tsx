@@ -38,6 +38,7 @@ export function FilterDropdown({
   const {
     open,
     setOpen,
+    rootRef,
     triggerRef,
     listboxRef,
     triggerId,
@@ -108,7 +109,7 @@ export function FilterDropdown({
 
   const root = (trigger: ReactNode) => (
     <div
-      data-listbox-root
+      ref={rootRef}
       className={isField ? "relative w-full" : "relative inline-block"}
       onBlur={handleRootBlur}
     >

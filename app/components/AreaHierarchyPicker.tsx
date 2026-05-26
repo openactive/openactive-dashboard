@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useClickOutside } from "../hooks/useClickOutside";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -47,18 +48,8 @@ export function AreaHierarchyPicker({
     filters.areaScope
   );
 
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(e.target as Node)
-      ) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  const closePicker = useCallback(() => setOpen(false), []);
+  useClickOutside(containerRef, open, closePicker);
 
   useEffect(() => {
     if (!open) {
