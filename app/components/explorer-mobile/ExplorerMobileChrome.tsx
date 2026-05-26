@@ -24,13 +24,17 @@ export function ExplorerMobileChrome({
 }: ExplorerMobileChromeProps) {
   const closePanel = useCallback(() => onPanelChange("none"), [onPanelChange]);
 
+  const toggleFilters = useCallback(() => {
+    onPanelChange(panel === "filters" ? "none" : "filters");
+  }, [panel, onPanelChange]);
+
   useEscapeClose(panel !== "none", closePanel);
 
   return (
     <>
       <ExplorerMobileFilterButton
         panel={panel}
-        onOpenFilters={() => onPanelChange("filters")}
+        onToggleFilters={toggleFilters}
       />
 
       <ExplorerMobileStatsDock
