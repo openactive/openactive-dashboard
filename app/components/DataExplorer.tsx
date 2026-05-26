@@ -128,7 +128,10 @@ export function DataExplorer({ rows, hierarchy }: DataExplorerProps) {
       aria-label="Interactive map explorer"
     >
       {/* Full-bleed map */}
-      <div className="absolute inset-0 h-full w-full">
+      <div
+        className="absolute inset-0 h-full w-full"
+        inert={mobilePanel !== "none" ? true : undefined}
+      >
         <OpportunityMap
           layout="immersive"
           districtCounts={districtCounts}

@@ -30,21 +30,25 @@ export function ExplorerMobileChrome({
 
   useEscapeClose(panel !== "none", closePanel);
 
+  const sheetOpen = panel !== "none";
+
   return (
     <>
-      <ExplorerMobileFilterButton
-        panel={panel}
-        onToggleFilters={toggleFilters}
-      />
+      <div inert={sheetOpen ? true : undefined}>
+        <ExplorerMobileFilterButton
+          panel={panel}
+          onToggleFilters={toggleFilters}
+        />
 
-      <ExplorerMobileStatsDock
-        panel={panel}
-        summary={summary}
-        selectionLabel={selectionLabel}
-        onOpenStats={() => onPanelChange("stats")}
-      />
+        <ExplorerMobileStatsDock
+          panel={panel}
+          summary={summary}
+          selectionLabel={selectionLabel}
+          onOpenStats={() => onPanelChange("stats")}
+        />
+      </div>
 
-      {panel !== "none" && (
+      {sheetOpen && (
         <ExplorerMobileSheet panel={panel} onClose={closePanel}>
           {panel === "filters" ? (
             <ExplorerFilterBar layout="sheet" {...filterProps} />

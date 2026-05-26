@@ -1,12 +1,10 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import type { ReactNode } from "react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
+import { useListbox, type ListboxOption } from "../hooks/useListbox";
 
-export interface FilterOption {
-  value: string;
-  label: string;
-}
+export type FilterOption = ListboxOption;
 
 interface FilterDropdownProps {
   label: string;
@@ -20,7 +18,7 @@ interface FilterDropdownProps {
 }
 
 /**
- * Accessible custom select — square corners, minimal shadow.
+ * Accessible custom select 
  */
 export function FilterDropdown({
   label,
@@ -37,30 +35,24 @@ export function FilterDropdown({
   const isSheet = resolvedLayout === "sheet";
   const isField = resolvedLayout === "field" || isGlass || isSheet;
 
-  const [open, setOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const listboxId = id
-    ? `${id}-listbox`
-    : `filter-${label.toLowerCase().replace(/\s+/g, "-")}-listbox`;
+  const {
+    open,
+    setOpen,
+    triggerRef,
+    listboxRef,
+    triggerId,
+    labelId,
+    listboxId,
+    openListbox,
+    selectIndex,
+    setOptionRef,
+    handleTriggerKeyDown,
+    handleListboxKeyDown,
+    handleOptionKeyDown,
+    handleRootBlur,
+  } = useListbox({ options, value, onChange, idPrefix: id });
 
   const selectedOption = options.find((o) => o.value === value);
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(e.target as Node)
-      ) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Escape") setOpen(false);
-  }
 
   const triggerClass = isGlass
     ? "flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg border border-white/80 bg-white/70 px-3 py-2.5 text-left text-sm font-medium text-oa-navy shadow-sm backdrop-blur-sm hover:border-oa-cyan/50 hover:bg-white/85 focus:outline-none focus:border-oa-cyan focus:ring-2 focus:ring-oa-cyan/25"
@@ -69,33 +61,83 @@ export function FilterDropdown({
       : "inline-flex cursor-pointer items-center gap-2 rounded-sm border border-oa-grey-300 bg-white px-3 py-2 text-sm font-medium text-oa-grey-700 hover:bg-oa-grey-50 focus:outline-none focus:border-oa-cyan focus:ring-1 focus:ring-oa-cyan";
 
   const listClass = isGlass
-    ? "absolute left-0 right-0 z-50 mt-1 max-h-60 w-full max-w-full min-w-0 overflow-auto rounded-lg border border-white/90 bg-white/95 py-1 shadow-lg backdrop-blur-md focus:outline-none"
+    ? "absolute left-0 right-0 z-50 mt-1 max-h-60 w-full max-w-full min-w-0 overflow-auto rounded-lg border border-white/90 bg-white/95 py-1 shadow-lg backdrop-blur-md"
     : isSheet
-      ? "absolute left-0 right-0 z-50 mt-1 max-h-[min(28dvh,220px)] w-full max-w-full min-w-0 overflow-auto rounded-lg border border-oa-grey-200 bg-white py-1 shadow-lg focus:outline-none"
-      : "absolute left-0 right-0 z-50 mt-1 max-h-60 w-full max-w-full min-w-0 overflow-auto rounded-sm border border-oa-navy bg-white py-0 shadow-[4px_4px_0_0_#223582] focus:outline-none";
+      ? "absolute left-0 right-0 z-50 mt-1 max-h-[min(28dvh,220px)] w-full max-w-full min-w-0 overflow-auto rounded-lg border border-oa-grey-200 bg-white py-1 shadow-lg"
+      : "absolute left-0 right-0 z-50 mt-1 max-h-60 w-full max-w-full min-w-0 overflow-auto rounded-sm border border-oa-navy bg-white py-0 shadow-[4px_4px_0_0_#223582]";
+
+  const listbox = open ? (
+    <ul
+      ref={listboxRef}
+      id={listboxId}
+      role="listbox"
+      aria-labelledby={isField ? labelId : undefined}
+      aria-label={isField ? undefined : label}
+      className={listClass}
+      onKeyDown={handleListboxKeyDown}
+    >
+      {options.map((option, index) => {
+        const selected = option.value === value;
+        return (
+          <li
+            key={option.value}
+            role="presentation"
+            className="border-b border-oa-grey-100 last:border-b-0"
+          >
+            <button
+              ref={setOptionRef(index)}
+              type="button"
+              role="option"
+              aria-selected={selected}
+              className={`w-full cursor-pointer truncate px-3 py-2 text-left text-sm transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-oa-cyan first:rounded-t-sm last:rounded-b-sm ${
+                selected
+                  ? "bg-oa-navy font-medium text-white"
+                  : "text-oa-grey-800 hover:bg-oa-grey-50 focus:bg-oa-cyan/10"
+              }`}
+              onClick={() => selectIndex(index)}
+              onKeyDown={(e) => handleOptionKeyDown(e, index)}
+              title={option.label}
+            >
+              {option.label}
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+  ) : null;
+
+  const root = (trigger: ReactNode) => (
+    <div
+      data-listbox-root
+      className={isField ? "relative w-full" : "relative inline-block"}
+      onBlur={handleRootBlur}
+    >
+      {trigger}
+      {listbox}
+    </div>
+  );
 
   if (isField) {
-    return (
-      <div
-        ref={containerRef}
-        className="relative w-full"
-        onKeyDown={handleKeyDown}
-      >
+    return root(
+      <>
         <label
-          htmlFor={id ? `${id}-trigger` : undefined}
-          className={`block text-[11px] font-semibold uppercase tracking-widest mb-1.5 ${isGlass ? "text-oa-grey-500" : "font-bold tracking-[0.12em] text-oa-grey-500"}`}
+          id={labelId}
+          htmlFor={triggerId}
+          className={`mb-1.5 block text-[11px] font-semibold uppercase tracking-widest ${isGlass ? "text-oa-grey-500" : "font-bold tracking-[0.12em] text-oa-grey-500"}`}
         >
           {label}
         </label>
         <button
-          id={id ? `${id}-trigger` : undefined}
+          ref={triggerRef}
+          id={triggerId}
           type="button"
           className={triggerClass}
-          onClick={() => setOpen(!open)}
+          onClick={() => (open ? setOpen(false) : openListbox())}
+          onKeyDown={handleTriggerKeyDown}
           aria-haspopup="listbox"
           aria-expanded={open}
           aria-controls={listboxId}
-          aria-label={`${label}: ${selectedOption?.label ?? "All"}`}
+          aria-labelledby={labelId}
         >
           <span className="truncate">{selectedOption?.label ?? "All"}</span>
           <ChevronDownIcon
@@ -103,84 +145,29 @@ export function FilterDropdown({
             aria-hidden="true"
           />
         </button>
-        {open && (
-          <ul id={listboxId} role="listbox" aria-label={label} className={listClass}>
-            {options.map((option) => (
-              <OptionItem
-                key={option.value}
-                option={option}
-                selected={option.value === value}
-                onSelect={() => {
-                  onChange(option.value);
-                  setOpen(false);
-                }}
-              />
-            ))}
-          </ul>
-        )}
-      </div>
+      </>
     );
   }
 
-  return (
-    <div ref={containerRef} className="relative inline-block" onKeyDown={handleKeyDown}>
-      <button
-        type="button"
-        className={`${triggerClass} cursor-pointer`}
-        onClick={() => setOpen(!open)}
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        aria-controls={listboxId}
-        aria-label={`${label}: ${selectedOption?.label ?? "All"}`}
-      >
-        <span className="text-oa-grey-500 font-normal">{label}:</span>
-        <span>{selectedOption?.label ?? "All"}</span>
-        <ChevronDownIcon
-          className={`h-4 w-4 text-oa-grey-500 transition-transform ${open ? "rotate-180" : ""}`}
-          aria-hidden="true"
-        />
-      </button>
-      {open && (
-        <ul id={listboxId} role="listbox" aria-label={label} className={listClass}>
-          {options.map((option) => (
-            <OptionItem
-              key={option.value}
-              option={option}
-              selected={option.value === value}
-              onSelect={() => {
-                onChange(option.value);
-                setOpen(false);
-              }}
-            />
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
-
-function OptionItem({
-  option,
-  selected,
-  onSelect,
-}: {
-  option: FilterOption;
-  selected: boolean;
-  onSelect: () => void;
-}) {
-  return (
-    <li
-      role="option"
-      aria-selected={selected}
-      className={`cursor-pointer truncate border-b border-oa-grey-100 px-3 py-2 text-sm last:border-b-0 first:rounded-t-sm last:rounded-b-sm ${
-        selected
-          ? "bg-oa-navy text-white font-medium"
-          : "text-oa-grey-800 hover:bg-oa-grey-50"
-      }`}
-      onClick={onSelect}
-      title={option.label}
+  return root(
+    <button
+      ref={triggerRef}
+      id={triggerId}
+      type="button"
+      className={`${triggerClass} cursor-pointer`}
+      onClick={() => (open ? setOpen(false) : openListbox())}
+      onKeyDown={handleTriggerKeyDown}
+      aria-haspopup="listbox"
+      aria-expanded={open}
+      aria-controls={listboxId}
+      aria-label={`${label}: ${selectedOption?.label ?? "All"}`}
     >
-      {option.label}
-    </li>
+      <span className="font-normal text-oa-grey-500">{label}:</span>
+      <span>{selectedOption?.label ?? "All"}</span>
+      <ChevronDownIcon
+        className={`h-4 w-4 text-oa-grey-500 transition-transform ${open ? "rotate-180" : ""}`}
+        aria-hidden="true"
+      />
+    </button>
   );
 }
