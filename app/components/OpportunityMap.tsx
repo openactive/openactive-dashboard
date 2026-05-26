@@ -137,7 +137,12 @@ export function OpportunityMap({
       .attr("stroke-width", 0.6)
       .attr("pointer-events", "none");
 
-    const dataLayer = zoomRoot.append("g").attr("class", "data-layer");
+    const dataLayer = zoomRoot
+      .append("g")
+      .attr("class", "data-layer")
+      .attr("role", "group")
+      .attr("aria-label", "Local authority areas");
+
     dataLayer
       .selectAll<SVGPathElement, LadFeature>("path")
       .data(allFeatures)
@@ -147,24 +152,16 @@ export function OpportunityMap({
       .attr("stroke", (d) => strokeForFeature(d, scopeSet, selectedDistrict))
       .attr("stroke-width", (d) => strokeWidthForFeature(d, scopeSet, selectedDistrict))
       .style("cursor", "pointer")
-      .attr("tabindex", 0)
-      .attr("role", "button")
-      .attr("aria-describedby", tooltipId)
-      .attr("aria-label", (d) => {
-        const name = d.properties?.geo_name ?? "Unknown area";
-        const count = counts.get(name) ?? 0;
-        return count > 0
-          ? `${name}: ${formatFullNumber(count)} opportunities`
-          : `${name}: no opportunities in current selection`;
-      })
-      .on("focus mouseenter", function (_, d) {
+      .attr("tabindex", -1)
+      .attr("aria-hidden", "true")
+      .on("mouseenter", function (_, d) {
         const name = d.properties?.geo_name ?? null;
         setFocusedDistrict(name);
         if (name !== selectedDistrict) {
           d3.select(this).attr("stroke", FOCUS_STROKE).attr("stroke-width", 2);
         }
       })
-      .on("blur mouseleave", function (_, d) {
+      .on("mouseleave", function (_, d) {
         setFocusedDistrict(null);
         d3.select(this)
           .attr("stroke", strokeForFeature(d, scopeSet, selectedDistrict))
@@ -274,6 +271,8 @@ export function OpportunityMap({
           className={`h-full w-full cursor-grab active:cursor-grabbing ${status !== "ready" ? "opacity-0" : ""}`}
           aria-labelledby="map-title"
           aria-describedby={tooltipId}
+          tabIndex={-1}
+          focusable="false"
         />
 
         {status === "ready" && (
@@ -288,7 +287,9 @@ export function OpportunityMap({
       </div>
 
       <figcaption className="sr-only" id="map-title">
-        Choropleth map of opportunities per local authority. Drag to pan and scroll or pinch to zoom.
+        Choropleth map of opportunities per local authority. Use the filters to
+        choose an area. Drag to pan and scroll or pinch to zoom; zoom buttons
+        are available after the filters in the tab order.
       </figcaption>
 
       <MapLegend

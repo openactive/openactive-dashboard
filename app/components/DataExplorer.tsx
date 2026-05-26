@@ -32,6 +32,7 @@ interface DataExplorerProps {
 
 /**
  * Map-first explorer: floating glass panels on desktop; compact dock + sheets on mobile/tablet.
+ * Chrome is first in DOM order so keyboard users reach filters before map zoom controls.
  */
 export function DataExplorer({ rows, hierarchy }: DataExplorerProps) {
   const [filters, setFilters] = useState<ExplorerFilters>(
@@ -127,23 +128,28 @@ export function DataExplorer({ rows, hierarchy }: DataExplorerProps) {
       }`}
       aria-label="Interactive map explorer"
     >
-      {/* Full-bleed map */}
-      <div
-        className="absolute inset-0 h-full w-full"
-        inert={mobilePanel !== "none" ? true : undefined}
-      >
-        <OpportunityMap
-          layout="immersive"
-          districtCounts={districtCounts}
-          scopeAreaNames={mapScopeNames}
-          selectedDistrict={
-            filters.district !== ALL_FILTER ? filters.district : null
-          }
-        />
-      </div>
+      {/* Keyboard tab order: chrome before map (map is visual only, position absolute) */}
+      <div id="explorer-filters">
+        <div className="lg:hidden">
+          <ExplorerMobileChrome
+          panel={mobilePanel}
+          onPanelChange={setMobilePanel}
+          summary={summary}
+          selectionLabel={selectionLabel}
+          filterProps={{
+            hierarchy,
+            filters,
+            districtsWithData,
+            publisherOptions,
+            activityOptions,
+            onFiltersChange: setFiltersNormalized,
+            onPublisherChange: (value) => updateFilter("publisher", value),
+            onActivityChange: (value) => updateFilter("activity", value),
+          }}
+          />
+        </div>
 
-      {/* Desktop — vertical filters top-left */}
-      <div className="absolute top-4 left-4 z-20 hidden pointer-events-none sm:top-5 sm:left-5 lg:block lg:w-[min(18rem,calc(100%-30rem))] xl:w-[min(20rem,calc(100%-32rem))]">
+        <div className="absolute top-4 left-4 z-20 hidden pointer-events-none sm:top-5 sm:left-5 lg:block lg:w-[min(18rem,calc(100%-30rem))] xl:w-[min(20rem,calc(100%-32rem))]">
         <div className="pointer-events-auto w-full">
           <ExplorerFilterBar
             layout="overlay"
@@ -157,9 +163,9 @@ export function DataExplorer({ rows, hierarchy }: DataExplorerProps) {
             onActivityChange={(value) => updateFilter("activity", value)}
           />
         </div>
+        </div>
       </div>
 
-      {/* Desktop — summary top-right */}
       <div
         className="absolute z-20 pointer-events-none hidden lg:block top-5 right-5 w-[24rem] xl:right-6 xl:w-104 2xl:w-md"
         aria-labelledby="explorer-summary-heading"
@@ -176,23 +182,18 @@ export function DataExplorer({ rows, hierarchy }: DataExplorerProps) {
         </div>
       </div>
 
-      {/* Mobile & tablet — hidden at lg; panel state cleared on resize to desktop */}
-      <div className="lg:hidden">
-        <ExplorerMobileChrome
-          panel={mobilePanel}
-          onPanelChange={setMobilePanel}
-          summary={summary}
-          selectionLabel={selectionLabel}
-          filterProps={{
-            hierarchy,
-            filters,
-            districtsWithData,
-            publisherOptions,
-            activityOptions,
-            onFiltersChange: setFiltersNormalized,
-            onPublisherChange: (value) => updateFilter("publisher", value),
-            onActivityChange: (value) => updateFilter("activity", value),
-          }}
+      <div
+        className="absolute inset-0 h-full w-full"
+        inert={mobilePanel !== "none" ? true : undefined}
+        aria-hidden={mobilePanel !== "none" ? true : undefined}
+      >
+        <OpportunityMap
+          layout="immersive"
+          districtCounts={districtCounts}
+          scopeAreaNames={mapScopeNames}
+          selectedDistrict={
+            filters.district !== ALL_FILTER ? filters.district : null
+          }
         />
       </div>
     </div>
