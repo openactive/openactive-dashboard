@@ -24,16 +24,13 @@ interface OpportunityMapProps {
   districtCounts: DistrictCount[];
   scopeAreaNames: string[] | null;
   selectedDistrict: string | null;
-  layout?: "default" | "immersive";
 }
 
 export function OpportunityMap({
   districtCounts,
   scopeAreaNames,
   selectedDistrict,
-  layout = "default",
 }: OpportunityMapProps) {
-  const isImmersive = layout === "immersive";
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const zoomBehaviorRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
@@ -228,31 +225,23 @@ export function OpportunityMap({
     Boolean(selectedDistrict) ||
     (scopeAreaNames && scopeAreaNames.length > 0 && scopeAreaNames.length <= 8);
 
-  const zoomControlsClass = isImmersive
-    ? "absolute top-3 right-3 z-30 flex flex-col gap-0.5 oa-glass rounded-md p-0.5 shadow-sm sm:top-4 sm:right-4 lg:top-auto lg:bottom-5 lg:right-5 lg:rounded-lg lg:p-1"
-    : "absolute bottom-14 right-3 z-20 flex flex-col gap-0.5 oa-glass rounded-lg p-1 shadow-sm sm:bottom-16";
+  const zoomControlsClass =
+    "absolute top-3 right-3 z-30 flex flex-col gap-0.5 oa-glass rounded-md p-0.5 shadow-sm sm:top-4 sm:right-4 lg:top-auto lg:bottom-5 lg:right-5 lg:rounded-lg lg:p-1";
 
-  const legendClass = isImmersive
-    ? "absolute bottom-4 left-4 z-10 hidden max-w-md flex-col gap-2 oa-glass rounded-xl p-3 lg:flex lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:max-w-lg lg:bottom-5 lg:left-5"
-    : "flex flex-col gap-3 border-t border-oa-grey-200 bg-oa-grey-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5";
+  const legendClass =
+    "absolute bottom-4 left-4 z-10 hidden max-w-md flex-col gap-2 oa-glass rounded-xl p-3 lg:flex lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:max-w-lg lg:bottom-5 lg:left-5";
 
   return (
-    <figure className={`flex flex-col ${isImmersive ? "relative h-full min-h-0 w-full" : ""}`}>
+    <figure className="relative flex h-full min-h-0 w-full flex-col">
       <div
         ref={containerRef}
-        className={`relative w-full touch-none outline-none [-webkit-tap-highlight-color:transparent] [&_svg]:outline-none [&_svg:focus]:outline-none [&_path]:outline-none ${
-          isImmersive ? "h-full min-h-[480px] flex-1" : "min-h-[360px] sm:min-h-[440px]"
-        }`}
+        className="relative h-full min-h-[480px] w-full flex-1 touch-none outline-none [-webkit-tap-highlight-color:transparent] [&_svg]:outline-none [&_svg:focus]:outline-none [&_path]:outline-none"
         style={{ background: "linear-gradient(165deg, #e4ecf4 0%, #d6e2ec 45%, #c8d6e2 100%)" }}
         onPointerDown={preventMapFocusRing}
       >
         {isAutoFramed && selectedDistrict && (
           <p
-            className={`absolute z-10 text-[10px] font-semibold uppercase tracking-wider text-oa-navy ${
-              isImmersive
-                ? "bottom-42 left-4 oa-glass rounded-lg px-3 py-1.5 lg:hidden"
-                : "top-3 left-3 bg-oa-navy px-2.5 py-1 text-oa-aqua rounded-sm"
-            }`}
+            className="absolute bottom-42 left-4 z-10 rounded-lg px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-oa-navy oa-glass lg:hidden"
             aria-hidden="true"
           >
             Framed on {selectedDistrict}
@@ -283,7 +272,7 @@ export function OpportunityMap({
         {status === "ready" && (
           <MapZoomControls
             className={zoomControlsClass}
-            compact={isImmersive}
+            compact
             onZoomIn={() => zoomBy(1.35)}
             onZoomOut={() => zoomBy(1 / 1.35)}
             onReset={resetView}

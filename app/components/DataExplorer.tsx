@@ -205,7 +205,6 @@ export function DataExplorer({ rows, hierarchy }: DataExplorerProps) {
         aria-hidden={mobilePanel !== "none" ? true : undefined}
       >
         <OpportunityMap
-          layout="immersive"
           districtCounts={districtCounts}
           scopeAreaNames={mapScopeNames}
           selectedDistrict={

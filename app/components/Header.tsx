@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
+import { useEscapeClose } from "../hooks/useEscapeClose";
+import { useFocusTrap } from "../hooks/useFocusTrap";
 
 const navLinks = [
   { href: "/", label: "Dashboard" },
@@ -16,12 +18,25 @@ const navLinks = [
 ];
 
 const utilityLinks = [
-  { href: "https://www.openactive.io/developers/", label: "For developers", external: true },
-  { href: "https://www.openactive.io/find-an-openactive-partner/", label: "Find an OpenActive Partner", external: true },
+  { href: "https://www.openactive.io/developers/", label: "For developers" },
+  {
+    href: "https://www.openactive.io/find-an-openactive-partner/",
+    label: "Find an OpenActive Partner",
+  },
 ];
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const mobileMenuRef = useRef<HTMLElement>(null);
+
+  const closeMobileMenu = useCallback(() => {
+    setMobileMenuOpen(false);
+    menuButtonRef.current?.focus();
+  }, []);
+
+  useEscapeClose(mobileMenuOpen, closeMobileMenu);
+  useFocusTrap(mobileMenuRef, mobileMenuOpen);
 
   return (
     <header className="relative bg-white border-b border-oa-grey-200" role="banner">
@@ -91,11 +106,12 @@ export function Header() {
 
           {/* Mobile menu button */}
           <button
+            ref={menuButtonRef}
             type="button"
             className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-oa-grey-600 hover:text-oa-indigo hover:bg-oa-grey-100 focus:outline-none focus:ring-2 focus:ring-oa-indigo focus:ring-offset-2 transition-colors"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-expanded={mobileMenuOpen}
-            aria-controls="mobile-menu"
+            aria-controls={mobileMenuOpen ? "mobile-menu" : undefined}
             aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
           >
             {mobileMenuOpen ? (
@@ -108,7 +124,12 @@ export function Header() {
 
         {/* Mobile menu */}
         {mobileMenuOpen && (
-          <nav id="mobile-menu" className="absolute top-16 inset-x-0 z-50 md:hidden bg-white border-b border-oa-grey-200 shadow-lg pb-4" aria-label="Mobile navigation">
+          <nav
+            ref={mobileMenuRef}
+            id="mobile-menu"
+            className="absolute top-16 inset-x-0 z-50 md:hidden bg-white border-b border-oa-grey-200 shadow-lg pb-4"
+            aria-label="Mobile navigation"
+          >
             <ul className="mt-4 space-y-2 px-4">
               {navLinks.map((link) => (
                 <li key={link.href}>
