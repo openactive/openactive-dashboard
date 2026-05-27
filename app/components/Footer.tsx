@@ -16,6 +16,7 @@ export function PreFooterCTA() {
               width={120}
               height={48}
               className="h-12 w-auto"
+              style={{ width: "auto", height: "auto" }}
               aria-hidden="true"
             />
           </div>
@@ -58,6 +59,7 @@ export function PreFooterCTA() {
                 width={80}
                 height={40}
                 className="h-10 w-auto"
+                style={{ width: "auto", height: "auto" }}
               />
             </div>
             <div>
@@ -69,6 +71,7 @@ export function PreFooterCTA() {
                   width={120}
                   height={80}
                   className="h-14 w-auto"
+                  style={{ width: "auto", height: "auto" }}
                 />
                 <Image
                   src="/images/sport_england.svg"
@@ -76,6 +79,7 @@ export function PreFooterCTA() {
                   width={100}
                   height={40}
                   className="h-10 w-auto"
+                  style={{ width: "auto", height: "auto" }}
                 />
               </div>
             </div>

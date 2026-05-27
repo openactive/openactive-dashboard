@@ -54,7 +54,7 @@ export function Header() {
         {/* Desktop layout */}
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex-shrink-0" aria-label="OpenActive — go to homepage">
+          <Link href="/" className="shrink-0" aria-label="OpenActive — go to homepage">
             <Image
               src="/images/open-active-logo.svg"
               alt=""
@@ -62,6 +62,7 @@ export function Header() {
               height={40}
               priority
               className="h-10 w-auto"
+              style={{ width: "auto", height: "auto" }}
               aria-hidden="true"
             />
           </Link>
