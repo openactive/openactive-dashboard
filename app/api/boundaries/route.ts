@@ -9,12 +9,20 @@ export async function GET() {
     "app/data/combined-boundaries.geojson"
   );
 
-  const body = readFileSync(filePath, "utf8");
+  try {
+    const body = readFileSync(filePath, "utf8");
 
-  return new NextResponse(body, {
-    headers: {
-      "Content-Type": "application/geo+json",
-      "Cache-Control": "public, max-age=86400, immutable",
-    },
-  });
+    return new NextResponse(body, {
+      headers: {
+        "Content-Type": "application/geo+json",
+        "Cache-Control": "public, max-age=86400, immutable",
+      },
+    });
+  } catch (error) {
+    console.error("Failed to read combined-boundaries.geojson:", error);
+    return NextResponse.json(
+      { error: "Failed to load boundaries data" },
+      { status: 500 }
+    );
+  }
 }

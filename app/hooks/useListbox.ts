@@ -146,12 +146,12 @@ export function useListbox({
 
   const closeOnClickOutside = useCallback(() => setOpen(false), []);
   useClickOutside(rootRef, open, closeOnClickOutside);
-  useEscapeClose(open, () => closeListbox());
+  useEscapeClose(open, closeListbox);
 
   const handleTriggerKeyDown = useDisclosureTriggerKeyDown({
     open,
     onOpen: openListbox,
-    onClose: () => closeListbox(),
+    onClose: closeListbox,
   });
 
   const handleFocusLeave = useFocusLeaveClose(rootRef, open, closeOnClickOutside);
