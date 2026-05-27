@@ -1,4 +1,3 @@
-import Link from "next/link";
 import Image from "next/image";
 
 export function PreFooterCTA() {
@@ -10,7 +9,7 @@ export function PreFooterCTA() {
         </h2>
         <div className="flex flex-col items-center gap-12 md:flex-row md:justify-between">
           {/* Logo */}
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             <Image
               src="/images/open-active-logo.svg"
               alt=""
@@ -95,7 +94,7 @@ export function Footer() {
           <nav aria-label="Footer links">
             <ul className="flex gap-6 text-sm">
               <li>
-                <Link
+                <a
                   href="https://www.openactive.io/developers/"
                   className="text-white/70 hover:text-white transition-colors underline focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-oa-indigo rounded"
                   target="_blank"
@@ -103,10 +102,10 @@ export function Footer() {
                 >
                   For developers
                   <span className="sr-only"> (opens in new tab)</span>
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
+                <a
                   href="https://www.openactive.io/privacy-policy/"
                   className="text-white/70 hover:text-white transition-colors underline focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-oa-indigo rounded"
                   target="_blank"
@@ -114,7 +113,7 @@ export function Footer() {
                 >
                   Privacy Policy
                   <span className="sr-only"> (opens in new tab)</span>
-                </Link>
+                </a>
               </li>
             </ul>
           </nav>
