@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useEscapeClose } from "../hooks/useEscapeClose";
 import { useFocusTrap } from "../hooks/useFocusTrap";
+import { getFocusableElements } from "../lib/focusable";
 
 const navLinks = [
   { href: "/", label: "Dashboard" },
@@ -37,6 +38,15 @@ export function Header() {
 
   useEscapeClose(mobileMenuOpen, closeMobileMenu);
   useFocusTrap(mobileMenuRef, mobileMenuOpen);
+
+  useEffect(() => {
+    if (!mobileMenuOpen || !mobileMenuRef.current) return;
+
+    requestAnimationFrame(() => {
+      const first = getFocusableElements(mobileMenuRef.current!)[0];
+      first?.focus();
+    });
+  }, [mobileMenuOpen]);
 
   return (
     <header className="relative bg-white border-b border-oa-grey-200" role="banner">
@@ -109,7 +119,7 @@ export function Header() {
             ref={menuButtonRef}
             type="button"
             className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-oa-grey-600 hover:text-oa-indigo hover:bg-oa-grey-100 focus:outline-none focus:ring-2 focus:ring-oa-indigo focus:ring-offset-2 transition-colors"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            onClick={() => setMobileMenuOpen((prev) => !prev)}
             aria-expanded={mobileMenuOpen}
             aria-controls={mobileMenuOpen ? "mobile-menu" : undefined}
             aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
@@ -139,7 +149,7 @@ export function Header() {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="block px-3 py-2 text-sm font-medium text-oa-indigo hover:bg-oa-grey-50 rounded-md focus:outline-none focus:ring-2 focus:ring-oa-indigo"
-                      onClick={() => setMobileMenuOpen(false)}
+                      onClick={closeMobileMenu}
                     >
                       {link.label}
                       <span className="sr-only"> (opens in new tab)</span>
@@ -148,7 +158,7 @@ export function Header() {
                     <Link
                       href={link.href}
                       className="block px-3 py-2 text-sm font-medium text-oa-indigo hover:bg-oa-grey-50 rounded-md focus:outline-none focus:ring-2 focus:ring-oa-indigo"
-                      onClick={() => setMobileMenuOpen(false)}
+                      onClick={closeMobileMenu}
                     >
                       {link.label}
                     </Link>
