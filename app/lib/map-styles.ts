@@ -4,13 +4,14 @@ export const GEOJSON_URL = "/api/boundaries";
 
 export const LAND_FILL = "#dce4ec";
 export const LAND_STROKE = "#a8b8c8";
-export const BASE_STROKE = "#8fa3b8";
-export const OUT_OF_SCOPE_FILL = "#e8edf2";
-export const OUT_OF_SCOPE_STROKE = "#c5ced8";
-export const NO_DATA_FILL = "#7fa8c9";
 export const FOCUS_STROKE = "#e21483";
-export const SELECTED_STROKE = "#223582";
-export const SELECTED_FILL_FALLBACK = "#009de1";
+
+const BASE_STROKE = "#8fa3b8";
+const OUT_OF_SCOPE_FILL = "#e8edf2";
+const OUT_OF_SCOPE_STROKE = "#c5ced8";
+const NO_DATA_FILL = "#7fa8c9";
+const SELECTED_STROKE = "#223582";
+const SELECTED_FILL_FALLBACK = "#009de1";
 
 export interface GeoProperties {
   geo_code: string;

@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import * as d3 from "d3";
-import { formatFullNumber } from "../lib/format";
 import type { DistrictCount } from "../lib/explore-filters";
 import {
   GEOJSON_URL,

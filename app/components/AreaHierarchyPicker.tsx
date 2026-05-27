@@ -192,7 +192,7 @@ export function AreaHierarchyPicker({
         />
         {areas.map((area) => (
           <PickerRow
-            key={area.id}
+            key={area.geoCode}
             label={area.name}
             subLabel={
               districtsWithData.has(area.name)
