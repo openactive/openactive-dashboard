@@ -1,19 +1,31 @@
-import { readFileSync } from "fs";
-import { join } from "path";
-import { buildGeoHierarchy, type GeoHierarchy } from "./geo-hierarchy";
-
-/** Load hierarchy from app/data/combined-boundaries.geojson (server only). */
-const FILE_PATH = join(
-  process.cwd(),
-  "app/data/combined-boundaries.geojson"
-);
+import { getAllAreas } from "../services/areas";
+import { transformAreasToHierarchy } from "./areas-to-hierarchy";
+import type { GeoHierarchy } from "./geo-hierarchy";
 
 let cachedHierarchy: GeoHierarchy | null = null;
 
-export function loadGeoHierarchy(): GeoHierarchy {
-  if (cachedHierarchy) return cachedHierarchy;
+function isValidHierarchy(value: unknown): value is GeoHierarchy {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "countries" in value &&
+    Array.isArray((value as GeoHierarchy).countries)
+  );
+}
 
-  const geojson = JSON.parse(readFileSync(FILE_PATH, "utf8"));
-  cachedHierarchy = buildGeoHierarchy(geojson);
+/**
+ * Load location hierarchy from the /areas API endpoint.
+ * Caches at module level to avoid repeated network calls within
+ * the same server process.
+ */
+export async function loadGeoHierarchy(): Promise<GeoHierarchy> {
+  if (isValidHierarchy(cachedHierarchy)) {
+    return cachedHierarchy;
+  }
+
+  cachedHierarchy = null;
+
+  const raw = await getAllAreas();
+  cachedHierarchy = transformAreasToHierarchy(raw);
   return cachedHierarchy;
 }
