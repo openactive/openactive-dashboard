@@ -15,6 +15,15 @@ import { getAreaSelectionLabel } from "../lib/geo-hierarchy";
 import { ALL_FILTER } from "../lib/explore-filters";
 import type { ExplorerFilters } from "../lib/explore-filters";
 import { selectArea, selectAreaScope } from "../lib/explore-filters";
+import {
+  EXPLORER_GLASS_BACKDROP_BLUR_MD,
+  EXPLORER_LABEL_BASE,
+  EXPLORER_LABEL_DEFAULT_TEXT,
+  EXPLORER_LABEL_GLASS_TEXT,
+  EXPLORER_SHADOW_LG,
+  EXPLORER_TRIGGER_FIELD_TAILWIND,
+  EXPLORER_TRIGGER_GLASS_TAILWIND,
+} from "../lib/explorer-ui-styles";
 
 type DrillLevel =
   | { type: "root" }
@@ -192,7 +201,7 @@ export function AreaHierarchyPicker({
         />
         {areas.map((area) => (
           <PickerRow
-            key={area.id}
+            key={area.geoCode}
             label={area.name}
             subLabel={
               districtsWithData.has(area.name)
@@ -269,7 +278,9 @@ export function AreaHierarchyPicker({
     >
       <label
         htmlFor={`${listboxId}-trigger`}
-        className={`mb-1.5 block text-[11px] font-semibold uppercase tracking-widest ${isGlass ? "text-oa-grey-500" : "font-bold tracking-[0.12em] text-oa-grey-500"}`}
+        className={`${EXPLORER_LABEL_BASE} ${
+          isGlass ? EXPLORER_LABEL_GLASS_TEXT : EXPLORER_LABEL_DEFAULT_TEXT
+        }`}
       >
         Area
       </label>
@@ -278,8 +289,8 @@ export function AreaHierarchyPicker({
         type="button"
         className={
           isGlass
-            ? "flex w-full cursor-pointer items-center gap-2 rounded-lg border border-white/80 bg-white/70 px-3 py-2.5 text-left text-sm text-oa-navy shadow-sm backdrop-blur-sm transition-colors hover:border-oa-cyan/50 hover:bg-white/85 focus:outline-none focus:border-oa-cyan focus:ring-2 focus:ring-oa-cyan/25"
-            : "flex w-full cursor-pointer items-center gap-2 rounded-lg border border-oa-grey-300 bg-oa-grey-50 px-3 py-2.5 text-left text-sm text-oa-navy transition-colors hover:border-oa-cyan hover:bg-white focus:outline-none focus:border-oa-cyan focus:ring-2 focus:ring-oa-cyan/25"
+            ? `flex w-full cursor-pointer items-center gap-2 ${EXPLORER_TRIGGER_GLASS_TAILWIND}`
+            : `flex w-full cursor-pointer items-center gap-2 ${EXPLORER_TRIGGER_FIELD_TAILWIND}`
         }
         onClick={() => setOpen(!open)}
         onKeyDown={handleTriggerKeyDown}
@@ -302,9 +313,9 @@ export function AreaHierarchyPicker({
           aria-labelledby={titleId}
           className={`absolute left-0 right-0 z-50 mt-1 w-full max-w-full min-w-0 border bg-white ${
             isGlass
-              ? "overflow-hidden rounded-lg border-white/90 bg-white/95 shadow-lg backdrop-blur-md"
+              ? `overflow-hidden rounded-lg border-white/90 bg-white/95 ${EXPLORER_SHADOW_LG} ${EXPLORER_GLASS_BACKDROP_BLUR_MD}`
               : isSheet
-                ? "overflow-hidden rounded-lg border-oa-grey-200 shadow-lg"
+                ? `overflow-hidden rounded-lg border-oa-grey-200 ${EXPLORER_SHADOW_LG}`
                 : "overflow-hidden rounded-sm border-oa-navy shadow-[6px_6px_0_0_#223582]"
           }`}
         >

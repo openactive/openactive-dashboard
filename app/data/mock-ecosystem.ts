@@ -9,5 +9,3 @@ export const ecosystemSummary = {
   percentage_of_local_authorities: 74,
   number_of_activity_providers: 4885,
 } as const;
-
-export type EcosystemSummary = typeof ecosystemSummary;

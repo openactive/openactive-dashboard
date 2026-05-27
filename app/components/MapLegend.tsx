@@ -38,7 +38,7 @@ export function MapLegend({
           </>
         ) : (
           <span className="text-oa-grey-600">
-            Drag to pan · scroll or pinch to zoom. Hover an area for details.
+            Drag to pan · scroll or pinch to zoom. Use the area filter to explore local authorities.
           </span>
         )}
       </p>

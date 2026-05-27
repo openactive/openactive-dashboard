@@ -33,6 +33,32 @@ export type ExplorerSummary = {
   activityCount: number;
 };
 
+export const EXPLORER_SUMMARY_METRIC_DEFS = {
+  areaCount: {
+    desktopLabel: "Local areas",
+    mobileLabel: "Areas",
+    color: "bg-oa-cyan",
+  },
+  publisherCount: {
+    desktopLabel: "Publishers",
+    mobileLabel: "Publishers",
+    color: "bg-oa-blue",
+  },
+  activityCount: {
+    desktopLabel: "Activities",
+    mobileLabel: "Activities",
+    color: "bg-oa-indigo",
+  },
+} as const;
+
+export type ExplorerSummaryMetricKey = keyof typeof EXPLORER_SUMMARY_METRIC_DEFS;
+
+export const EXPLORER_SUMMARY_METRIC_KEYS: ExplorerSummaryMetricKey[] = [
+  "areaCount",
+  "publisherCount",
+  "activityCount",
+];
+
 export type DistrictCount = {
   district: string;
   count: number;
@@ -161,20 +187,13 @@ export function buildPublisherOptions(
   filters: Pick<ExplorerFilters, "district" | "areaScope" | "activity">,
   hierarchy?: GeoHierarchy
 ): ExplorerFilterOption[] {
-  const scoped = filterRowsExcept(
+  return buildDimensionOptions(
     rows,
-    { ...DEFAULT_EXPLORER_FILTERS, ...filters, publisher: ALL_FILTER },
+    filters,
     "publisher",
+    "All publishers",
     hierarchy
   );
-  const publishers = uniqueSorted(
-    scoped.map((r) => r.publisher).filter(Boolean)
-  );
-
-  return [
-    { value: ALL_FILTER, label: "All publishers" },
-    ...publishers.map((p) => ({ value: p, label: p })),
-  ];
 }
 
 export function buildActivityOptions(
@@ -182,19 +201,49 @@ export function buildActivityOptions(
   filters: Pick<ExplorerFilters, "district" | "areaScope" | "publisher">,
   hierarchy?: GeoHierarchy
 ): ExplorerFilterOption[] {
-  const scoped = filterRowsExcept(
+  return buildDimensionOptions(
     rows,
-    { ...DEFAULT_EXPLORER_FILTERS, ...filters, activity: ALL_FILTER },
+    filters,
     "activity",
+    "All activities and facilities",
     hierarchy
   );
-  const activities = uniqueSorted(
-    scoped.map((r) => r.activity).filter(Boolean)
+}
+
+type DimensionKey = "publisher" | "activity";
+type OtherDimension<K extends DimensionKey> = Exclude<DimensionKey, K>;
+type DimensionFilters<K extends DimensionKey> = Pick<
+  ExplorerFilters,
+  "district" | "areaScope" | OtherDimension<K>
+>;
+
+function buildDimensionOptions<K extends DimensionKey>(
+  rows: CrossTabRow[],
+  filters: DimensionFilters<K>,
+  dimension: K,
+  allLabel: string,
+  hierarchy?: GeoHierarchy
+): ExplorerFilterOption[] {
+  const scoped = filterRowsExcept(
+    rows,
+    {
+      ...DEFAULT_EXPLORER_FILTERS,
+      ...filters,
+      [dimension]: ALL_FILTER,
+    } as ExplorerFilters,
+    dimension,
+    hierarchy
+  );
+
+  const values = uniqueSorted(
+    scoped
+      .map((r) => (dimension === "publisher" ? r.publisher : r.activity))
+      .filter((v): v is string => Boolean(v))
   );
 
   return [
-    { value: ALL_FILTER, label: "All activities and facilities" },
-    ...activities.map((a) => ({ value: a, label: a })),
+    { value: ALL_FILTER, label: allLabel },
+    ...values.map((v) => ({ value: v, label: v })),
   ];
 }
 

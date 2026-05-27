@@ -106,11 +106,6 @@ export function useListbox({
 
   const handleListboxKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        closeListbox();
-        return;
-      }
       if (
         e.key.length === 1 &&
         !e.ctrlKey &&
@@ -122,7 +117,7 @@ export function useListbox({
         handleTypeahead(e.key);
       }
     },
-    [closeListbox, handleTypeahead]
+    [handleTypeahead]
   );
 
   const handleOptionKeyDown = useCallback(
@@ -151,12 +146,12 @@ export function useListbox({
 
   const closeOnClickOutside = useCallback(() => setOpen(false), []);
   useClickOutside(rootRef, open, closeOnClickOutside);
-  useEscapeClose(open, () => closeListbox());
+  useEscapeClose(open, closeListbox);
 
   const handleTriggerKeyDown = useDisclosureTriggerKeyDown({
     open,
     onOpen: openListbox,
-    onClose: () => closeListbox(),
+    onClose: closeListbox,
   });
 
   const handleFocusLeave = useFocusLeaveClose(rootRef, open, closeOnClickOutside);

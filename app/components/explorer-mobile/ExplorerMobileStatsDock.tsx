@@ -2,14 +2,17 @@
 
 import { ChartBarIcon } from "@heroicons/react/24/outline";
 import { formatNumber } from "../../lib/format";
-import type { ExplorerSummary } from "../../lib/explore-filters";
+import {
+  EXPLORER_SUMMARY_METRIC_DEFS,
+  EXPLORER_SUMMARY_METRIC_KEYS,
+  type ExplorerSummary,
+} from "../../lib/explore-filters";
 import type { MobilePanel } from "../../lib/explorer-types";
 
-const METRICS = [
-  { key: "areaCount", label: "Areas" },
-  { key: "publisherCount", label: "Publishers" },
-  { key: "activityCount", label: "Activities" },
-] as const;
+const METRICS = EXPLORER_SUMMARY_METRIC_KEYS.map((key) => ({
+  key,
+  label: EXPLORER_SUMMARY_METRIC_DEFS[key].mobileLabel,
+}));
 
 interface ExplorerMobileStatsDockProps {
   panel: MobilePanel;

@@ -1,5 +1,4 @@
 export type GeoArea = {
-  id: string;
   name: string;
   geoCode: string;
   geoType: "lad" | "county";
@@ -19,10 +18,6 @@ export type GeoCountry = {
 
 export type GeoHierarchy = {
   countries: GeoCountry[];
-  /** geo_name → country id */
-  areaToCountry: Record<string, string>;
-  /** geo_name → region id */
-  areaToRegion: Record<string, string>;
 };
 
 const ENGLISH_REGION_CENTROIDS: Record<
@@ -154,8 +149,6 @@ function classifyFeature(f: BoundaryFeature): {
 /** Build country → region → area tree from combined-boundaries.geojson */
 export function buildGeoHierarchy(geojson: BoundaryCollection): GeoHierarchy {
   const countryMap = new Map<string, GeoCountry>();
-  const areaToCountry: Record<string, string> = {};
-  const areaToRegion: Record<string, string> = {};
 
   for (const feature of geojson.features) {
     const p = feature.properties;
@@ -178,15 +171,12 @@ export function buildGeoHierarchy(geojson: BoundaryCollection): GeoHierarchy {
     }
 
     const area: GeoArea = {
-      id: p.geo_code,
       name: p.geo_name,
       geoCode: p.geo_code,
       geoType,
     };
 
     region.areas.push(area);
-    areaToCountry[p.geo_name] = countryId;
-    areaToRegion[p.geo_name] = regionId;
   }
 
   const countries = [...countryMap.values()]
@@ -207,7 +197,7 @@ export function buildGeoHierarchy(geojson: BoundaryCollection): GeoHierarchy {
       a.label.localeCompare(b.label, "en", { sensitivity: "base" })
     );
 
-  return { countries, areaToCountry, areaToRegion };
+  return { countries };
 }
 
 /** Scope key: all | country:{id} | region:{countryId}:{regionId} */
@@ -225,10 +215,6 @@ export function parseAreaScope(scope: string): {
     return { type: "region", countryId, regionId };
   }
   return { type: "all" };
-}
-
-export function formatAreaScope(scope: string): string {
-  return scope === "all" ? "all" : scope;
 }
 
 /** All geo_names within a country or region scope */

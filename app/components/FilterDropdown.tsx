@@ -3,6 +3,15 @@
 import type { ReactNode } from "react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { useListbox, type ListboxOption } from "../hooks/useListbox";
+import {
+  EXPLORER_GLASS_BACKDROP_BLUR_MD,
+  EXPLORER_LABEL_BASE,
+  EXPLORER_LABEL_DEFAULT_TEXT,
+  EXPLORER_LABEL_GLASS_TEXT,
+  EXPLORER_SHADOW_LG,
+  EXPLORER_TRIGGER_FIELD_TAILWIND,
+  EXPLORER_TRIGGER_GLASS_TAILWIND,
+} from "../lib/explorer-ui-styles";
 
 export type FilterOption = ListboxOption;
 
@@ -12,8 +21,6 @@ interface FilterDropdownProps {
   value: string;
   onChange: (value: string) => void;
   id?: string;
-  /** @deprecated use layout="field" */
-  variant?: "default" | "onDark";
   layout?: "inline" | "field" | "glass" | "sheet";
 }
 
@@ -26,14 +33,11 @@ export function FilterDropdown({
   value,
   onChange,
   id,
-  variant = "default",
-  layout,
+  layout = "inline",
 }: FilterDropdownProps) {
-  const resolvedLayout =
-    layout ?? (variant === "onDark" ? "glass" : "inline");
-  const isGlass = resolvedLayout === "glass";
-  const isSheet = resolvedLayout === "sheet";
-  const isField = resolvedLayout === "field" || isGlass || isSheet;
+  const isGlass = layout === "glass";
+  const isSheet = layout === "sheet";
+  const isField = layout === "field" || isGlass || isSheet;
 
   const {
     open,
@@ -56,15 +60,15 @@ export function FilterDropdown({
   const selectedOption = options.find((o) => o.value === value);
 
   const triggerClass = isGlass
-    ? "flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg border border-white/80 bg-white/70 px-3 py-2.5 text-left text-sm font-medium text-oa-navy shadow-sm backdrop-blur-sm hover:border-oa-cyan/50 hover:bg-white/85 focus:outline-none focus:border-oa-cyan focus:ring-2 focus:ring-oa-cyan/25"
-    : isSheet || resolvedLayout === "field"
-      ? "flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg border border-oa-grey-300 bg-oa-grey-50 px-3 py-2.5 text-left text-sm font-medium text-oa-navy hover:border-oa-cyan hover:bg-white focus:outline-none focus:border-oa-cyan focus:ring-2 focus:ring-oa-cyan/25"
+    ? `flex w-full cursor-pointer items-center justify-between gap-2 ${EXPLORER_TRIGGER_GLASS_TAILWIND} font-medium`
+    : isSheet || layout === "field"
+      ? `flex w-full cursor-pointer items-center justify-between gap-2 ${EXPLORER_TRIGGER_FIELD_TAILWIND} font-medium`
       : "inline-flex cursor-pointer items-center gap-2 rounded-sm border border-oa-grey-300 bg-white px-3 py-2 text-sm font-medium text-oa-grey-700 hover:bg-oa-grey-50 focus:outline-none focus:border-oa-cyan focus:ring-1 focus:ring-oa-cyan";
 
   const listClass = isGlass
-    ? "absolute left-0 right-0 z-50 mt-1 max-h-60 w-full max-w-full min-w-0 overflow-auto rounded-lg border border-white/90 bg-white/95 py-1 shadow-lg backdrop-blur-md"
+    ? `absolute left-0 right-0 z-50 mt-1 max-h-60 w-full max-w-full min-w-0 overflow-auto rounded-lg border border-white/90 bg-white/95 py-1 ${EXPLORER_SHADOW_LG} ${EXPLORER_GLASS_BACKDROP_BLUR_MD}`
     : isSheet
-      ? "absolute left-0 right-0 z-50 mt-1 max-h-[min(28dvh,220px)] w-full max-w-full min-w-0 overflow-auto rounded-lg border border-oa-grey-200 bg-white py-1 shadow-lg"
+      ? `absolute left-0 right-0 z-50 mt-1 max-h-[min(28dvh,220px)] w-full max-w-full min-w-0 overflow-auto rounded-lg border border-oa-grey-200 bg-white py-1 ${EXPLORER_SHADOW_LG}`
       : "absolute left-0 right-0 z-50 mt-1 max-h-60 w-full max-w-full min-w-0 overflow-auto rounded-sm border border-oa-navy bg-white py-0 shadow-[4px_4px_0_0_#223582]";
 
   const listbox = open ? (
@@ -124,7 +128,9 @@ export function FilterDropdown({
         <label
           id={labelId}
           htmlFor={triggerId}
-          className={`mb-1.5 block text-[11px] font-semibold uppercase tracking-widest ${isGlass ? "text-oa-grey-500" : "font-bold tracking-[0.12em] text-oa-grey-500"}`}
+          className={`${EXPLORER_LABEL_BASE} ${
+            isGlass ? EXPLORER_LABEL_GLASS_TEXT : EXPLORER_LABEL_DEFAULT_TEXT
+          }`}
         >
           {label}
         </label>

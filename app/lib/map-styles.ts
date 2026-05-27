@@ -4,13 +4,14 @@ export const GEOJSON_URL = "/api/boundaries";
 
 export const LAND_FILL = "#dce4ec";
 export const LAND_STROKE = "#a8b8c8";
-export const BASE_STROKE = "#8fa3b8";
-export const OUT_OF_SCOPE_FILL = "#e8edf2";
-export const OUT_OF_SCOPE_STROKE = "#c5ced8";
-export const NO_DATA_FILL = "#7fa8c9";
 export const FOCUS_STROKE = "#e21483";
-export const SELECTED_STROKE = "#223582";
-export const SELECTED_FILL_FALLBACK = "#009de1";
+
+const BASE_STROKE = "#8fa3b8";
+const OUT_OF_SCOPE_FILL = "#e8edf2";
+const OUT_OF_SCOPE_STROKE = "#c5ced8";
+const NO_DATA_FILL = "#7fa8c9";
+const SELECTED_STROKE = "#223582";
+const SELECTED_FILL_FALLBACK = "#009de1";
 
 export interface GeoProperties {
   geo_code: string;
@@ -27,6 +28,17 @@ export interface LadFeature {
 export interface LadCollection {
   type: "FeatureCollection";
   features: LadFeature[];
+}
+
+function resolveFeatureState(
+  d: LadFeature,
+  scopeSet: Set<string> | null,
+  selectedDistrict: string | null
+) {
+  const name = d.properties?.geo_name ?? "";
+  const isSelected = name === selectedDistrict;
+  const inScope = !scopeSet || scopeSet.has(name);
+  return { name, isSelected, inScope };
 }
 
 export function buildColorScale(counts: Map<string, number>) {
@@ -51,9 +63,11 @@ export function fillForFeature(
   selectedDistrict: string | null,
   isFocused: boolean
 ): string {
-  const name = d.properties?.geo_name ?? "";
-  const isSelected = name === selectedDistrict;
-  const inScope = !scopeSet || scopeSet.has(name);
+  const { name, isSelected, inScope } = resolveFeatureState(
+    d,
+    scopeSet,
+    selectedDistrict
+  );
 
   if (!inScope) return OUT_OF_SCOPE_FILL;
   if (isSelected) {
@@ -75,9 +89,12 @@ export function strokeForFeature(
   scopeSet: Set<string> | null,
   selectedDistrict: string | null
 ): string {
-  const name = d.properties?.geo_name ?? "";
-  if (name === selectedDistrict) return SELECTED_STROKE;
-  const inScope = !scopeSet || scopeSet.has(name);
+  const { isSelected, inScope } = resolveFeatureState(
+    d,
+    scopeSet,
+    selectedDistrict
+  );
+  if (isSelected) return SELECTED_STROKE;
   return inScope ? BASE_STROKE : OUT_OF_SCOPE_STROKE;
 }
 
@@ -86,9 +103,12 @@ export function strokeWidthForFeature(
   scopeSet: Set<string> | null,
   selectedDistrict: string | null
 ): number {
-  const name = d.properties?.geo_name ?? "";
-  if (name === selectedDistrict) return 3;
-  const inScope = !scopeSet || scopeSet.has(name);
+  const { isSelected, inScope } = resolveFeatureState(
+    d,
+    scopeSet,
+    selectedDistrict
+  );
+  if (isSelected) return 3;
   return inScope ? 0.85 : 0.5;
 }
 

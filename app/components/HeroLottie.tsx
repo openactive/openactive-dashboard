@@ -11,6 +11,7 @@ export function HeroLottie() {
       className="w-full h-full border-0"
       title="Background animation"
       loading="lazy"
+      sandbox="allow-scripts allow-same-origin"
     />
   );
 }

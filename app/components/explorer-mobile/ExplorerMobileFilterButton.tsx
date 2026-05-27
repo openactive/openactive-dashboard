@@ -17,7 +17,6 @@ export function ExplorerMobileFilterButton({
       <button
         type="button"
         onClick={onToggleFilters}
-        aria-pressed={panel === "filters"}
         className="flex cursor-pointer items-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-oa-navy shadow-md ring-1 ring-oa-grey-200/80 hover:bg-oa-grey-50 focus:outline-none focus:ring-2 focus:ring-oa-cyan"
         aria-expanded={panel === "filters"}
         aria-controls="explorer-filters-sheet"

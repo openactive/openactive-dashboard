@@ -1,5 +1,9 @@
 import { formatFullNumber, formatNumber } from "../lib/format";
-import type { ExplorerSummary as ExplorerSummaryData } from "../lib/explore-filters";
+import {
+  EXPLORER_SUMMARY_METRIC_DEFS,
+  EXPLORER_SUMMARY_METRIC_KEYS,
+  type ExplorerSummary as ExplorerSummaryData,
+} from "../lib/explore-filters";
 
 type SummaryLayout = "overlay" | "sheet";
 
@@ -84,11 +88,11 @@ export function ExplorerSummary({
 }: ExplorerSummaryProps) {
   const headlineLabel = `${formatFullNumber(summary.totalOpportunities)} future opportunities`;
 
-  const metrics: Metric[] = [
-    { label: "Local areas", value: summary.areaCount, color: "bg-oa-cyan" },
-    { label: "Publishers", value: summary.publisherCount, color: "bg-oa-blue" },
-    { label: "Activities", value: summary.activityCount, color: "bg-oa-indigo" },
-  ];
+  const metrics: Metric[] = EXPLORER_SUMMARY_METRIC_KEYS.map((key) => ({
+    label: EXPLORER_SUMMARY_METRIC_DEFS[key].desktopLabel,
+    value: summary[key],
+    color: EXPLORER_SUMMARY_METRIC_DEFS[key].color,
+  }));
   const metricMax = Math.max(...metrics.map((m) => m.value), 1);
 
   if (layout === "sheet") {

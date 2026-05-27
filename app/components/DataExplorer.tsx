@@ -64,6 +64,16 @@ export function DataExplorer({ rows, hierarchy }: DataExplorerProps) {
     [filters, setFiltersNormalized]
   );
 
+  const onPublisherChange = useCallback(
+    (value: string) => updateFilter("publisher", value),
+    [updateFilter]
+  );
+
+  const onActivityChange = useCallback(
+    (value: string) => updateFilter("activity", value),
+    [updateFilter]
+  );
+
   const publisherOptions = useMemo(
     () =>
       buildPublisherOptions(
@@ -121,6 +131,29 @@ export function DataExplorer({ rows, hierarchy }: DataExplorerProps) {
     return null;
   }, [filters, hierarchy]);
 
+  const filterControlProps = useMemo(
+    () => ({
+      hierarchy,
+      filters,
+      districtsWithData,
+      publisherOptions,
+      activityOptions,
+      onFiltersChange: setFiltersNormalized,
+      onPublisherChange,
+      onActivityChange,
+    }),
+    [
+      hierarchy,
+      filters,
+      districtsWithData,
+      publisherOptions,
+      activityOptions,
+      setFiltersNormalized,
+      onPublisherChange,
+      onActivityChange,
+    ]
+  );
+
   return (
     <div
       className={`relative mt-10 min-h-[min(88vh,780px)] overflow-hidden rounded-xl shadow-[0_12px_48px_rgba(34,53,130,0.12)] ring-1 ring-oa-grey-300/60 [&_.oa-glass]:overflow-visible ${
@@ -136,16 +169,7 @@ export function DataExplorer({ rows, hierarchy }: DataExplorerProps) {
           onPanelChange={setMobilePanel}
           summary={summary}
           selectionLabel={selectionLabel}
-          filterProps={{
-            hierarchy,
-            filters,
-            districtsWithData,
-            publisherOptions,
-            activityOptions,
-            onFiltersChange: setFiltersNormalized,
-            onPublisherChange: (value) => updateFilter("publisher", value),
-            onActivityChange: (value) => updateFilter("activity", value),
-          }}
+          filterProps={filterControlProps}
           />
         </div>
 
@@ -153,14 +177,7 @@ export function DataExplorer({ rows, hierarchy }: DataExplorerProps) {
         <div className="pointer-events-auto w-full">
           <ExplorerFilterBar
             layout="overlay"
-            hierarchy={hierarchy}
-            filters={filters}
-            districtsWithData={districtsWithData}
-            publisherOptions={publisherOptions}
-            activityOptions={activityOptions}
-            onFiltersChange={setFiltersNormalized}
-            onPublisherChange={(value) => updateFilter("publisher", value)}
-            onActivityChange={(value) => updateFilter("activity", value)}
+            {...filterControlProps}
           />
         </div>
         </div>
@@ -188,7 +205,6 @@ export function DataExplorer({ rows, hierarchy }: DataExplorerProps) {
         aria-hidden={mobilePanel !== "none" ? true : undefined}
       >
         <OpportunityMap
-          layout="immersive"
           districtCounts={districtCounts}
           scopeAreaNames={mapScopeNames}
           selectedDistrict={
