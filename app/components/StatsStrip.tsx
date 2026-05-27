@@ -36,8 +36,7 @@ const stats: EcosystemStat[] = [
 ];
 
 /**
- * StatsStrip — a glowing stat counter grid used in the Layer 1 hero.
- * Displays key ecosystem numbers with coloured text and hover effects.
+ * StatsStrip — Displays key ecosystem numbers on solid tiles for readable contrast.
  */
 export function StatsStrip() {
   return (
@@ -49,17 +48,16 @@ export function StatsStrip() {
       {stats.map((stat, i) => (
         <div
           key={stat.label}
-          className={`relative group bg-oa-navy/80 backdrop-blur-md rounded-xl px-6 py-8 text-center hover:bg-white/10 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-white/5 ${i === stats.length - 1 ? "col-span-2 sm:col-span-1" : ""}`}
+          className={`relative group rounded-xl bg-oa-navy px-6 py-8 text-center ring-1 ring-white/15 transition-colors duration-300 hover:bg-oa-blue/30 hover:ring-white/30 ${i === stats.length - 1 ? "col-span-2 sm:col-span-1" : ""}`}
           role="figure"
           aria-label={`${stat.value} ${stat.label}`}
         >
-          <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-b from-white/10 to-transparent" />
           <p
-            className={`relative text-4xl sm:text-5xl font-extrabold ${stat.textColor} drop-shadow-[0_0_12px_currentColor]`}
+            className={`relative text-4xl sm:text-5xl font-extrabold ${stat.textColor}`}
           >
             {stat.value}
           </p>
-          <p className="relative mt-3 text-xs sm:text-sm font-semibold uppercase tracking-wider text-white/80">
+          <p className="relative mt-3 text-xs sm:text-sm font-semibold uppercase tracking-wider text-white">
             {stat.label}
           </p>
         </div>
