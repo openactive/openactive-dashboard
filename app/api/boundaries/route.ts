@@ -19,7 +19,6 @@ export async function GET() {
       },
     });
   } catch (error) {
-    console.error("Failed to read combined-boundaries.geojson:", error);
     return NextResponse.json(
       { error: "Failed to load boundaries data" },
       { status: 500 }
