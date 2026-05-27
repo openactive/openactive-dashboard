@@ -106,11 +106,6 @@ export function useListbox({
 
   const handleListboxKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        closeListbox();
-        return;
-      }
       if (
         e.key.length === 1 &&
         !e.ctrlKey &&
@@ -122,7 +117,7 @@ export function useListbox({
         handleTypeahead(e.key);
       }
     },
-    [closeListbox, handleTypeahead]
+    [handleTypeahead]
   );
 
   const handleOptionKeyDown = useCallback(
