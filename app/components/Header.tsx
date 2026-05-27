@@ -62,7 +62,7 @@ export function Header() {
               height={40}
               priority
               className="h-10 w-auto"
-              style={{ width: "auto", height: "auto" }}
+              style={{ width: "auto" }}
               aria-hidden="true"
             />
           </Link>
