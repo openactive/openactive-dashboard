@@ -87,6 +87,7 @@ export function ExplorerFilterBar({
             options={publisherOptions}
             value={filters.publisher}
             onChange={onPublisherChange}
+            searchable
           />
         </div>
         <div className={isOverlay || isSheet ? "" : "p-4"}>

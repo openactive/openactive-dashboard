@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { useListbox, type ListboxOption } from "../hooks/useListbox";
 import {
@@ -15,6 +15,19 @@ import {
 
 export type FilterOption = ListboxOption;
 
+const LOADING_OPTION_VALUE = "__loading__";
+
+function filterOptions(options: FilterOption[], query: string): FilterOption[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return options;
+
+  return options.filter(
+    (o) =>
+      o.value !== LOADING_OPTION_VALUE &&
+      o.label.toLowerCase().includes(q)
+  );
+}
+
 interface FilterDropdownProps {
   label: string;
   options: FilterOption[];
@@ -22,10 +35,12 @@ interface FilterDropdownProps {
   onChange: (value: string) => void;
   id?: string;
   layout?: "inline" | "field" | "glass" | "sheet";
+  /** Show a search field to filter options (for long lists). */
+  searchable?: boolean;
 }
 
 /**
- * Accessible custom select 
+ * Accessible custom select
  */
 export function FilterDropdown({
   label,
@@ -34,10 +49,19 @@ export function FilterDropdown({
   onChange,
   id,
   layout = "inline",
+  searchable = false,
 }: FilterDropdownProps) {
   const isGlass = layout === "glass";
   const isSheet = layout === "sheet";
   const isField = layout === "field" || isGlass || isSheet;
+  const searchId = useId();
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const [query, setQuery] = useState("");
+
+  const displayOptions = useMemo(
+    () => (searchable ? filterOptions(options, query) : options),
+    [options, query, searchable]
+  );
 
   const {
     open,
@@ -55,7 +79,23 @@ export function FilterDropdown({
     handleRootKeyDown,
     handleOptionKeyDown,
     handleFocusLeave,
-  } = useListbox({ options, value, onChange, idPrefix: id });
+  } = useListbox({
+    options: displayOptions,
+    value,
+    onChange,
+    idPrefix: id,
+    focusOptionOnOpen: !searchable,
+    typeahead: !searchable,
+  });
+
+  useEffect(() => {
+    if (!open) {
+      setQuery("");
+      return;
+    }
+    if (!searchable) return;
+    requestAnimationFrame(() => searchInputRef.current?.focus());
+  }, [open, searchable]);
 
   const selectedOption = options.find((o) => o.value === value);
 
@@ -71,16 +111,9 @@ export function FilterDropdown({
       ? `absolute left-0 right-0 z-50 mt-1 max-h-[min(28dvh,220px)] w-full max-w-full min-w-0 overflow-auto rounded-lg border border-oa-grey-200 bg-white py-1 ${EXPLORER_SHADOW_LG}`
       : "absolute left-0 right-0 z-50 mt-1 max-h-60 w-full max-w-full min-w-0 overflow-auto rounded-sm border border-oa-navy bg-white py-0 shadow-[4px_4px_0_0_#223582]";
 
-  const listbox = open ? (
-    <ul
-      ref={listboxRef}
-      id={listboxId}
-      role="listbox"
-      aria-labelledby={isField ? labelId : undefined}
-      aria-label={isField ? undefined : label}
-      className={listClass}
-    >
-      {options.map((option, index) => {
+  const optionList = (
+    <>
+      {displayOptions.map((option, index) => {
         const selected = option.value === value;
         return (
           <li
@@ -107,7 +140,64 @@ export function FilterDropdown({
           </li>
         );
       })}
-    </ul>
+      {searchable && displayOptions.length === 0 && (
+        <li className="px-3 py-4 text-center text-sm text-oa-grey-500">
+          No matches for your search.
+        </li>
+      )}
+    </>
+  );
+
+  const listbox = open ? (
+    searchable ? (
+      <div
+        className={`${listClass} flex flex-col overflow-hidden py-0`}
+      >
+        <div className="sticky top-0 z-10 shrink-0 border-b border-oa-grey-200 bg-white px-2 py-2">
+          <label htmlFor={searchId} className="sr-only">
+            Search {label.toLowerCase()}
+          </label>
+          <input
+            ref={searchInputRef}
+            id={searchId}
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowDown") {
+                e.preventDefault();
+                listboxRef.current
+                  ?.querySelector<HTMLButtonElement>("button[role=option]")
+                  ?.focus();
+              }
+            }}
+            placeholder={`Search ${label.toLowerCase()}…`}
+            className="w-full rounded-sm border border-oa-grey-300 bg-white px-2 py-1.5 text-sm text-oa-grey-800 placeholder:text-oa-grey-400 focus:border-oa-cyan focus:outline-none focus:ring-1 focus:ring-oa-cyan"
+          />
+        </div>
+        <ul
+          ref={listboxRef}
+          id={listboxId}
+          role="listbox"
+          aria-labelledby={isField ? labelId : undefined}
+          aria-label={isField ? undefined : label}
+          className="max-h-48 overflow-y-auto py-1"
+        >
+          {optionList}
+        </ul>
+      </div>
+    ) : (
+      <ul
+        ref={listboxRef}
+        id={listboxId}
+        role="listbox"
+        aria-labelledby={isField ? labelId : undefined}
+        aria-label={isField ? undefined : label}
+        className={listClass}
+      >
+        {optionList}
+      </ul>
+    )
   ) : null;
 
   const root = (trigger: ReactNode) => (
