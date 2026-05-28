@@ -6,12 +6,14 @@ export type GeoArea = {
 
 export type GeoRegion = {
   id: string;
+  code: string;
   label: string;
   areas: GeoArea[];
 };
 
 export type GeoCountry = {
   id: string;
+  code: string;
   label: string;
   regions: GeoRegion[];
 };

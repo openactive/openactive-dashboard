@@ -35,6 +35,7 @@ export function transformAreasToHierarchy(raw: AreasResponse): GeoHierarchy {
 
           return {
             id: slugify(regionName),
+            code: regionData.region_code,
             label: regionName,
             areas: areas.sort((a, b) => a.name.localeCompare(b.name, "en")),
           };
@@ -49,6 +50,7 @@ export function transformAreasToHierarchy(raw: AreasResponse): GeoHierarchy {
         regions = [
           {
             id: countryId,
+            code: countryData.country_code,
             label: countryName,
             areas: areas.sort((a, b) => a.name.localeCompare(b.name, "en")),
           },
@@ -57,6 +59,7 @@ export function transformAreasToHierarchy(raw: AreasResponse): GeoHierarchy {
 
       return {
         id: countryId,
+        code: countryData.country_code,
         label: countryName,
         regions: regions.sort((a, b) => a.label.localeCompare(b.label, "en")),
       };
