@@ -87,6 +87,15 @@ export function AreaHierarchyPicker({
   const goBack = useCallback(() => {
     setDrill((current) => {
       if (current.type === "region") {
+        const isDirectCountryDistrictView =
+          current.country.regions.length === 1 &&
+          current.region.id === current.country.id &&
+          current.region.label === current.country.label;
+
+        if (isDirectCountryDistrictView) {
+          return { type: "root" };
+        }
+
         return { type: "country", country: current.country };
       }
       return { type: "root" };
@@ -120,23 +129,20 @@ export function AreaHierarchyPicker({
   }
 
   function drillToCountry(country: GeoCountry) {
-    if (country.regions.length === 1) {
-      const region = country.regions[0];
-      if (region.areas.length <= 1 && region.areas[0]) {
-        applyArea(region.areas[0].name);
-        return;
-      }
-      setDrill({ type: "region", country, region });
+    onChange(selectAreaScope(filters, `country:${country.id}`));
+    setQuery("");
+
+    if (country.regions.length === 1 && country.regions[0]) {
+      setDrill({ type: "region", country, region: country.regions[0] });
       return;
     }
+
     setDrill({ type: "country", country });
   }
 
   function drillToRegion(country: GeoCountry, region: GeoRegion) {
-    if (region.areas.length === 1 && region.areas[0]) {
-      applyArea(region.areas[0].name);
-      return;
-    }
+    onChange(selectAreaScope(filters, `region:${country.id}:${region.id}`));
+    setQuery("");
     setDrill({ type: "region", country, region });
   }
 
@@ -166,11 +172,6 @@ export function AreaHierarchyPicker({
       const { country } = drill;
       return (
         <>
-          <PickerRow
-            label={`All of ${country.label}`}
-            subLabel="Country-wide"
-            onSelect={() => applyScope(`country:${country.id}`)}
-          />
           {country.regions.map((region) => (
             <PickerRow
               key={region.id}
@@ -192,13 +193,6 @@ export function AreaHierarchyPicker({
 
     return (
       <>
-        <PickerRow
-          label={`All of ${region.label}`}
-          subLabel={`${country.label} — region-wide`}
-          onSelect={() =>
-            applyScope(`region:${country.id}:${region.id}`)
-          }
-        />
         {areas.map((area) => (
           <PickerRow
             key={area.geoCode}
