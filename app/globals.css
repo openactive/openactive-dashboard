@@ -62,10 +62,33 @@
   --color-oa-grey-700: var(--oa-grey-700);
   --color-oa-grey-800: var(--oa-grey-800);
   --color-oa-grey-900: var(--oa-grey-900);
+
+  /* Wide homepage content (hero + data explorer) — 120rem / 1920px */
+  --max-width-448: 120rem;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+/* Floating panels over the map — frosted glass so map shows through */
+.oa-glass {
+  border: 1px solid rgb(255 255 255 / 0.85);
+  background: rgb(255 255 255 / 0.52);
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  box-shadow:
+    0 8px 32px rgb(34 53 130 / 0.14),
+    inset 0 1px 0 rgb(255 255 255 / 0.9);
+}
+
+.oa-glass-strong {
+  background: rgb(255 255 255 / 0.62);
+  backdrop-filter: blur(24px) saturate(1.25);
+  -webkit-backdrop-filter: blur(24px) saturate(1.25);
+  box-shadow:
+    0 12px 40px rgb(34 53 130 / 0.18),
+    inset 0 1px 0 rgb(255 255 255 / 0.95);
 }

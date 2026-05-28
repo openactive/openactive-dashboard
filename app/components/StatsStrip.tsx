@@ -1,69 +1,128 @@
-import { ecosystemSummary } from "../data/mock-ecosystem";
+import { Suspense } from "react";
 import { formatNumber } from "../lib/format";
+import { getEcosystemSummary } from "../services/ecosystem";
+import type { EcosystemSummaryResponse } from "../types/ecosystem";
 
-interface EcosystemStat {
-  value: string;
+type StatDef = {
+  key: string;
   label: string;
   textColor: string;
-}
+  format: (data: EcosystemSummaryResponse) => string;
+};
 
-const stats: EcosystemStat[] = [
+const STAT_DEFS: StatDef[] = [
   {
-    value: formatNumber(ecosystemSummary.number_of_opportunities),
+    key: "number_of_opportunities",
     label: "Opportunities",
     textColor: "text-oa-cyan",
+    format: (d) => formatNumber(d.number_of_opportunities),
   },
   {
-    value: formatNumber(ecosystemSummary.number_of_publishers),
+    key: "number_of_publishers",
     label: "Data Publishers",
     textColor: "text-oa-orange",
+    format: (d) => formatNumber(d.number_of_publishers),
   },
   {
-    value: formatNumber(ecosystemSummary.number_of_activity_providers),
+    key: "number_of_activity_providers",
     label: "Activity Providers",
     textColor: "text-oa-purple",
+    format: (d) => formatNumber(d.number_of_activity_providers),
   },
   {
-    value: formatNumber(ecosystemSummary.number_of_activities),
+    key: "number_of_activities",
     label: "Activities",
     textColor: "text-oa-aqua",
+    format: (d) => formatNumber(d.number_of_activities),
   },
   {
-    value: `${ecosystemSummary.percentage_of_local_authorities}%`,
+    key: "percentage_of_local_authorities",
     label: "Of Local Authorities",
     textColor: "text-oa-magenta",
+    format: (d) => `${d.percentage_of_local_authorities}%`,
   },
 ];
 
-/**
- * StatsStrip — a glowing stat counter grid used in the Layer 1 hero.
- * Displays key ecosystem numbers with coloured text and hover effects.
- */
-export function StatsStrip() {
+function StatsStripSkeleton() {
+  return (
+    <div
+      className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1.5 rounded-2xl overflow-hidden bg-white/10 p-2 shadow-2xl shadow-black/20 ring-1 ring-white/20"
+      aria-label="Loading ecosystem statistics"
+      role="group"
+    >
+      {STAT_DEFS.map((stat, i) => (
+        <div
+          key={stat.key}
+          className={`rounded-xl bg-oa-navy px-6 py-8 text-center ring-1 ring-white/15 animate-pulse ${
+            i === STAT_DEFS.length - 1 ? "col-span-2 sm:col-span-1" : ""
+          }`}
+        >
+          <div className="mx-auto h-10 w-20 rounded bg-white/10" />
+          <div className="mx-auto mt-3 h-4 w-24 rounded bg-white/10" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function StatsStripError() {
+  return (
+    <div
+      className="rounded-2xl bg-white/10 p-6 text-center ring-1 ring-white/20"
+      role="alert"
+    >
+      <p className="text-sm text-white/70">
+        Unable to load ecosystem statistics. Please try again later.
+      </p>
+    </div>
+  );
+}
+
+async function StatsStripContent() {
+  let data: EcosystemSummaryResponse;
+  try {
+    data = await getEcosystemSummary();
+  } catch {
+    return <StatsStripError />;
+  }
+
   return (
     <div
       className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1.5 rounded-2xl overflow-hidden bg-white/10 p-2 shadow-2xl shadow-black/20 ring-1 ring-white/20"
       aria-label="Key ecosystem statistics"
       role="group"
     >
-      {stats.map((stat, i) => (
+      {STAT_DEFS.map((stat, i) => (
         <div
-          key={stat.label}
-          className={`relative group bg-oa-navy/80 backdrop-blur-md rounded-xl px-6 py-8 text-center hover:bg-white/10 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-white/5 ${i === stats.length - 1 ? "col-span-2 sm:col-span-1" : ""}`}
+          key={stat.key}
+          className={`relative group rounded-xl bg-oa-navy px-6 py-8 text-center ring-1 ring-white/15 transition-colors duration-300 hover:bg-oa-blue/30 hover:ring-white/30 ${
+            i === STAT_DEFS.length - 1 ? "col-span-2 sm:col-span-1" : ""
+          }`}
           role="figure"
-          aria-label={`${stat.value} ${stat.label}`}
+          aria-label={`${stat.format(data)} ${stat.label}`}
         >
-          <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-b from-white/10 to-transparent" />
           <p
-            className={`relative text-4xl sm:text-5xl font-extrabold ${stat.textColor} drop-shadow-[0_0_12px_currentColor]`}
+            className={`relative text-4xl sm:text-5xl font-extrabold ${stat.textColor}`}
           >
-            {stat.value}
+            {stat.format(data)}
           </p>
-          <p className="relative mt-3 text-xs sm:text-sm font-semibold uppercase tracking-wider text-white/80">
+          <p className="relative mt-3 text-xs sm:text-sm font-semibold uppercase tracking-wider text-white">
             {stat.label}
           </p>
         </div>
       ))}
     </div>
+  );
+}
+
+/**
+ * StatsStrip — live ecosystem stats fetched server-side.
+ * Shows a skeleton while loading and a fallback if the API is unavailable.
+ */
+export function StatsStrip() {
+  return (
+    <Suspense fallback={<StatsStripSkeleton />}>
+      <StatsStripContent />
+    </Suspense>
   );
 }

@@ -8,6 +8,9 @@ Ecosystem overview and data explorer
 First, run the development server:
 
 ```bash
+nvm install 24.11.0
+nvm use 24.11.0
+npm install
 npm run dev
 # or
 yarn dev

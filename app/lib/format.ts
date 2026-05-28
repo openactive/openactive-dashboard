@@ -9,3 +9,8 @@ export function formatNumber(n: number): string {
   }
   return n.toLocaleString("en-GB");
 }
+
+/** Full number with grouping — use for aria-labels and tooltips */
+export function formatFullNumber(n: number): string {
+  return n.toLocaleString("en-GB");
+}
