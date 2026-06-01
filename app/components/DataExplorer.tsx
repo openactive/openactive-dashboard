@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMediaQuery } from "../hooks/useMediaQuery";
+import { useLocationScopedFilterOptions } from "../hooks/useLocationScopedFilterOptions";
 import { ExplorerFilterBar } from "./ExplorerFilterBar";
 import { ExplorerSummary } from "./ExplorerSummary";
 import {
@@ -13,18 +14,16 @@ import type { CrossTabRow } from "../lib/explore-csv";
 import type { GeoHierarchy } from "../lib/geo-hierarchy";
 import { getAreaSelectionLabel } from "../lib/geo-hierarchy";
 import { getAreaNamesInScope } from "../lib/geo-hierarchy";
-import { parseAreaScope } from "../lib/geo-hierarchy";
 import {
-  buildActivityOptions,
   computeExplorerSummary,
   ALL_FILTER,
   DEFAULT_EXPLORER_FILTERS,
   filterRows,
   getDistrictCounts,
   normalizeExplorerFilters,
-  type ExplorerFilterOption,
   type ExplorerFilters,
 } from "../lib/explore-filters";
+import { getActivities } from "../services/activities";
 import { getPublishers } from "../services/publishers";
 
 interface DataExplorerProps {
@@ -40,13 +39,7 @@ export function DataExplorer({ rows, hierarchy }: DataExplorerProps) {
   const [filters, setFilters] = useState<ExplorerFilters>(
     DEFAULT_EXPLORER_FILTERS
   );
-  const [publisherOptions, setPublisherOptions] = useState<ExplorerFilterOption[]>(
-    [{ value: ALL_FILTER, label: "All publishers" }]
-  );
   const [mobilePanel, setMobilePanel] = useState<MobilePanel>("none");
-  const publisherOptionsCacheRef = useRef<Map<string, ExplorerFilterOption[]>>(
-    new Map()
-  );
   const isDesktop = useMediaQuery("(min-width: 1024px)");
 
   useEffect(() => {
@@ -82,119 +75,79 @@ export function DataExplorer({ rows, hierarchy }: DataExplorerProps) {
     [updateFilter]
   );
 
-  const districtCodeByName = useMemo(() => {
-    const map = new Map<string, string>();
+  const codeMaps = useMemo(() => {
+    const districtCodeByName = new Map<string, string>();
+    const countryCodeById = new Map<string, string>();
+    const regionCodeByScope = new Map<string, string>();
+
     for (const country of hierarchy.countries) {
+      countryCodeById.set(country.id, country.code);
       for (const region of country.regions) {
+        regionCodeByScope.set(`${country.id}:${region.id}`, region.code);
         for (const area of region.areas) {
-          map.set(area.name, area.geoCode);
+          districtCodeByName.set(area.name, area.geoCode);
         }
       }
     }
-    return map;
+
+    return { districtCodeByName, countryCodeById, regionCodeByScope };
   }, [hierarchy]);
 
-  const countryCodeById = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const country of hierarchy.countries) {
-      map.set(country.id, country.code);
-    }
-    return map;
-  }, [hierarchy]);
-
-  const regionCodeByScope = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const country of hierarchy.countries) {
-      for (const region of country.regions) {
-        map.set(`${country.id}:${region.id}`, region.code);
-      }
-    }
-    return map;
-  }, [hierarchy]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const publisherQuery: Record<string, string> = {};
-
-    if (filters.district !== ALL_FILTER) {
-      const districtCode = districtCodeByName.get(filters.district);
-      if (districtCode) publisherQuery.district = districtCode;
-    } else {
-      const parsedScope = parseAreaScope(filters.areaScope);
-      if (parsedScope.type === "country" && parsedScope.countryId) {
-        const code = countryCodeById.get(parsedScope.countryId);
-        if (code) publisherQuery.country = code;
-      } else if (
-        parsedScope.type === "region" &&
-        parsedScope.countryId &&
-        parsedScope.regionId
+  const onPublishersFetched = useCallback((names: string[]) => {
+    setFilters((current) => {
+      if (
+        names.length === 0 ||
+        (current.publisher !== ALL_FILTER &&
+          !names.includes(current.publisher))
       ) {
-        const countryCode = countryCodeById.get(parsedScope.countryId);
-        const regionCode = regionCodeByScope.get(
-          `${parsedScope.countryId}:${parsedScope.regionId}`
-        );
-        if (countryCode) publisherQuery.country = countryCode;
-        if (regionCode) publisherQuery.region = regionCode;
+        return { ...current, publisher: ALL_FILTER };
       }
-    }
+      return current;
+    });
+  }, []);
 
-    const cacheKey = JSON.stringify(publisherQuery);
-    const cachedOptions = publisherOptionsCacheRef.current.get(cacheKey);
+  const onActivitiesFetched = useCallback((names: string[]) => {
+    setFilters((current) => {
+      if (
+        names.length === 0 ||
+        (current.activity !== ALL_FILTER &&
+          !names.includes(current.activity))
+      ) {
+        return { ...current, activity: ALL_FILTER };
+      }
+      return current;
+    });
+  }, []);
 
-    if (cachedOptions) {
-      setPublisherOptions(cachedOptions);
-      return;
-    }
-
-    setPublisherOptions([
-      { value: ALL_FILTER, label: "All publishers" },
-      { value: "__loading__", label: "Loading publishers…" },
-    ]);
-
-    getPublishers(publisherQuery)
-      .then((publishers) => {
-        if (cancelled) return;
-
-        const options: ExplorerFilterOption[] = [
-          { value: ALL_FILTER, label: "All publishers" },
-          ...publishers.map((name) => ({ value: name, label: name })),
-        ];
-
-        publisherOptionsCacheRef.current.set(cacheKey, options);
-        setPublisherOptions(options);
-
-        setFilters((current) => {
-          if (
-            current.publisher !== ALL_FILTER &&
-            !publishers.includes(current.publisher)
-          ) {
-            return { ...current, publisher: ALL_FILTER };
-          }
-          return current;
-        });
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setPublisherOptions([{ value: ALL_FILTER, label: "All publishers" }]);
-      });
-
-    return () => { cancelled = true; };
-  }, [filters.district, filters.areaScope, districtCodeByName, countryCodeById, regionCodeByScope]);
-
-  const activityOptions = useMemo(
-    () =>
-      buildActivityOptions(
-        rows,
-        {
-          district: filters.district,
-          areaScope: filters.areaScope,
-          publisher: filters.publisher,
-        },
-        hierarchy
-      ),
-    [rows, filters.district, filters.areaScope, filters.publisher, hierarchy]
+  const areaFilters = useMemo(
+    () => ({
+      district: filters.district,
+      areaScope: filters.areaScope,
+    }),
+    [filters.district, filters.areaScope]
   );
+
+  const publisherOptions = useLocationScopedFilterOptions({
+    item: "publishers",
+    allLabel: "All publishers",
+    loadingLabel: "Loading publishers…",
+    hierarchy,
+    filters: areaFilters,
+    maps: codeMaps,
+    fetchNames: getPublishers,
+    onFetched: onPublishersFetched,
+  });
+
+  const activityOptions = useLocationScopedFilterOptions({
+    item: "activities",
+    allLabel: "All activities and facilities",
+    loadingLabel: "Loading activities…",
+    hierarchy,
+    filters: areaFilters,
+    maps: codeMaps,
+    fetchNames: getActivities,
+    onFetched: onActivitiesFetched,
+  });
 
   const filteredRows = useMemo(
     () => filterRows(rows, filters, hierarchy),

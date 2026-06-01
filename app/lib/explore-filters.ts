@@ -5,6 +5,10 @@ import { getAreaNamesInScope } from "./geo-hierarchy";
 /** Sentinel value for unfiltered dimensions */
 export const ALL_FILTER = "all" as const;
 
+/** Non-selectable listbox rows (loading / empty state). */
+export const FILTER_LOADING_VALUE = "__loading__" as const;
+export const FILTER_EMPTY_VALUE = "__empty__" as const;
+
 export type ExplorerFilters = {
   /** Specific local area (geo_name, resolved from geocode in CSV) */
   district: string;
@@ -257,38 +261,6 @@ export function normalizeExplorerFilters(
 
   if (normalized.district !== ALL_FILTER) {
     normalized.areaScope = ALL_FILTER;
-  }
-
-  const publisherOptions = buildPublisherOptions(
-    rows,
-    {
-      district: normalized.district,
-      areaScope: normalized.areaScope,
-      activity: normalized.activity,
-    },
-    hierarchy
-  );
-  if (
-    normalized.publisher !== ALL_FILTER &&
-    !publisherOptions.some((o) => o.value === normalized.publisher)
-  ) {
-    normalized.publisher = ALL_FILTER;
-  }
-
-  const activityOptions = buildActivityOptions(
-    rows,
-    {
-      district: normalized.district,
-      areaScope: normalized.areaScope,
-      publisher: normalized.publisher,
-    },
-    hierarchy
-  );
-  if (
-    normalized.activity !== ALL_FILTER &&
-    !activityOptions.some((o) => o.value === normalized.activity)
-  ) {
-    normalized.activity = ALL_FILTER;
   }
 
   const scopedRows = filterRows(rows, normalized, hierarchy);

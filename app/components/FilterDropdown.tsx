@@ -4,6 +4,11 @@ import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "rea
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { useListbox, type ListboxOption } from "../hooks/useListbox";
 import {
+  ALL_FILTER,
+  FILTER_EMPTY_VALUE,
+  FILTER_LOADING_VALUE,
+} from "../lib/explore-filters";
+import {
   EXPLORER_GLASS_BACKDROP_BLUR_MD,
   EXPLORER_LABEL_BASE,
   EXPLORER_LABEL_DEFAULT_TEXT,
@@ -15,17 +20,40 @@ import {
 
 export type FilterOption = ListboxOption;
 
-const LOADING_OPTION_VALUE = "__loading__";
+function isMessageOption(option: FilterOption): boolean {
+  return (
+    option.value === FILTER_LOADING_VALUE ||
+    option.value === FILTER_EMPTY_VALUE
+  );
+}
 
 function filterOptions(options: FilterOption[], query: string): FilterOption[] {
   const q = query.trim().toLowerCase();
   if (!q) return options;
 
   return options.filter(
-    (o) =>
-      o.value !== LOADING_OPTION_VALUE &&
-      o.label.toLowerCase().includes(q)
+    (o) => !isMessageOption(o) && o.label.toLowerCase().includes(q)
   );
+}
+
+function getTriggerLabel(
+  options: FilterOption[],
+  value: string
+): string {
+  const emptyOption = options.find((o) => o.value === FILTER_EMPTY_VALUE);
+  const hasSelectable = options.some((o) => !isMessageOption(o));
+
+  if (emptyOption && !hasSelectable) {
+    return emptyOption.label;
+  }
+
+  const selected = options.find((o) => o.value === value);
+  if (selected && !isMessageOption(selected)) {
+    return selected.label;
+  }
+
+  const allOption = options.find((o) => o.value === ALL_FILTER);
+  return allOption?.label ?? "All";
 }
 
 interface FilterDropdownProps {
@@ -63,6 +91,19 @@ export function FilterDropdown({
     [options, query, searchable]
   );
 
+  const selectableOptions = useMemo(
+    () => displayOptions.filter((o) => !isMessageOption(o)),
+    [displayOptions]
+  );
+
+  const messageOptions = useMemo(
+    () => displayOptions.filter(isMessageOption),
+    [displayOptions]
+  );
+
+  const triggerLabel = getTriggerLabel(options, value);
+  const hasSelectableSource = options.some((o) => !isMessageOption(o));
+
   const {
     open,
     setOpen,
@@ -80,11 +121,11 @@ export function FilterDropdown({
     handleOptionKeyDown,
     handleFocusLeave,
   } = useListbox({
-    options: displayOptions,
+    options: selectableOptions,
     value,
     onChange,
     idPrefix: id,
-    focusOptionOnOpen: !searchable,
+    focusOptionOnOpen: !searchable && selectableOptions.length > 0,
     typeahead: !searchable,
   });
 
@@ -96,8 +137,6 @@ export function FilterDropdown({
     if (!searchable) return;
     requestAnimationFrame(() => searchInputRef.current?.focus());
   }, [open, searchable]);
-
-  const selectedOption = options.find((o) => o.value === value);
 
   const triggerClass = isGlass
     ? `flex w-full cursor-pointer items-center justify-between gap-2 ${EXPLORER_TRIGGER_GLASS_TAILWIND} font-medium`
@@ -113,7 +152,16 @@ export function FilterDropdown({
 
   const optionList = (
     <>
-      {displayOptions.map((option, index) => {
+      {messageOptions.map((option) => (
+        <li
+          key={option.value}
+          role="presentation"
+          className="border-b border-oa-grey-100 px-3 py-3 text-center text-sm text-oa-grey-500 last:border-b-0"
+        >
+          {option.label}
+        </li>
+      ))}
+      {selectableOptions.map((option, index) => {
         const selected = option.value === value;
         return (
           <li
@@ -140,11 +188,13 @@ export function FilterDropdown({
           </li>
         );
       })}
-      {searchable && displayOptions.length === 0 && (
-        <li className="px-3 py-4 text-center text-sm text-oa-grey-500">
-          No matches for your search.
-        </li>
-      )}
+      {searchable &&
+        selectableOptions.length === 0 &&
+        messageOptions.length === 0 && (
+          <li className="px-3 py-4 text-center text-sm text-oa-grey-500">
+            No matches for your search.
+          </li>
+        )}
     </>
   );
 
@@ -153,6 +203,7 @@ export function FilterDropdown({
       <div
         className={`${listClass} flex flex-col overflow-hidden py-0`}
       >
+        {hasSelectableSource && (
         <div className="sticky top-0 z-10 shrink-0 border-b border-oa-grey-200 bg-white px-2 py-2">
           <label htmlFor={searchId} className="sr-only">
             Search {label.toLowerCase()}
@@ -175,6 +226,7 @@ export function FilterDropdown({
             className="w-full rounded-sm border border-oa-grey-300 bg-white px-2 py-1.5 text-sm text-oa-grey-800 placeholder:text-oa-grey-400 focus:border-oa-cyan focus:outline-none focus:ring-1 focus:ring-oa-cyan"
           />
         </div>
+        )}
         <ul
           ref={listboxRef}
           id={listboxId}
@@ -236,7 +288,7 @@ export function FilterDropdown({
           aria-controls={listboxId}
           aria-labelledby={labelId}
         >
-          <span className="truncate">{selectedOption?.label ?? "All"}</span>
+          <span className="truncate">{triggerLabel}</span>
           <ChevronDownIcon
             className={`h-4 w-4 shrink-0 text-oa-grey-500 transition-transform ${open ? "rotate-180" : ""}`}
             aria-hidden="true"
@@ -257,10 +309,10 @@ export function FilterDropdown({
       aria-haspopup="listbox"
       aria-expanded={open}
       aria-controls={listboxId}
-      aria-label={`${label}: ${selectedOption?.label ?? "All"}`}
+      aria-label={`${label}: ${triggerLabel}`}
     >
       <span className="font-normal text-oa-grey-500">{label}:</span>
-      <span>{selectedOption?.label ?? "All"}</span>
+      <span>{triggerLabel}</span>
       <ChevronDownIcon
         className={`h-4 w-4 text-oa-grey-500 transition-transform ${open ? "rotate-180" : ""}`}
         aria-hidden="true"
