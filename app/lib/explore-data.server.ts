@@ -35,8 +35,10 @@ export async function loadExplorerData(): Promise<{
   rows: CrossTabRow[];
   hierarchy: GeoHierarchy;
 }> {
-  const content = await readFile(GEOCODED_CSV_PATH, "utf8");
-  const hierarchy = loadGeoHierarchy();
+  const [content, hierarchy] = await Promise.all([
+    readFile(GEOCODED_CSV_PATH, "utf8"),
+    loadGeoHierarchy(),
+  ]);
   const rows = enrichRowsWithGeoNames(parseExplorerCsv(content), hierarchy);
   return { rows, hierarchy };
 }

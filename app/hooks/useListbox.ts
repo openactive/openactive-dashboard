@@ -15,6 +15,10 @@ type UseListboxParams = {
   value: string;
   onChange: (value: string) => void;
   idPrefix?: string;
+  /** Focus first option when the list opens (default true). */
+  focusOptionOnOpen?: boolean;
+  /** Letter typeahead on the listbox root (default true). */
+  typeahead?: boolean;
 };
 
 /**
@@ -26,6 +30,8 @@ export function useListbox({
   value,
   onChange,
   idPrefix,
+  focusOptionOnOpen = true,
+  typeahead = true,
 }: UseListboxParams) {
   const autoId = useId();
   const baseId = idPrefix ?? `listbox-${autoId}`;
@@ -78,9 +84,10 @@ export function useListbox({
       typeaheadRef.current = "";
       return;
     }
+    if (!focusOptionOnOpen) return;
     const idx = selectedIndex >= 0 ? selectedIndex : 0;
     requestAnimationFrame(() => optionRefs.current[idx]?.focus());
-  }, [open, selectedIndex]);
+  }, [open, selectedIndex, focusOptionOnOpen]);
 
   useEffect(() => {
     return () => {
@@ -160,9 +167,9 @@ export function useListbox({
   const handleRootKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       handleTabExit(e);
-      handleListboxKeyDown(e);
+      if (typeahead) handleListboxKeyDown(e);
     },
-    [handleListboxKeyDown, handleTabExit]
+    [handleListboxKeyDown, handleTabExit, typeahead]
   );
 
   const setOptionRef = useCallback(
