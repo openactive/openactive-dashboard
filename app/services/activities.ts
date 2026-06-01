@@ -14,6 +14,7 @@ export async function getActivities(
   if (query.district) params.set("district", query.district);
   if (query.region) params.set("region", query.region);
   if (query.country) params.set("country", query.country);
+  if (query.publisher) params.set("publisher", query.publisher);
 
   const path = params.size > 0 ? `/activities?${params.toString()}` : "/activities";
   return apiFetch<ActivitiesResponse>(path, { revalidate: 300 });

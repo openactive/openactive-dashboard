@@ -28,8 +28,10 @@ type UseLocationScopedFilterOptionsParams = {
   hierarchy: GeoHierarchy;
   filters: Pick<ExplorerFilters, "district" | "areaScope">;
   maps: CodeMaps;
-  fetchNames: (query: LocationQuery) => Promise<string[]>;
+  fetchNames: (query: LocationQuery & { publisher?: string }) => Promise<string[]>;
   onFetched?: (names: string[]) => void;
+  /** Restrict results to a single publisher (ignored when ALL_FILTER). */
+  publisher?: string;
 };
 
 export function useLocationScopedFilterOptions({
@@ -41,6 +43,7 @@ export function useLocationScopedFilterOptions({
   maps,
   fetchNames,
   onFetched,
+  publisher,
 }: UseLocationScopedFilterOptionsParams) {
   const [options, setOptions] = useState<ExplorerFilterOption[]>([
     { value: ALL_FILTER, label: allLabel },
@@ -51,8 +54,11 @@ export function useLocationScopedFilterOptions({
 
   useEffect(() => {
     let cancelled = false;
-    const locationQuery = buildLocationFilterQuery(filters, maps);
-    const cacheKey = JSON.stringify({ locationQuery, item });
+    const query = {
+      ...buildLocationFilterQuery(filters, maps),
+      ...(publisher && publisher !== ALL_FILTER ? { publisher } : {}),
+    };
+    const cacheKey = JSON.stringify({ query, item });
     const cached = cacheRef.current.get(cacheKey);
 
     if (cached) {
@@ -65,7 +71,7 @@ export function useLocationScopedFilterOptions({
       { value: FILTER_LOADING_VALUE, label: loadingLabel },
     ]);
 
-    fetchNames(locationQuery)
+    fetchNames(query)
       .then((names) => {
         if (cancelled) return;
 
@@ -103,6 +109,7 @@ export function useLocationScopedFilterOptions({
     allLabel,
     loadingLabel,
     fetchNames,
+    publisher,
   ]);
 
   return options;

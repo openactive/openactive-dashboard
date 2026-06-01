@@ -4,4 +4,5 @@ export type ActivitiesQuery = {
   district?: string;
   region?: string;
   country?: string;
+  publisher?: string;
 };

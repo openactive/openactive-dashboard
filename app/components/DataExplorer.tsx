@@ -147,6 +147,7 @@ export function DataExplorer({ rows, hierarchy }: DataExplorerProps) {
     maps: codeMaps,
     fetchNames: getActivities,
     onFetched: onActivitiesFetched,
+    publisher: filters.publisher,
   });
 
   const filteredRows = useMemo(
