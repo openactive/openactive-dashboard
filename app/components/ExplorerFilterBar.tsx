@@ -98,6 +98,7 @@ export function ExplorerFilterBar({
             options={activityOptions}
             value={filters.activity}
             onChange={onActivityChange}
+            searchable
           />
         </div>
       </div>
