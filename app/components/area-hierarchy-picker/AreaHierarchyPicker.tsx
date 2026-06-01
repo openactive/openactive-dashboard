@@ -173,6 +173,7 @@ export function AreaHierarchyPicker({
           panelTitle={panelTitle}
           backLabel={backLabel}
           hierarchy={hierarchy}
+          filters={filters}
           districtsWithData={districtsWithData}
           listRef={listRef}
           backRef={backRef}

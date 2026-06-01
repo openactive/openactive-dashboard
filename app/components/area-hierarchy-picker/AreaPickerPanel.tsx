@@ -4,6 +4,7 @@ import {
   EXPLORER_GLASS_BACKDROP_BLUR_MD,
   EXPLORER_SHADOW_LG,
 } from "../../lib/explorer-ui-styles";
+import type { ExplorerFilters } from "../../lib/explore-filters";
 import { AreaPickerList } from "./AreaPickerList";
 import type { AreaPickerVariant, DrillLevel } from "./types";
 import type { GeoCountry, GeoHierarchy, GeoRegion } from "../../lib/geo-hierarchy";
@@ -17,6 +18,7 @@ interface AreaPickerPanelProps {
   panelTitle: string;
   backLabel: string;
   hierarchy: GeoHierarchy;
+  filters: ExplorerFilters;
   districtsWithData: Set<string>;
   listRef: RefObject<HTMLUListElement | null>;
   backRef: RefObject<HTMLButtonElement | null>;
@@ -37,6 +39,7 @@ export function AreaPickerPanel({
   panelTitle,
   backLabel,
   hierarchy,
+  filters,
   districtsWithData,
   listRef,
   backRef,
@@ -126,6 +129,7 @@ export function AreaPickerPanel({
           drill={drill}
           hierarchy={hierarchy}
           query={query}
+          filters={filters}
           districtsWithData={districtsWithData}
           onSelectScope={onSelectScope}
           onSelectArea={onSelectArea}

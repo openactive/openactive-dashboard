@@ -1,5 +1,10 @@
-import { ALL_FILTER } from "../../lib/explore-filters";
-import type { GeoCountry, GeoHierarchy, GeoRegion } from "../../lib/geo-hierarchy";
+import { ALL_FILTER, type ExplorerFilters } from "../../lib/explore-filters";
+import {
+  parseAreaScope,
+  type GeoCountry,
+  type GeoHierarchy,
+  type GeoRegion,
+} from "../../lib/geo-hierarchy";
 import { AreaPickerRow } from "./AreaPickerRow";
 import type { DrillLevel } from "./types";
 
@@ -7,6 +12,7 @@ interface AreaPickerListProps {
   drill: DrillLevel;
   hierarchy: GeoHierarchy;
   query: string;
+  filters: ExplorerFilters;
   districtsWithData: Set<string>;
   onSelectScope: (scope: string) => void;
   onSelectArea: (name: string) => void;
@@ -14,22 +20,51 @@ interface AreaPickerListProps {
   onDrillRegion: (country: GeoCountry, region: GeoRegion) => void;
 }
 
+/**
+ * Locate the country/region that the current selection lives under,
+ * so we can highlight ancestors at any drill level.
+ */
+function getSelectionAncestors(
+  hierarchy: GeoHierarchy,
+  filters: ExplorerFilters
+): { countryId?: string; regionId?: string } {
+  if (filters.district !== ALL_FILTER) {
+    for (const country of hierarchy.countries) {
+      for (const region of country.regions) {
+        if (region.areas.some((a) => a.name === filters.district)) {
+          return { countryId: country.id, regionId: region.id };
+        }
+      }
+    }
+    return {};
+  }
+
+  const parsed = parseAreaScope(filters.areaScope);
+  return { countryId: parsed.countryId, regionId: parsed.regionId };
+}
+
 export function AreaPickerList({
   drill,
   hierarchy,
   query,
+  filters,
   districtsWithData,
   onSelectScope,
   onSelectArea,
   onDrillCountry,
   onDrillRegion,
 }: AreaPickerListProps) {
+  const { countryId, regionId } = getSelectionAncestors(hierarchy, filters);
+  const isAllSelected =
+    filters.district === ALL_FILTER && filters.areaScope === ALL_FILTER;
+
   if (drill.type === "root") {
     return (
       <>
         <AreaPickerRow
           label="All areas"
           subLabel="United Kingdom & Ireland"
+          selected={isAllSelected}
           onSelect={() => onSelectScope(ALL_FILTER)}
         />
         {hierarchy.countries.map((country) => (
@@ -38,6 +73,7 @@ export function AreaPickerList({
             label={country.label}
             subLabel={`${country.regions.length} regions`}
             hasChildren
+            selected={country.id === countryId}
             onSelect={() => onDrillCountry(country)}
           />
         ))}
@@ -54,6 +90,9 @@ export function AreaPickerList({
             label={region.label}
             subLabel={`${region.areas.length} areas`}
             hasChildren
+            selected={
+              drill.country.id === countryId && region.id === regionId
+            }
             onSelect={() => onDrillRegion(drill.country, region)}
           />
         ))}
@@ -76,6 +115,7 @@ export function AreaPickerList({
             districtsWithData.has(area.name) ? "Has data" : "No data in extract"
           }
           muted={!districtsWithData.has(area.name)}
+          selected={area.name === filters.district}
           onSelect={() => onSelectArea(area.name)}
         />
       ))}
