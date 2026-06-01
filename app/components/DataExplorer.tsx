@@ -203,62 +203,57 @@ export function DataExplorer({ rows, hierarchy }: DataExplorerProps) {
   );
 
   return (
-    <div
-      className={`relative mt-10 min-h-[min(88vh,780px)] overflow-hidden rounded-xl shadow-[0_12px_48px_rgba(34,53,130,0.12)] ring-1 ring-oa-grey-300/60 [&_.oa-glass]:overflow-visible ${
-        mobilePanel !== "none" ? "max-lg:touch-none" : ""
-      }`}
-      aria-label="Interactive map explorer"
-    >
-      {/* Keyboard tab order: chrome before map (map is visual only, position absolute) */}
-      <div id="explorer-filters">
-        <div className="lg:hidden">
-          <ExplorerMobileChrome
-          panel={mobilePanel}
-          onPanelChange={setMobilePanel}
-          summary={summary}
-          selectionLabel={selectionLabel}
-          filterProps={filterControlProps}
-          />
-        </div>
-
-        <div className="absolute top-4 left-4 z-20 hidden pointer-events-none sm:top-5 sm:left-5 lg:block lg:w-[min(18rem,calc(100%-30rem))] xl:w-[min(20rem,calc(100%-32rem))]">
-        <div className="pointer-events-auto w-full">
-          <ExplorerFilterBar
-            layout="overlay"
-            {...filterControlProps}
-          />
-        </div>
-        </div>
+    <div className="mt-10" aria-label="Interactive map explorer">
+      {/* Desktop filter bar — sits above the map for a calmer composition */}
+      <div id="explorer-filters" className="hidden lg:block">
+        <ExplorerFilterBar layout="stacked" {...filterControlProps} />
       </div>
 
       <div
-        className="absolute z-20 pointer-events-none hidden lg:block top-5 right-5 w-[24rem] xl:right-6 xl:w-104 2xl:w-md"
-        aria-labelledby="explorer-summary-heading"
+        className={`relative mt-4 min-h-[min(88vh,780px)] overflow-hidden rounded-xl shadow-[0_12px_48px_rgba(34,53,130,0.12)] ring-1 ring-oa-grey-300/60 [&_.oa-glass]:overflow-visible ${
+          mobilePanel !== "none" ? "max-lg:touch-none" : ""
+        }`}
       >
-        <h3 id="explorer-summary-heading" className="sr-only">
-          Summary statistics
-        </h3>
-        <div className="pointer-events-auto min-h-0 overflow-y-auto">
-          <ExplorerSummary
-            layout="overlay"
+        {/* Mobile chrome stays docked over the map (sheets open from the bottom) */}
+        <div className="lg:hidden" id="explorer-filters-mobile">
+          <ExplorerMobileChrome
+            panel={mobilePanel}
+            onPanelChange={setMobilePanel}
             summary={summary}
             selectionLabel={selectionLabel}
+            filterProps={filterControlProps}
           />
         </div>
-      </div>
 
-      <div
-        className="absolute inset-0 h-full w-full"
-        inert={mobilePanel !== "none" ? true : undefined}
-        aria-hidden={mobilePanel !== "none" ? true : undefined}
-      >
-        <OpportunityMap
-          districtCounts={districtCounts}
-          scopeAreaNames={mapScopeNames}
-          selectedDistrict={
-            filters.district !== ALL_FILTER ? filters.district : null
-          }
-        />
+        <div
+          className="absolute z-20 pointer-events-none hidden lg:block top-5 right-5 w-[24rem] xl:right-6 xl:w-104 2xl:w-md"
+          aria-labelledby="explorer-summary-heading"
+        >
+          <h3 id="explorer-summary-heading" className="sr-only">
+            Summary statistics
+          </h3>
+          <div className="pointer-events-auto min-h-0 overflow-y-auto">
+            <ExplorerSummary
+              layout="overlay"
+              summary={summary}
+              selectionLabel={selectionLabel}
+            />
+          </div>
+        </div>
+
+        <div
+          className="absolute inset-0 h-full w-full"
+          inert={mobilePanel !== "none" ? true : undefined}
+          aria-hidden={mobilePanel !== "none" ? true : undefined}
+        >
+          <OpportunityMap
+            districtCounts={districtCounts}
+            scopeAreaNames={mapScopeNames}
+            selectedDistrict={
+              filters.district !== ALL_FILTER ? filters.district : null
+            }
+          />
+        </div>
       </div>
     </div>
   );

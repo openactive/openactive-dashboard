@@ -23,12 +23,12 @@ export function AreaPickerRow({
         type="button"
         data-picker-option
         aria-current={selected ? "true" : undefined}
-        className={`flex w-full cursor-pointer items-center gap-2 px-3 py-2.5 text-left text-sm transition-colors focus:outline-none focus:bg-oa-cyan/10 focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-oa-cyan ${
+        className={`flex w-full cursor-pointer items-center gap-2 px-3 py-2.5 text-left text-sm transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-oa-cyan ${
           selected
             ? "bg-oa-navy text-white"
             : muted
-              ? "text-oa-grey-400 hover:bg-oa-grey-50"
-              : "text-oa-grey-800 hover:bg-oa-grey-50"
+              ? "text-oa-grey-400 hover:bg-oa-grey-50 focus:bg-oa-cyan/10"
+              : "text-oa-grey-800 hover:bg-oa-grey-50 focus:bg-oa-cyan/10"
         }`}
         onClick={onSelect}
         aria-label={

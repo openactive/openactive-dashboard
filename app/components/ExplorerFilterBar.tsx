@@ -42,14 +42,14 @@ export function ExplorerFilterBar({
           ? "min-w-0 border-0 bg-transparent p-0"
           : isOverlay
             ? "oa-glass oa-glass-strong overflow-visible rounded-xl p-4 ring-1 ring-white/70 lg:p-4"
-            : "overflow-hidden rounded-sm border border-oa-grey-300 bg-white"
+            : "overflow-visible rounded-sm border border-oa-grey-300 bg-white"
       }
     >
       <legend className="sr-only">Filter explorer data</legend>
 
       {!isOverlay && !isSheet && (
-        <div className="border-b-4 border-oa-cyan bg-oa-navy px-4 py-3 sm:px-5">
-          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-oa-aqua">
+        <div className="rounded-t-sm border-b-4 border-oa-cyan bg-oa-navy px-4 py-3 sm:px-5">
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-white">
             Refine your view
           </p>
         </div>

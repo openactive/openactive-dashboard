@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import { ChevronRightIcon } from "@heroicons/react/20/solid";
+import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { useClickOutside } from "../../hooks/useClickOutside";
 import { useDisclosureTriggerKeyDown } from "../../hooks/useDisclosureTriggerKeyDown";
 import { useEscapeClose } from "../../hooks/useEscapeClose";
@@ -157,8 +157,8 @@ export function AreaHierarchyPicker({
         aria-controls={open ? listboxId : undefined}
       >
         <span className="flex-1 truncate font-medium">{triggerLabel}</span>
-        <ChevronRightIcon
-          className={`h-4 w-4 shrink-0 text-oa-grey-500 transition-transform ${open ? "rotate-90" : ""}`}
+        <ChevronDownIcon
+          className={`h-4 w-4 shrink-0 text-oa-grey-500 transition-transform ${open ? "rotate-180" : ""}`}
           aria-hidden="true"
         />
       </button>

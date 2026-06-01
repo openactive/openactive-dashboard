@@ -66,7 +66,7 @@ export function AreaPickerPanel({
           ? `overflow-hidden rounded-lg border-white/90 bg-white/95 ${EXPLORER_SHADOW_LG} ${EXPLORER_GLASS_BACKDROP_BLUR_MD}`
           : isSheet
             ? `overflow-hidden rounded-lg border-oa-grey-200 ${EXPLORER_SHADOW_LG}`
-            : "overflow-hidden rounded-sm border-oa-navy shadow-[6px_6px_0_0_#223582]"
+            : `overflow-hidden rounded-lg border-oa-grey-200 ${EXPLORER_SHADOW_LG}`
       }`}
     >
       <div
