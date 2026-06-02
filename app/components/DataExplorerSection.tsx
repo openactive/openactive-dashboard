@@ -1,11 +1,11 @@
 import { Suspense } from "react";
 import { DataExplorer } from "./DataExplorer";
 import { ExplorerSectionLoading } from "./ExplorerSectionLoading";
-import { loadExplorerData } from "../lib/explore-data.server";
+import { loadGeoHierarchy } from "../lib/geo-hierarchy.server";
 
 async function DataExplorerLoaded() {
-  const { rows, hierarchy } = await loadExplorerData();
-  return <DataExplorer rows={rows} hierarchy={hierarchy} />;
+  const hierarchy = await loadGeoHierarchy();
+  return <DataExplorer hierarchy={hierarchy} />;
 }
 
 /**

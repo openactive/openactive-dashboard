@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import { useLocationScopedFilterOptions } from "../hooks/useLocationScopedFilterOptions";
 import { useReactiveAreaHierarchy } from "../hooks/useReactiveAreaHierarchy";
+import { useReactiveOpportunities } from "../hooks/useReactiveOpportunities";
 import { ExplorerFilterBar } from "./ExplorerFilterBar";
 import { ExplorerSummary } from "./ExplorerSummary";
 import {
@@ -11,24 +12,18 @@ import {
   type MobilePanel,
 } from "./ExplorerMobileChrome";
 import { OpportunityMap } from "./OpportunityMap";
-import type { CrossTabRow } from "../lib/explore-csv";
 import type { GeoHierarchy } from "../lib/geo-hierarchy";
 import { getAreaSelectionLabel } from "../lib/geo-hierarchy";
 import { getAreaNamesInScope } from "../lib/geo-hierarchy";
 import {
-  computeExplorerSummary,
   ALL_FILTER,
   DEFAULT_EXPLORER_FILTERS,
-  filterRows,
-  getDistrictCounts,
-  normalizeExplorerFilters,
   type ExplorerFilters,
 } from "../lib/explore-filters";
 import { getActivities } from "../services/activities";
 import { getPublishers } from "../services/publishers";
 
 interface DataExplorerProps {
-  rows: CrossTabRow[];
   hierarchy: GeoHierarchy;
 }
 
@@ -36,7 +31,7 @@ interface DataExplorerProps {
  * Map-first explorer: floating glass panels on desktop; compact dock + sheets on mobile/tablet.
  * Chrome is first in DOM order so keyboard users reach filters before map zoom controls.
  */
-export function DataExplorer({ rows, hierarchy }: DataExplorerProps) {
+export function DataExplorer({ hierarchy }: DataExplorerProps) {
   const [filters, setFilters] = useState<ExplorerFilters>(
     DEFAULT_EXPLORER_FILTERS
   );
@@ -53,18 +48,11 @@ export function DataExplorer({ rows, hierarchy }: DataExplorerProps) {
     fallback: hierarchy,
   });
 
-  const setFiltersNormalized = useCallback(
-    (next: ExplorerFilters) => {
-      setFilters(normalizeExplorerFilters(rows, next, hierarchy));
-    },
-    [rows, hierarchy]
-  );
-
   const updateFilter = useCallback(
     (key: keyof ExplorerFilters, value: string) => {
-      setFiltersNormalized({ ...filters, [key]: value });
+      setFilters((current) => ({ ...current, [key]: value }));
     },
-    [filters, setFiltersNormalized]
+    []
   );
 
   const onPublisherChange = useCallback(
@@ -153,20 +141,11 @@ export function DataExplorer({ rows, hierarchy }: DataExplorerProps) {
     publisher: filters.publisher,
   });
 
-  const filteredRows = useMemo(
-    () => filterRows(rows, filters, hierarchy),
-    [rows, filters, hierarchy]
-  );
-
-  const summary = useMemo(
-    () => computeExplorerSummary(filteredRows),
-    [filteredRows]
-  );
-
-  const districtCounts = useMemo(
-    () => getDistrictCounts(filteredRows),
-    [filteredRows]
-  );
+  // Summary card + map choropleth are both driven by /opportunities.
+  const { summary, districtCounts } = useReactiveOpportunities({
+    filters,
+    maps: codeMaps,
+  });
 
   const selectionLabel = getAreaSelectionLabel(
     hierarchy,
@@ -188,7 +167,7 @@ export function DataExplorer({ rows, hierarchy }: DataExplorerProps) {
       filters,
       publisherOptions,
       activityOptions,
-      onFiltersChange: setFiltersNormalized,
+      onFiltersChange: setFilters,
       onPublisherChange,
       onActivityChange,
     }),
@@ -197,7 +176,6 @@ export function DataExplorer({ rows, hierarchy }: DataExplorerProps) {
       filters,
       publisherOptions,
       activityOptions,
-      setFiltersNormalized,
       onPublisherChange,
       onActivityChange,
     ]
