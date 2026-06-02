@@ -1,10 +1,21 @@
+"use server";
+
 import { apiFetch } from "./api-client";
-import type { AreasResponse } from "../types/areas";
+import type { AreasQuery, AreasResponse } from "../types/areas";
 
 /**
- * Fetch the full location hierarchy from the OpenActive Monitor API.
+ * Fetch the location hierarchy from the OpenActive Monitor API,
+ * optionally narrowed to areas where a given publisher/activity exists.
  * Revalidates every 30 minutes (data changes infrequently).
  */
-export async function getAllAreas(): Promise<AreasResponse> {
-  return apiFetch<AreasResponse>("/areas", { revalidate: 1800 });
+export async function getAllAreas(
+  query: AreasQuery = {}
+): Promise<AreasResponse> {
+  const params = new URLSearchParams();
+
+  if (query.publisher) params.set("publisher", query.publisher);
+  if (query.activity) params.set("activity", query.activity);
+
+  const path = params.size > 0 ? `/areas?${params.toString()}` : "/areas";
+  return apiFetch<AreasResponse>(path, { revalidate: 1800 });
 }

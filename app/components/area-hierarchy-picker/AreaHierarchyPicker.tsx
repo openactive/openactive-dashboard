@@ -24,7 +24,6 @@ import { useAreaPickerDrill } from "./use-area-picker-drill";
 export interface AreaHierarchyPickerProps {
   hierarchy: GeoHierarchy;
   filters: ExplorerFilters;
-  districtsWithData: Set<string>;
   onChange: (filters: ExplorerFilters) => void;
   variant?: AreaPickerVariant;
 }
@@ -35,7 +34,6 @@ export interface AreaHierarchyPickerProps {
 export function AreaHierarchyPicker({
   hierarchy,
   filters,
-  districtsWithData,
   onChange,
   variant = "default",
 }: AreaHierarchyPickerProps) {
@@ -174,7 +172,6 @@ export function AreaHierarchyPicker({
           backLabel={backLabel}
           hierarchy={hierarchy}
           filters={filters}
-          districtsWithData={districtsWithData}
           listRef={listRef}
           backRef={backRef}
           onQueryChange={setQuery}

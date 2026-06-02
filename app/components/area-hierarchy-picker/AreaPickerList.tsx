@@ -13,7 +13,6 @@ interface AreaPickerListProps {
   hierarchy: GeoHierarchy;
   query: string;
   filters: ExplorerFilters;
-  districtsWithData: Set<string>;
   onSelectScope: (scope: string) => void;
   onSelectArea: (name: string) => void;
   onDrillCountry: (country: GeoCountry) => void;
@@ -48,7 +47,6 @@ export function AreaPickerList({
   hierarchy,
   query,
   filters,
-  districtsWithData,
   onSelectScope,
   onSelectArea,
   onDrillCountry,
@@ -111,10 +109,6 @@ export function AreaPickerList({
         <AreaPickerRow
           key={area.geoCode}
           label={area.name}
-          subLabel={
-            districtsWithData.has(area.name) ? "Has data" : "No data in extract"
-          }
-          muted={!districtsWithData.has(area.name)}
           selected={area.name === filters.district}
           onSelect={() => onSelectArea(area.name)}
         />

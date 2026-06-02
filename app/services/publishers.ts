@@ -15,6 +15,7 @@ export async function getPublishers(
   if (query.district) params.set("district", query.district);
   if (query.region) params.set("region", query.region);
   if (query.country) params.set("country", query.country);
+  if (query.activity) params.set("activity", query.activity);
 
   const path = params.size > 0 ? `/publishers?${params.toString()}` : "/publishers";
   return apiFetch<PublishersResponse>(path, { revalidate: 300 });
