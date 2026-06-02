@@ -28,10 +28,12 @@ type UseLocationScopedFilterOptionsParams = {
   hierarchy: GeoHierarchy;
   filters: Pick<ExplorerFilters, "district" | "areaScope">;
   maps: CodeMaps;
-  fetchNames: (query: LocationQuery & { publisher?: string }) => Promise<string[]>;
+  fetchNames: (
+    query: LocationQuery & { publisher?: string; activity?: string }
+  ) => Promise<string[]>;
   onFetched?: (names: string[]) => void;
-  /** Restrict results to a single publisher (ignored when ALL_FILTER). */
   publisher?: string;
+  activity?: string;
 };
 
 export function useLocationScopedFilterOptions({
@@ -44,6 +46,7 @@ export function useLocationScopedFilterOptions({
   fetchNames,
   onFetched,
   publisher,
+  activity,
 }: UseLocationScopedFilterOptionsParams) {
   const [options, setOptions] = useState<ExplorerFilterOption[]>([
     { value: ALL_FILTER, label: allLabel },
@@ -57,6 +60,7 @@ export function useLocationScopedFilterOptions({
     const query = {
       ...buildLocationFilterQuery(filters, maps),
       ...(publisher && publisher !== ALL_FILTER ? { publisher } : {}),
+      ...(activity && activity !== ALL_FILTER ? { activity } : {}),
     };
     const cacheKey = JSON.stringify({ query, item });
     const cached = cacheRef.current.get(cacheKey);
@@ -66,10 +70,25 @@ export function useLocationScopedFilterOptions({
       return;
     }
 
-    setOptions([
-      { value: ALL_FILTER, label: allLabel },
-      { value: FILTER_LOADING_VALUE, label: loadingLabel },
-    ]);
+    // Keep the previous options visible during fetch. Add a loading
+    // row at the top so the user knows we're refreshing.
+    setOptions((prev) => {
+      const withoutMessages = prev.filter(
+        (o) =>
+          o.value !== FILTER_LOADING_VALUE &&
+          o.value !== FILTER_EMPTY_VALUE
+      );
+      const hasAll = withoutMessages.some((o) => o.value === ALL_FILTER);
+      const base = hasAll
+        ? withoutMessages
+        : [{ value: ALL_FILTER, label: allLabel }, ...withoutMessages];
+
+      return [
+        base[0],
+        { value: FILTER_LOADING_VALUE, label: loadingLabel },
+        ...base.slice(1),
+      ];
+    });
 
     fetchNames(query)
       .then((names) => {
@@ -110,6 +129,7 @@ export function useLocationScopedFilterOptions({
     loadingLabel,
     fetchNames,
     publisher,
+    activity,
   ]);
 
   return options;

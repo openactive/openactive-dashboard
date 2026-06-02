@@ -19,7 +19,6 @@ interface AreaPickerPanelProps {
   backLabel: string;
   hierarchy: GeoHierarchy;
   filters: ExplorerFilters;
-  districtsWithData: Set<string>;
   listRef: RefObject<HTMLUListElement | null>;
   backRef: RefObject<HTMLButtonElement | null>;
   onQueryChange: (value: string) => void;
@@ -40,7 +39,6 @@ export function AreaPickerPanel({
   backLabel,
   hierarchy,
   filters,
-  districtsWithData,
   listRef,
   backRef,
   onQueryChange,
@@ -130,7 +128,6 @@ export function AreaPickerPanel({
           hierarchy={hierarchy}
           query={query}
           filters={filters}
-          districtsWithData={districtsWithData}
           onSelectScope={onSelectScope}
           onSelectArea={onSelectArea}
           onDrillCountry={onDrillCountry}

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import { useLocationScopedFilterOptions } from "../hooks/useLocationScopedFilterOptions";
+import { useReactiveAreaHierarchy } from "../hooks/useReactiveAreaHierarchy";
 import { ExplorerFilterBar } from "./ExplorerFilterBar";
 import { ExplorerSummary } from "./ExplorerSummary";
 import {
@@ -46,10 +47,11 @@ export function DataExplorer({ rows, hierarchy }: DataExplorerProps) {
     if (isDesktop) setMobilePanel("none");
   }, [isDesktop]);
 
-  const districtsWithData = useMemo(
-    () => new Set(rows.map((r) => r.district).filter(Boolean)),
-    [rows]
-  );
+  const pickerHierarchy = useReactiveAreaHierarchy({
+    publisher: filters.publisher,
+    activity: filters.activity,
+    fallback: hierarchy,
+  });
 
   const setFiltersNormalized = useCallback(
     (next: ExplorerFilters) => {
@@ -136,6 +138,7 @@ export function DataExplorer({ rows, hierarchy }: DataExplorerProps) {
     maps: codeMaps,
     fetchNames: getPublishers,
     onFetched: onPublishersFetched,
+    activity: filters.activity,
   });
 
   const activityOptions = useLocationScopedFilterOptions({
@@ -181,9 +184,8 @@ export function DataExplorer({ rows, hierarchy }: DataExplorerProps) {
 
   const filterControlProps = useMemo(
     () => ({
-      hierarchy,
+      hierarchy: pickerHierarchy,
       filters,
-      districtsWithData,
       publisherOptions,
       activityOptions,
       onFiltersChange: setFiltersNormalized,
@@ -191,9 +193,8 @@ export function DataExplorer({ rows, hierarchy }: DataExplorerProps) {
       onActivityChange,
     }),
     [
-      hierarchy,
+      pickerHierarchy,
       filters,
-      districtsWithData,
       publisherOptions,
       activityOptions,
       setFiltersNormalized,

@@ -10,7 +10,6 @@ export type MobilePanel = "none" | "filters" | "stats";
 export interface ExplorerFilterControlProps {
   hierarchy: GeoHierarchy;
   filters: ExplorerFilters;
-  districtsWithData: Set<string>;
   publisherOptions: ExplorerFilterOption[];
   activityOptions: ExplorerFilterOption[];
   onFiltersChange: (filters: ExplorerFilters) => void;

@@ -29,3 +29,8 @@ export type AreaCountry = AreaCountryWithRegions | AreaCountryWithDistricts;
 
 /** Raw response from GET /areas — keyed by country name. */
 export type AreasResponse = Record<string, AreaCountry>;
+
+export type AreasQuery = {
+  publisher?: string;
+  activity?: string;
+};
