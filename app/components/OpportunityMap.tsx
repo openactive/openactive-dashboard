@@ -9,6 +9,7 @@ import {
   LAND_STROKE,
   FOCUS_STROKE,
   buildColorScale,
+  computeTranslateExtent,
   fillForFeature,
   strokeForFeature,
   strokeWidthForFeature,
@@ -169,7 +170,7 @@ export function OpportunityMap({
 
     const zoom = d3.zoom<SVGSVGElement, unknown>()
       .scaleExtent([1, 14])
-      .translateExtent([[0, 0], [width, height]])
+      .translateExtent(computeTranslateExtent(path, fitCollection, width, height))
       .on("zoom", (event) => { zoomRoot.attr("transform", event.transform.toString()); });
 
     zoomBehaviorRef.current = zoom;
@@ -192,7 +193,7 @@ export function OpportunityMap({
       svg.select("g.land-layer").selectAll<SVGPathElement, LadFeature>("path").attr("d", updatePath);
       dataLayer.selectAll<SVGPathElement, LadFeature>("path").attr("d", updatePath);
       svg.attr("viewBox", `0 0 ${w} ${h}`).attr("width", w).attr("height", h);
-      zoom.translateExtent([[0, 0], [w, h]]);
+      zoom.translateExtent(computeTranslateExtent(path, fitCollection, w, h));
     });
     resizeObserver.observe(container);
 
@@ -263,7 +264,7 @@ export function OpportunityMap({
 
         <svg
           ref={svgRef}
-          className={`h-full w-full cursor-grab outline-none focus:outline-none active:cursor-grabbing ${status !== "ready" ? "opacity-0" : ""}`}
+          className={`h-full w-full touch-none cursor-grab outline-none focus:outline-none active:cursor-grabbing ${status !== "ready" ? "opacity-0" : ""}`}
           aria-labelledby="map-title"
           aria-describedby={tooltipId}
           tabIndex={-1}

@@ -136,3 +136,26 @@ export function scopeKey(
 ): string {
   return `${selectedDistrict ?? ""}|${scopeAreaNames?.join(",") ?? "all"}`;
 }
+
+/**
+ * Translate extent that constrains panning to the projected map shapes
+ * (with a small margin) rather than the whole SVG viewport — so zoomed-in
+ * users can't drag the map off into the grey background.
+ */
+export function computeTranslateExtent(
+  path: d3.GeoPath,
+  collection: { type: "FeatureCollection"; features: LadFeature[] },
+  width: number,
+  height: number
+): [[number, number], [number, number]] {
+  const bounds = path.bounds(collection as d3.GeoPermissibleObjects);
+  const [[x0, y0], [x1, y1]] = bounds;
+  if (!Number.isFinite(x0) || !Number.isFinite(y0)) {
+    return [[0, 0], [width, height]];
+  }
+  const margin = 24;
+  return [
+    [x0 - margin, y0 - margin],
+    [x1 + margin, y1 + margin],
+  ];
+}
