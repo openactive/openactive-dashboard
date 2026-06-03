@@ -2,6 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMediaQuery } from "../hooks/useMediaQuery";
+import { useLocationScopedFilterOptions } from "../hooks/useLocationScopedFilterOptions";
+import { useReactiveAreaHierarchy } from "../hooks/useReactiveAreaHierarchy";
+import { useReactiveOpportunities } from "../hooks/useReactiveOpportunities";
 import { ExplorerFilterBar } from "./ExplorerFilterBar";
 import { ExplorerSummary } from "./ExplorerSummary";
 import {
@@ -9,24 +12,18 @@ import {
   type MobilePanel,
 } from "./ExplorerMobileChrome";
 import { OpportunityMap } from "./OpportunityMap";
-import type { CrossTabRow } from "../lib/explore-csv";
 import type { GeoHierarchy } from "../lib/geo-hierarchy";
 import { getAreaSelectionLabel } from "../lib/geo-hierarchy";
 import { getAreaNamesInScope } from "../lib/geo-hierarchy";
 import {
-  buildActivityOptions,
-  buildPublisherOptions,
-  computeExplorerSummary,
   ALL_FILTER,
   DEFAULT_EXPLORER_FILTERS,
-  filterRows,
-  getDistrictCounts,
-  normalizeExplorerFilters,
   type ExplorerFilters,
 } from "../lib/explore-filters";
+import { getActivities } from "../services/activities";
+import { getPublishers } from "../services/publishers";
 
 interface DataExplorerProps {
-  rows: CrossTabRow[];
   hierarchy: GeoHierarchy;
 }
 
@@ -34,7 +31,7 @@ interface DataExplorerProps {
  * Map-first explorer: floating glass panels on desktop; compact dock + sheets on mobile/tablet.
  * Chrome is first in DOM order so keyboard users reach filters before map zoom controls.
  */
-export function DataExplorer({ rows, hierarchy }: DataExplorerProps) {
+export function DataExplorer({ hierarchy }: DataExplorerProps) {
   const [filters, setFilters] = useState<ExplorerFilters>(
     DEFAULT_EXPLORER_FILTERS
   );
@@ -45,23 +42,17 @@ export function DataExplorer({ rows, hierarchy }: DataExplorerProps) {
     if (isDesktop) setMobilePanel("none");
   }, [isDesktop]);
 
-  const districtsWithData = useMemo(
-    () => new Set(rows.map((r) => r.district).filter(Boolean)),
-    [rows]
-  );
-
-  const setFiltersNormalized = useCallback(
-    (next: ExplorerFilters) => {
-      setFilters(normalizeExplorerFilters(rows, next, hierarchy));
-    },
-    [rows, hierarchy]
-  );
+  const pickerHierarchy = useReactiveAreaHierarchy({
+    publisher: filters.publisher,
+    activity: filters.activity,
+    fallback: hierarchy,
+  });
 
   const updateFilter = useCallback(
     (key: keyof ExplorerFilters, value: string) => {
-      setFiltersNormalized({ ...filters, [key]: value });
+      setFilters((current) => ({ ...current, [key]: value }));
     },
-    [filters, setFiltersNormalized]
+    []
   );
 
   const onPublisherChange = useCallback(
@@ -74,48 +65,93 @@ export function DataExplorer({ rows, hierarchy }: DataExplorerProps) {
     [updateFilter]
   );
 
-  const publisherOptions = useMemo(
-    () =>
-      buildPublisherOptions(
-        rows,
-        {
-          district: filters.district,
-          areaScope: filters.areaScope,
-          activity: filters.activity,
-        },
-        hierarchy
-      ),
-    [rows, filters.district, filters.areaScope, filters.activity, hierarchy]
+  const onMapReset = useCallback(
+    () => setFilters(DEFAULT_EXPLORER_FILTERS),
+    []
   );
 
-  const activityOptions = useMemo(
-    () =>
-      buildActivityOptions(
-        rows,
-        {
-          district: filters.district,
-          areaScope: filters.areaScope,
-          publisher: filters.publisher,
-        },
-        hierarchy
-      ),
-    [rows, filters.district, filters.areaScope, filters.publisher, hierarchy]
+  const codeMaps = useMemo(() => {
+    const districtCodeByName = new Map<string, string>();
+    const countryCodeById = new Map<string, string>();
+    const regionCodeByScope = new Map<string, string>();
+
+    for (const country of hierarchy.countries) {
+      countryCodeById.set(country.id, country.code);
+      for (const region of country.regions) {
+        regionCodeByScope.set(`${country.id}:${region.id}`, region.code);
+        for (const area of region.areas) {
+          districtCodeByName.set(area.name, area.geoCode);
+        }
+      }
+    }
+
+    return { districtCodeByName, countryCodeById, regionCodeByScope };
+  }, [hierarchy]);
+
+  const onPublishersFetched = useCallback((names: string[]) => {
+    setFilters((current) => {
+      if (
+        names.length === 0 ||
+        (current.publisher !== ALL_FILTER &&
+          !names.includes(current.publisher))
+      ) {
+        return { ...current, publisher: ALL_FILTER };
+      }
+      return current;
+    });
+  }, []);
+
+  const onActivitiesFetched = useCallback((names: string[]) => {
+    setFilters((current) => {
+      if (
+        names.length === 0 ||
+        (current.activity !== ALL_FILTER &&
+          !names.includes(current.activity))
+      ) {
+        return { ...current, activity: ALL_FILTER };
+      }
+      return current;
+    });
+  }, []);
+
+  const areaFilters = useMemo(
+    () => ({
+      district: filters.district,
+      areaScope: filters.areaScope,
+    }),
+    [filters.district, filters.areaScope]
   );
 
-  const filteredRows = useMemo(
-    () => filterRows(rows, filters, hierarchy),
-    [rows, filters, hierarchy]
-  );
+  const publisherOptions = useLocationScopedFilterOptions({
+    item: "publishers",
+    allLabel: "All publishers",
+    loadingLabel: "Loading publishers…",
+    hierarchy,
+    filters: areaFilters,
+    maps: codeMaps,
+    fetchNames: getPublishers,
+    onFetched: onPublishersFetched,
+    activity: filters.activity,
+  });
 
-  const summary = useMemo(
-    () => computeExplorerSummary(filteredRows),
-    [filteredRows]
-  );
+  const activityOptions = useLocationScopedFilterOptions({
+    item: "activities",
+    allLabel: "All activities and facilities",
+    loadingLabel: "Loading activities…",
+    hierarchy,
+    filters: areaFilters,
+    maps: codeMaps,
+    fetchNames: getActivities,
+    onFetched: onActivitiesFetched,
+    publisher: filters.publisher,
+  });
 
-  const districtCounts = useMemo(
-    () => getDistrictCounts(filteredRows),
-    [filteredRows]
-  );
+  // Summary card + map choropleth are both driven by /opportunities.
+  const { summary, districtCounts, isLoading: isOpportunitiesLoading } =
+    useReactiveOpportunities({
+      filters,
+      maps: codeMaps,
+    });
 
   const selectionLabel = getAreaSelectionLabel(
     hierarchy,
@@ -133,84 +169,91 @@ export function DataExplorer({ rows, hierarchy }: DataExplorerProps) {
 
   const filterControlProps = useMemo(
     () => ({
-      hierarchy,
+      hierarchy: pickerHierarchy,
       filters,
-      districtsWithData,
       publisherOptions,
       activityOptions,
-      onFiltersChange: setFiltersNormalized,
+      onFiltersChange: setFilters,
       onPublisherChange,
       onActivityChange,
     }),
     [
-      hierarchy,
+      pickerHierarchy,
       filters,
-      districtsWithData,
       publisherOptions,
       activityOptions,
-      setFiltersNormalized,
       onPublisherChange,
       onActivityChange,
     ]
   );
 
   return (
-    <div
-      className={`relative mt-10 min-h-[min(88vh,780px)] overflow-hidden rounded-xl shadow-[0_12px_48px_rgba(34,53,130,0.12)] ring-1 ring-oa-grey-300/60 [&_.oa-glass]:overflow-visible ${
-        mobilePanel !== "none" ? "max-lg:touch-none" : ""
-      }`}
-      aria-label="Interactive map explorer"
-    >
-      {/* Keyboard tab order: chrome before map (map is visual only, position absolute) */}
-      <div id="explorer-filters">
-        <div className="lg:hidden">
-          <ExplorerMobileChrome
-          panel={mobilePanel}
-          onPanelChange={setMobilePanel}
-          summary={summary}
-          selectionLabel={selectionLabel}
-          filterProps={filterControlProps}
-          />
-        </div>
-
-        <div className="absolute top-4 left-4 z-20 hidden pointer-events-none sm:top-5 sm:left-5 lg:block lg:w-[min(18rem,calc(100%-30rem))] xl:w-[min(20rem,calc(100%-32rem))]">
-        <div className="pointer-events-auto w-full">
-          <ExplorerFilterBar
-            layout="overlay"
-            {...filterControlProps}
-          />
-        </div>
-        </div>
+    <div className="mt-10" aria-label="Interactive map explorer">
+      {/* Desktop filter bar — sits above the map for a calmer composition */}
+      <div id="explorer-filters" className="hidden lg:block">
+        <ExplorerFilterBar layout="stacked" {...filterControlProps} />
       </div>
 
-      <div
-        className="absolute z-20 pointer-events-none hidden lg:block top-5 right-5 w-[24rem] xl:right-6 xl:w-104 2xl:w-md"
-        aria-labelledby="explorer-summary-heading"
-      >
-        <h3 id="explorer-summary-heading" className="sr-only">
-          Summary statistics
-        </h3>
-        <div className="pointer-events-auto min-h-0 overflow-y-auto">
+      {/* Desktop layout: panel on the left, map on the right. */}
+      <div className="mt-4 hidden lg:grid lg:grid-cols-[22rem_minmax(0,1fr)] lg:gap-5 xl:grid-cols-[24rem_minmax(0,1fr)] 2xl:grid-cols-[28rem_minmax(0,1fr)]">
+        <aside
+          className="min-h-[min(80vh,720px)] max-h-[min(80vh,720px)]"
+          aria-labelledby="explorer-summary-heading"
+        >
+          <h3 id="explorer-summary-heading" className="sr-only">
+            Summary statistics
+          </h3>
           <ExplorerSummary
-            layout="overlay"
+            layout="panel"
             summary={summary}
             selectionLabel={selectionLabel}
+            isLoading={isOpportunitiesLoading}
+          />
+        </aside>
+
+        <div className="relative min-h-[min(80vh,720px)] overflow-hidden rounded-xl shadow-[0_12px_48px_rgba(34,53,130,0.12)] ring-1 ring-oa-grey-300/60">
+          <OpportunityMap
+            districtCounts={districtCounts}
+            scopeAreaNames={mapScopeNames}
+            selectedDistrict={
+              filters.district !== ALL_FILTER ? filters.district : null
+            }
+            onReset={onMapReset}
           />
         </div>
       </div>
 
+      {/* Mobile / tablet: map fills the frame, chrome docks at the bottom. */}
       <div
-        className="absolute inset-0 h-full w-full"
-        inert={mobilePanel !== "none" ? true : undefined}
-        aria-hidden={mobilePanel !== "none" ? true : undefined}
+        className={`relative mt-4 min-h-[min(88vh,780px)] overflow-hidden rounded-xl shadow-[0_12px_48px_rgba(34,53,130,0.12)] ring-1 ring-oa-grey-300/60 lg:hidden ${
+          mobilePanel !== "none" ? "max-lg:touch-none" : ""
+        }`}
       >
-        <OpportunityMap
-          districtCounts={districtCounts}
-          scopeAreaNames={mapScopeNames}
-          selectedDistrict={
-            filters.district !== ALL_FILTER ? filters.district : null
-          }
-        />
+        <div id="explorer-filters-mobile">
+          <ExplorerMobileChrome
+            panel={mobilePanel}
+            onPanelChange={setMobilePanel}
+            summary={summary}
+            selectionLabel={selectionLabel}
+            filterProps={filterControlProps}
+            isLoading={isOpportunitiesLoading}
+          />
+        </div>
+
+        <div
+          className="absolute inset-0 h-full w-full"
+          inert={mobilePanel !== "none" ? true : undefined}
+          aria-hidden={mobilePanel !== "none" ? true : undefined}
+        >
+          <OpportunityMap
+            districtCounts={districtCounts}
+            scopeAreaNames={mapScopeNames}
+            selectedDistrict={
+              filters.district !== ALL_FILTER ? filters.district : null
+            }
+            onReset={onMapReset}
+          />
+        </div>
       </div>
     </div>
   );

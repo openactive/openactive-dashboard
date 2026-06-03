@@ -21,6 +21,7 @@ export function ExplorerMobileChrome({
   summary,
   selectionLabel,
   filterProps,
+  isLoading,
 }: ExplorerMobileChromeProps) {
   const closePanel = useCallback(() => onPanelChange("none"), [onPanelChange]);
 
@@ -45,6 +46,7 @@ export function ExplorerMobileChrome({
           summary={summary}
           selectionLabel={selectionLabel}
           onOpenStats={() => onPanelChange("stats")}
+          isLoading={isLoading}
         />
       </div>
 
@@ -53,7 +55,12 @@ export function ExplorerMobileChrome({
           {panel === "filters" ? (
             <ExplorerFilterBar layout="sheet" {...filterProps} />
           ) : (
-            <ExplorerSummary layout="sheet" summary={summary} selectionLabel={selectionLabel} />
+            <ExplorerSummary
+              layout="sheet"
+              summary={summary}
+              selectionLabel={selectionLabel}
+              isLoading={isLoading}
+            />
           )}
         </ExplorerMobileSheet>
       )}

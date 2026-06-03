@@ -19,6 +19,7 @@ interface ExplorerMobileStatsDockProps {
   summary: ExplorerSummary;
   selectionLabel: string;
   onOpenStats: () => void;
+  isLoading?: boolean;
 }
 
 export function ExplorerMobileStatsDock({
@@ -26,24 +27,34 @@ export function ExplorerMobileStatsDock({
   summary,
   selectionLabel,
   onOpenStats,
+  isLoading,
 }: ExplorerMobileStatsDockProps) {
   return (
     <div className="absolute bottom-0 inset-x-0 z-20 pointer-events-auto">
       <section
         className="border-t border-oa-grey-200 bg-white px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-4px_24px_rgba(34,53,130,0.08)]"
         aria-label="Selection summary"
+        aria-busy={isLoading || undefined}
       >
         <div className="flex items-end justify-between gap-3">
           <div className="min-w-0 flex-1">
             <p className="truncate text-[10px] font-semibold uppercase tracking-widest text-oa-grey-500">
               {selectionLabel}
             </p>
-            <p
-              className="text-3xl font-bold tabular-nums leading-none text-oa-navy"
-              aria-label={`${formatNumber(summary.totalOpportunities)} future opportunities`}
-            >
-              {formatNumber(summary.totalOpportunities)}
-            </p>
+            {isLoading ? (
+              <span
+                className="mt-1 inline-block h-7 w-20 animate-pulse rounded bg-oa-grey-200"
+                aria-label="Loading"
+                role="status"
+              />
+            ) : (
+              <p
+                className="text-3xl font-bold tabular-nums leading-none text-oa-navy"
+                aria-label={`${formatNumber(summary.totalOpportunities)} future opportunities`}
+              >
+                {formatNumber(summary.totalOpportunities)}
+              </p>
+            )}
             <p className="mt-0.5 text-xs font-medium text-oa-grey-600">
               Future opportunities
             </p>
@@ -67,7 +78,14 @@ export function ExplorerMobileStatsDock({
                 {label}
               </dt>
               <dd className="text-sm font-bold tabular-nums text-oa-navy">
-                {formatNumber(summary[key])}
+                {isLoading ? (
+                  <span
+                    className="inline-block h-3.5 w-8 animate-pulse rounded bg-oa-grey-200"
+                    aria-hidden="true"
+                  />
+                ) : (
+                  formatNumber(summary[key])
+                )}
               </dd>
             </div>
           ))}
