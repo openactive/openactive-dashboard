@@ -23,4 +23,5 @@ export interface ExplorerMobileChromeProps {
   summary: ExplorerSummary;
   selectionLabel: string;
   filterProps: ExplorerFilterControlProps;
+  isLoading?: boolean;
 }

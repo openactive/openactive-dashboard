@@ -2,6 +2,7 @@
 
 import * as d3 from "d3";
 import { formatFullNumber } from "../lib/format";
+import { LEGEND_FROM, LEGEND_TO } from "../lib/map-styles";
 
 interface MapLegendProps {
   id: string;
@@ -54,7 +55,7 @@ export function MapLegend({
             <div
               key={t}
               className="flex-1"
-              style={{ background: d3.interpolate("#5eb8e8", "#223582")(t) }}
+              style={{ background: d3.interpolate(LEGEND_FROM, LEGEND_TO)(t) }}
               aria-hidden="true"
             />
           ))}
