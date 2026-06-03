@@ -197,7 +197,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
       {/* Desktop layout: panel on the left, map on the right. */}
       <div className="mt-4 hidden lg:grid lg:grid-cols-[22rem_minmax(0,1fr)] lg:gap-5 xl:grid-cols-[24rem_minmax(0,1fr)] 2xl:grid-cols-[28rem_minmax(0,1fr)]">
         <aside
-          className="min-h-[min(80vh,720px)] max-h-[min(80vh,720px)]"
+          className="h-[min(calc(100vh-13rem),640px)]"
           aria-labelledby="explorer-summary-heading"
         >
           <h3 id="explorer-summary-heading" className="sr-only">
@@ -211,7 +211,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
           />
         </aside>
 
-        <div className="relative min-h-[min(80vh,720px)] overflow-hidden rounded-xl shadow-[0_12px_48px_rgba(34,53,130,0.12)] ring-1 ring-oa-grey-300/60">
+        <div className="relative h-[min(calc(100vh-13rem),640px)] overflow-hidden rounded-xl shadow-[0_12px_48px_rgba(34,53,130,0.12)] ring-1 ring-oa-grey-300/60">
           <OpportunityMap
             districtCounts={districtCounts}
             scopeAreaNames={mapScopeNames}
