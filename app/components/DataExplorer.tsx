@@ -188,13 +188,40 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
         <ExplorerFilterBar layout="stacked" {...filterControlProps} />
       </div>
 
+      {/* Desktop layout: panel on the left, map on the right. */}
+      <div className="mt-4 hidden lg:grid lg:grid-cols-[22rem_minmax(0,1fr)] lg:gap-5 xl:grid-cols-[24rem_minmax(0,1fr)] 2xl:grid-cols-[28rem_minmax(0,1fr)]">
+        <aside
+          className="min-h-[min(80vh,720px)] max-h-[min(80vh,720px)]"
+          aria-labelledby="explorer-summary-heading"
+        >
+          <h3 id="explorer-summary-heading" className="sr-only">
+            Summary statistics
+          </h3>
+          <ExplorerSummary
+            layout="panel"
+            summary={summary}
+            selectionLabel={selectionLabel}
+          />
+        </aside>
+
+        <div className="relative min-h-[min(80vh,720px)] overflow-hidden rounded-xl shadow-[0_12px_48px_rgba(34,53,130,0.12)] ring-1 ring-oa-grey-300/60">
+          <OpportunityMap
+            districtCounts={districtCounts}
+            scopeAreaNames={mapScopeNames}
+            selectedDistrict={
+              filters.district !== ALL_FILTER ? filters.district : null
+            }
+          />
+        </div>
+      </div>
+
+      {/* Mobile / tablet: map fills the frame, chrome docks at the bottom. */}
       <div
-        className={`relative mt-4 min-h-[min(88vh,780px)] overflow-hidden rounded-xl shadow-[0_12px_48px_rgba(34,53,130,0.12)] ring-1 ring-oa-grey-300/60 [&_.oa-glass]:overflow-visible ${
+        className={`relative mt-4 min-h-[min(88vh,780px)] overflow-hidden rounded-xl shadow-[0_12px_48px_rgba(34,53,130,0.12)] ring-1 ring-oa-grey-300/60 lg:hidden ${
           mobilePanel !== "none" ? "max-lg:touch-none" : ""
         }`}
       >
-        {/* Mobile chrome stays docked over the map (sheets open from the bottom) */}
-        <div className="lg:hidden" id="explorer-filters-mobile">
+        <div id="explorer-filters-mobile">
           <ExplorerMobileChrome
             panel={mobilePanel}
             onPanelChange={setMobilePanel}
@@ -202,22 +229,6 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
             selectionLabel={selectionLabel}
             filterProps={filterControlProps}
           />
-        </div>
-
-        <div
-          className="absolute z-20 pointer-events-none hidden lg:block top-5 right-5 w-[24rem] xl:right-6 xl:w-104 2xl:w-md"
-          aria-labelledby="explorer-summary-heading"
-        >
-          <h3 id="explorer-summary-heading" className="sr-only">
-            Summary statistics
-          </h3>
-          <div className="pointer-events-auto min-h-0 overflow-y-auto">
-            <ExplorerSummary
-              layout="overlay"
-              summary={summary}
-              selectionLabel={selectionLabel}
-            />
-          </div>
         </div>
 
         <div

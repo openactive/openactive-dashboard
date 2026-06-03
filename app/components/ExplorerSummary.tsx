@@ -1,11 +1,12 @@
-import { formatFullNumber, formatNumber } from "../lib/format";
-import {
-  EXPLORER_SUMMARY_METRIC_DEFS,
-  EXPLORER_SUMMARY_METRIC_KEYS,
-  type ExplorerSummary as ExplorerSummaryData,
-} from "../lib/explore-filters";
+"use client";
 
-type SummaryLayout = "overlay" | "sheet";
+import { useState } from "react";
+import { ArrowTopRightOnSquareIcon } from "@heroicons/react/20/solid";
+import { formatFullNumber, formatNumber } from "../lib/format";
+import { type ExplorerSummary as ExplorerSummaryData } from "../lib/explore-filters";
+import { ExplorerDetailsModal } from "./ExplorerDetailsModal";
+
+type SummaryLayout = "panel" | "sheet";
 
 interface ExplorerSummaryProps {
   summary: ExplorerSummaryData;
@@ -13,132 +14,141 @@ interface ExplorerSummaryProps {
   layout?: SummaryLayout;
 }
 
-type Metric = {
+/** Inline breakdown row: label left, big number right. */
+function StatRow({
+  label,
+  value,
+  sub,
+}: {
   label: string;
   value: number;
-  color: string;
-};
-
-function MetricBreakdown({
-  metrics,
-  metricMax,
-  trackClassName,
-}: {
-  metrics: Metric[];
-  metricMax: number;
-  trackClassName: string;
+  sub?: string;
 }) {
   return (
-    <ul className="space-y-4">
-      {metrics.map((m) => (
-        <li key={m.label}>
-          <div className="flex items-baseline justify-between gap-2">
-            <span className="text-sm font-medium text-oa-grey-800">{m.label}</span>
-            <span className="text-lg font-bold tabular-nums text-oa-navy">
-              <span aria-hidden="true">{formatNumber(m.value)}</span>
-              <span className="sr-only">{formatFullNumber(m.value)}</span>
-            </span>
-          </div>
-          <div
-            className={`mt-2 h-1.5 w-full overflow-hidden rounded-sm ${trackClassName}`}
-            role="presentation"
-            aria-hidden="true"
-          >
-            <div
-              className={`h-full rounded-sm ${m.color} transition-all duration-300`}
-              style={{ width: `${Math.max(8, (m.value / metricMax) * 100)}%` }}
-            />
-          </div>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-function SummaryHeadline({
-  selectionLabel,
-  total,
-  headlineLabel,
-}: {
-  selectionLabel: string;
-  total: number;
-  headlineLabel: string;
-}) {
-  return (
-    <>
-      <p className="text-[11px] font-semibold uppercase tracking-widest text-oa-grey-600">
-        {selectionLabel}
+    <div className="flex items-baseline justify-between gap-3 py-2.5">
+      <div className="min-w-0">
+        <p className="truncate text-sm font-medium text-oa-grey-800">
+          {label}
+        </p>
+        {sub && <p className="mt-0.5 text-xs text-oa-grey-600">{sub}</p>}
+      </div>
+      <p className="shrink-0 text-base font-bold tabular-nums text-oa-navy">
+        <span aria-hidden="true">{formatNumber(value)}</span>
+        <span className="sr-only">{formatFullNumber(value)}</span>
       </p>
-      <p className="mt-4 text-4xl font-bold tabular-nums tracking-tight text-oa-navy">
-        <span aria-hidden="true">{formatNumber(total)}</span>
-        <span className="sr-only">{headlineLabel}</span>
-      </p>
-      <p className="mt-1 text-sm font-medium text-oa-grey-700">Future opportunities</p>
-    </>
+    </div>
   );
 }
 
 /**
- * Summary stats for the data explorer — glass overlay on desktop, flat sheet on mobile.
+ * Compact summary for the data explorer.
+ *
+ * Two layouts:
+ *  - `panel`: sits beside the map on desktop. Designed to fit without
+ *    scrolling — the rich detail (top activities, full breakdown) lives
+ *    behind the "View the data" button which opens a modal.
+ *  - `sheet`: rendered inside the mobile bottom-sheet.
+ *
+ * All metrics come from the live `/opportunities` response, so the card
+ * always agrees with the map.
  */
 export function ExplorerSummary({
   summary,
   selectionLabel,
-  layout = "overlay",
+  layout = "panel",
 }: ExplorerSummaryProps) {
-  const headlineLabel = `${formatFullNumber(summary.totalOpportunities)} future opportunities`;
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const total = summary.totalOpportunities;
+  const headlineLabel = `${formatFullNumber(total)} future opportunities`;
+  const showViewData = total > 0;
 
-  const metrics: Metric[] = EXPLORER_SUMMARY_METRIC_KEYS.map((key) => ({
-    label: EXPLORER_SUMMARY_METRIC_DEFS[key].desktopLabel,
-    value: summary[key],
-    color: EXPLORER_SUMMARY_METRIC_DEFS[key].color,
-  }));
-  const metricMax = Math.max(...metrics.map((m) => m.value), 1);
-
-  if (layout === "sheet") {
-    return (
-      <div aria-live="polite" aria-atomic="true">
-        <SummaryHeadline
-          selectionLabel={selectionLabel}
-          total={summary.totalOpportunities}
-          headlineLabel={headlineLabel}
-        />
-        <p className="mt-6 text-[11px] font-semibold uppercase tracking-widest text-oa-grey-600 mb-4">
-          In this selection
-        </p>
-        <MetricBreakdown
-          metrics={metrics}
-          metricMax={metricMax}
-          trackClassName="bg-oa-grey-200"
-        />
-      </div>
-    );
-  }
+  const containerClass =
+    layout === "panel"
+      ? "flex h-full flex-col overflow-hidden rounded-xl border border-oa-grey-200 bg-white shadow-[0_8px_32px_rgba(34,53,130,0.08)]"
+      : "flex flex-col";
 
   return (
-    <div
-      className="oa-glass oa-glass-strong rounded-xl ring-1 ring-white/70 overflow-hidden"
-      aria-live="polite"
-      aria-atomic="true"
-    >
-      <div className="p-5 border-b border-white/50">
-        <SummaryHeadline
-          selectionLabel={selectionLabel}
-          total={summary.totalOpportunities}
-          headlineLabel={headlineLabel}
-        />
+    <>
+      <div className={containerClass} aria-live="polite" aria-atomic="true">
+        <header
+          className={
+            layout === "panel"
+              ? "border-b-4 border-oa-cyan bg-oa-navy px-5 py-4"
+              : "pb-3"
+          }
+        >
+          <p
+            className={`text-[11px] font-bold uppercase tracking-[0.18em] ${
+              layout === "panel" ? "text-white/80" : "text-oa-grey-600"
+            }`}
+          >
+            Selection
+          </p>
+          <p
+            className={`mt-1 truncate text-lg font-bold ${
+              layout === "panel" ? "text-white" : "text-oa-navy"
+            }`}
+            title={selectionLabel}
+          >
+            {selectionLabel}
+          </p>
+        </header>
+
+        <div className="flex flex-1 flex-col px-5 pt-5 pb-5">
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-oa-grey-500">
+            Future opportunities
+          </p>
+          <p
+            className="mt-1 text-4xl font-bold tabular-nums tracking-tight text-oa-navy"
+            aria-label={headlineLabel}
+          >
+            <span aria-hidden="true">{formatNumber(total)}</span>
+          </p>
+
+          <dl className="mt-4 divide-y divide-oa-grey-100 border-y border-oa-grey-100">
+            <StatRow
+              label="Physical Activity"
+              value={summary.activityOpportunities}
+              sub="Sessions, classes & events"
+            />
+            <StatRow
+              label="Facility Use"
+              value={summary.facilityOpportunities}
+              sub="Spaces & equipment"
+            />
+          </dl>
+
+          <dl className="mt-2 divide-y divide-oa-grey-100">
+            <StatRow label="Local areas" value={summary.areaCount} />
+            <StatRow label="Publishers" value={summary.publisherCount} />
+          </dl>
+
+          {showViewData && (
+            <div className="mt-auto pt-5">
+              <button
+                type="button"
+                onClick={() => setDetailsOpen(true)}
+                className="inline-flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-full border border-oa-blue bg-white px-4 py-2 text-sm font-semibold text-oa-blue hover:bg-oa-blue hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-oa-cyan"
+                aria-haspopup="dialog"
+                aria-expanded={detailsOpen}
+              >
+                View the data
+                <ArrowTopRightOnSquareIcon
+                  className="h-4 w-4"
+                  aria-hidden="true"
+                />
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="p-5 bg-white/25">
-        <p className="text-[11px] font-semibold uppercase tracking-widest text-oa-grey-600 mb-4">
-          In this selection
-        </p>
-        <MetricBreakdown
-          metrics={metrics}
-          metricMax={metricMax}
-          trackClassName="bg-white/50"
-        />
-      </div>
-    </div>
+      <ExplorerDetailsModal
+        open={detailsOpen}
+        onClose={() => setDetailsOpen(false)}
+        summary={summary}
+        selectionLabel={selectionLabel}
+      />
+    </>
   );
 }

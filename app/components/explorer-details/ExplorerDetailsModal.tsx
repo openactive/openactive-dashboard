@@ -1,0 +1,179 @@
+"use client";
+
+import { useEffect, useRef } from "react";
+import { XMarkIcon } from "@heroicons/react/20/solid";
+import { useEscapeClose } from "../../hooks/useEscapeClose";
+import { formatFullNumber, formatNumber } from "../../lib/format";
+import type { ExplorerSummary } from "../../lib/explore-filters";
+import { StatRow } from "./StatRow";
+import { TopBreakdownTabs } from "./TopBreakdownTabs";
+
+interface ExplorerDetailsModalProps {
+  open: boolean;
+  onClose: () => void;
+  summary: ExplorerSummary;
+  selectionLabel: string;
+}
+
+const TITLE_ID = "explorer-details-title";
+
+/** Detail dialog opened from the explorer panel's "View the data" button. */
+export function ExplorerDetailsModal({
+  open,
+  onClose,
+  summary,
+  selectionLabel,
+}: ExplorerDetailsModalProps) {
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
+
+  useEscapeClose(open, onClose);
+
+  useEffect(() => {
+    if (!open) return;
+
+    previouslyFocusedRef.current =
+      (document.activeElement as HTMLElement | null) ?? null;
+    requestAnimationFrame(() => closeRef.current?.focus());
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      previouslyFocusedRef.current?.focus?.();
+    };
+  }, [open]);
+
+  if (!open) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-oa-navy/60 p-0 backdrop-blur-sm sm:items-center sm:p-6"
+      onClick={onClose}
+      role="presentation"
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={TITLE_ID}
+        className="relative flex max-h-[92dvh] w-full max-w-3xl flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:rounded-2xl"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <header className="flex items-start justify-between gap-4 border-b-4 border-oa-cyan bg-oa-navy px-6 py-5">
+          <div className="min-w-0">
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/80">
+              Selection details
+            </p>
+            <h2
+              id={TITLE_ID}
+              className="mt-1 truncate text-xl font-bold text-white"
+              title={selectionLabel}
+            >
+              {selectionLabel}
+            </h2>
+          </div>
+          <button
+            ref={closeRef}
+            type="button"
+            onClick={onClose}
+            className="cursor-pointer rounded-full p-1.5 text-white/90 hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-oa-cyan"
+            aria-label="Close details"
+          >
+            <XMarkIcon className="h-5 w-5" aria-hidden="true" />
+          </button>
+        </header>
+
+        <div className="flex-1 overflow-y-auto">
+          <div className="grid gap-x-8 gap-y-6 px-6 py-6 sm:grid-cols-2">
+            <section aria-labelledby="details-headline">
+              <h3
+                id="details-headline"
+                className="text-[11px] font-semibold uppercase tracking-widest text-oa-grey-500"
+              >
+                Future opportunities
+              </h3>
+              <p
+                className="mt-1 text-5xl font-bold tabular-nums tracking-tight text-oa-navy"
+                aria-label={`${formatFullNumber(summary.totalOpportunities)} future opportunities`}
+              >
+                <span aria-hidden="true">
+                  {formatNumber(summary.totalOpportunities)}
+                </span>
+              </p>
+
+              <dl className="mt-5 divide-y divide-oa-grey-100 border-y border-oa-grey-100">
+                <StatRow
+                  label="Physical Activity"
+                  value={summary.activityOpportunities}
+                  sub="Sessions, classes & events"
+                />
+                <StatRow
+                  label="Facility Use"
+                  value={summary.facilityOpportunities}
+                  sub="Spaces & equipment"
+                />
+              </dl>
+            </section>
+
+            <section aria-labelledby="details-counts">
+              <h3
+                id="details-counts"
+                className="text-[11px] font-semibold uppercase tracking-widest text-oa-grey-500"
+              >
+                In this selection
+              </h3>
+              <dl className="mt-3 divide-y divide-oa-grey-100">
+                <StatRow label="Local areas" value={summary.areaCount} />
+                <StatRow label="Publishers" value={summary.publisherCount} />
+                <StatRow label="Providers" value={summary.providerCount} />
+                <StatRow
+                  label="Activities & facilities"
+                  value={summary.activityCount}
+                />
+              </dl>
+            </section>
+          </div>
+
+          <div className="border-t border-oa-grey-100 px-6 py-6">
+            <h3 className="mb-4 text-[11px] font-semibold uppercase tracking-widest text-oa-grey-500">
+              Top breakdowns
+            </h3>
+            <TopBreakdownTabs
+              tabs={[
+                {
+                  key: "areas",
+                  label: "Areas",
+                  items: summary.topAreas,
+                  total: summary.areaCount,
+                  barColor: "bg-oa-cyan",
+                },
+                {
+                  key: "publishers",
+                  label: "Publishers",
+                  items: summary.topPublishers,
+                  total: summary.publisherCount,
+                  barColor: "bg-oa-blue",
+                },
+                {
+                  key: "providers",
+                  label: "Providers",
+                  items: summary.topProviders,
+                  total: summary.providerCount,
+                  barColor: "bg-oa-purple",
+                },
+                {
+                  key: "activities",
+                  label: "Activities",
+                  items: summary.topActivities,
+                  total: summary.activityCount,
+                  barColor: "bg-oa-indigo",
+                },
+              ]}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -26,12 +26,27 @@ export type ExplorerFilterOption = {
   label: string;
 };
 
+export type RankedItem = { name: string; count: number };
+
 export type ExplorerSummary = {
   totalOpportunities: number;
   areaCount: number;
   publisherCount: number;
+  providerCount: number;
   activityCount: number;
+  /** Opportunities flagged is_activity=true — Physical Activity (sessions, classes, events). */
+  activityOpportunities: number;
+  /** Opportunities flagged is_activity=false — Facility Use (spaces, equipment). */
+  facilityOpportunities: number;
+  /** Top 10 by total opportunity count, descending. */
+  topAreas: RankedItem[];
+  topPublishers: RankedItem[];
+  topProviders: RankedItem[];
+  topActivities: RankedItem[];
 };
+
+/** How many entries each `top*` list keeps. */
+export const EXPLORER_TOP_LIMIT = 10;
 
 export const EXPLORER_SUMMARY_METRIC_DEFS = {
   areaCount: {
