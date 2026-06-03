@@ -41,18 +41,16 @@ function resolveFeatureState(
   return { name, isSelected, inScope };
 }
 
+export const LEGEND_FROM = "#cfe7f7";
+export const LEGEND_TO = "#1a2a6b";
+
 export function buildColorScale(counts: Map<string, number>) {
   const values = [...counts.values()].filter((v) => v > 0);
   const maxCount = values.length > 0 ? Math.max(...values) : 1;
   return d3
     .scaleSequential()
     .domain([0, maxCount])
-    .interpolator((t) => {
-      if (t <= 0.5) {
-        return d3.interpolateRgb("#5eb8e8", "#009de1")(t * 2);
-      }
-      return d3.interpolateRgb("#009de1", "#223582")((t - 0.5) * 2);
-    });
+    .interpolator(d3.interpolateRgb(LEGEND_FROM, LEGEND_TO));
 }
 
 export function fillForFeature(

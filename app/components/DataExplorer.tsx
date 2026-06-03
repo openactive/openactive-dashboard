@@ -65,6 +65,11 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     [updateFilter]
   );
 
+  const onMapReset = useCallback(
+    () => setFilters(DEFAULT_EXPLORER_FILTERS),
+    []
+  );
+
   const codeMaps = useMemo(() => {
     const districtCodeByName = new Map<string, string>();
     const countryCodeById = new Map<string, string>();
@@ -142,10 +147,11 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
   });
 
   // Summary card + map choropleth are both driven by /opportunities.
-  const { summary, districtCounts } = useReactiveOpportunities({
-    filters,
-    maps: codeMaps,
-  });
+  const { summary, districtCounts, isLoading: isOpportunitiesLoading } =
+    useReactiveOpportunities({
+      filters,
+      maps: codeMaps,
+    });
 
   const selectionLabel = getAreaSelectionLabel(
     hierarchy,
@@ -201,6 +207,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
             layout="panel"
             summary={summary}
             selectionLabel={selectionLabel}
+            isLoading={isOpportunitiesLoading}
           />
         </aside>
 
@@ -211,6 +218,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
             selectedDistrict={
               filters.district !== ALL_FILTER ? filters.district : null
             }
+            onReset={onMapReset}
           />
         </div>
       </div>
@@ -228,6 +236,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
             summary={summary}
             selectionLabel={selectionLabel}
             filterProps={filterControlProps}
+            isLoading={isOpportunitiesLoading}
           />
         </div>
 
@@ -242,6 +251,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
             selectedDistrict={
               filters.district !== ALL_FILTER ? filters.district : null
             }
+            onReset={onMapReset}
           />
         </div>
       </div>

@@ -12,6 +12,8 @@ interface ExplorerSummaryProps {
   summary: ExplorerSummaryData;
   selectionLabel: string;
   layout?: SummaryLayout;
+  /** When true, replace numbers with skeletons so users don't read stale values. */
+  isLoading?: boolean;
 }
 
 /** Inline breakdown row: label left, big number right. */
@@ -19,10 +21,12 @@ function StatRow({
   label,
   value,
   sub,
+  isLoading,
 }: {
   label: string;
   value: number;
   sub?: string;
+  isLoading?: boolean;
 }) {
   return (
     <div className="flex items-baseline justify-between gap-3 py-2.5">
@@ -32,10 +36,17 @@ function StatRow({
         </p>
         {sub && <p className="mt-0.5 text-xs text-oa-grey-600">{sub}</p>}
       </div>
-      <p className="shrink-0 text-base font-bold tabular-nums text-oa-navy">
-        <span aria-hidden="true">{formatNumber(value)}</span>
-        <span className="sr-only">{formatFullNumber(value)}</span>
-      </p>
+      {isLoading ? (
+        <span
+          className="inline-block h-4 w-10 shrink-0 animate-pulse rounded bg-oa-grey-200"
+          aria-hidden="true"
+        />
+      ) : (
+        <p className="shrink-0 text-base font-bold tabular-nums text-oa-navy">
+          <span aria-hidden="true">{formatNumber(value)}</span>
+          <span className="sr-only">{formatFullNumber(value)}</span>
+        </p>
+      )}
     </div>
   );
 }
@@ -56,11 +67,12 @@ export function ExplorerSummary({
   summary,
   selectionLabel,
   layout = "panel",
+  isLoading = false,
 }: ExplorerSummaryProps) {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const total = summary.totalOpportunities;
   const headlineLabel = `${formatFullNumber(total)} future opportunities`;
-  const showViewData = total > 0;
+  const showViewData = !isLoading && total > 0;
 
   const containerClass =
     layout === "panel"
@@ -69,7 +81,12 @@ export function ExplorerSummary({
 
   return (
     <>
-      <div className={containerClass} aria-live="polite" aria-atomic="true">
+      <div
+        className={containerClass}
+        aria-live="polite"
+        aria-atomic="true"
+        aria-busy={isLoading || undefined}
+      >
         <header
           className={
             layout === "panel"
@@ -98,29 +115,47 @@ export function ExplorerSummary({
           <p className="text-[11px] font-semibold uppercase tracking-widest text-oa-grey-500">
             Future opportunities
           </p>
-          <p
-            className="mt-1 text-4xl font-bold tabular-nums tracking-tight text-oa-navy"
-            aria-label={headlineLabel}
-          >
-            <span aria-hidden="true">{formatNumber(total)}</span>
-          </p>
+          {isLoading ? (
+            <span
+              className="mt-2 inline-block h-9 w-28 animate-pulse rounded bg-oa-grey-200"
+              aria-label="Loading"
+              role="status"
+            />
+          ) : (
+            <p
+              className="mt-1 text-4xl font-bold tabular-nums tracking-tight text-oa-navy"
+              aria-label={headlineLabel}
+            >
+              <span aria-hidden="true">{formatNumber(total)}</span>
+            </p>
+          )}
 
           <dl className="mt-4 divide-y divide-oa-grey-100 border-y border-oa-grey-100">
             <StatRow
               label="Physical Activity"
               value={summary.activityOpportunities}
               sub="Sessions, classes & events"
+              isLoading={isLoading}
             />
             <StatRow
               label="Facility Use"
               value={summary.facilityOpportunities}
               sub="Spaces & equipment"
+              isLoading={isLoading}
             />
           </dl>
 
           <dl className="mt-2 divide-y divide-oa-grey-100">
-            <StatRow label="Local areas" value={summary.areaCount} />
-            <StatRow label="Publishers" value={summary.publisherCount} />
+            <StatRow
+              label="Local areas"
+              value={summary.areaCount}
+              isLoading={isLoading}
+            />
+            <StatRow
+              label="Publishers"
+              value={summary.publisherCount}
+              isLoading={isLoading}
+            />
           </dl>
 
           {showViewData && (

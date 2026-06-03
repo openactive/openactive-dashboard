@@ -24,12 +24,15 @@ interface OpportunityMapProps {
   districtCounts: DistrictCount[];
   scopeAreaNames: string[] | null;
   selectedDistrict: string | null;
+  /** Invoked when the user clicks the map's reset control. */
+  onReset?: () => void;
 }
 
 export function OpportunityMap({
   districtCounts,
   scopeAreaNames,
   selectedDistrict,
+  onReset,
 }: OpportunityMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -165,7 +168,8 @@ export function OpportunityMap({
       });
 
     const zoom = d3.zoom<SVGSVGElement, unknown>()
-      .scaleExtent([0.6, 14])
+      .scaleExtent([1, 14])
+      .translateExtent([[0, 0], [width, height]])
       .on("zoom", (event) => { zoomRoot.attr("transform", event.transform.toString()); });
 
     zoomBehaviorRef.current = zoom;
@@ -188,6 +192,7 @@ export function OpportunityMap({
       svg.select("g.land-layer").selectAll<SVGPathElement, LadFeature>("path").attr("d", updatePath);
       dataLayer.selectAll<SVGPathElement, LadFeature>("path").attr("d", updatePath);
       svg.attr("viewBox", `0 0 ${w} ${h}`).attr("width", w).attr("height", h);
+      zoom.translateExtent([[0, 0], [w, h]]);
     });
     resizeObserver.observe(container);
 
@@ -208,14 +213,11 @@ export function OpportunityMap({
   const resetView = useCallback(() => {
     const svg = svgRef.current;
     const zoom = zoomBehaviorRef.current;
-    if (!svg || !zoom) return;
-    d3.select(svg).transition().duration(400).call(zoom.transform, d3.zoomIdentity);
-  }, []);
-
-  /** Tap/click must not focus the SVG — mobile browsers draw a visible focus ring. */
-  const preventMapFocusRing = useCallback((e: React.PointerEvent) => {
-    e.preventDefault();
-  }, []);
+    if (svg && zoom) {
+      d3.select(svg).transition().duration(400).call(zoom.transform, d3.zoomIdentity);
+    }
+    onReset?.();
+  }, [onReset]);
 
   const focusedCount = focusedDistrict
     ? countByDistrict.current.get(focusedDistrict)
@@ -237,7 +239,6 @@ export function OpportunityMap({
         ref={containerRef}
         className="relative h-full min-h-[480px] w-full flex-1 touch-none outline-none [-webkit-tap-highlight-color:transparent] [&_svg]:outline-none [&_svg:focus]:outline-none [&_path]:outline-none"
         style={{ background: "linear-gradient(165deg, #e4ecf4 0%, #d6e2ec 45%, #c8d6e2 100%)" }}
-        onPointerDown={preventMapFocusRing}
       >
         {isAutoFramed && selectedDistrict && (
           <p
