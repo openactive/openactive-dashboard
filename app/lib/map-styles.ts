@@ -41,7 +41,7 @@ function resolveFeatureState(
   return { name, isSelected, inScope };
 }
 
-export const LEGEND_FROM = "#E5F3F8";
+export const LEGEND_FROM = "#F6EDE0";
 export const LEGEND_TO = "#952082";
 
 export function buildColorScale(counts: Map<string, number>) {
