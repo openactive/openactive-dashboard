@@ -112,29 +112,30 @@ export function strokeWidthForFeature(
 
 export function getFitFeatures(
   features: LadFeature[],
-  scopeSet: Set<string> | null,
-  selectedDistrict: string | null
+  counts: Map<string, number>,
 ): LadFeature[] {
-  if (selectedDistrict) {
-    const match = features.filter(
-      (f) => f.properties?.geo_name === selectedDistrict
+  const dataNames = new Set(
+    [...counts.entries()]
+      .filter(([, c]) => c > 0)
+      .map(([name]) => name),
+  );
+  if (dataNames.size > 0 && dataNames.size < features.length) {
+    const matched = features.filter(
+      (f) => dataNames.has(f.properties?.geo_name ?? ""),
     );
-    if (match.length > 0) return match;
-  }
-  if (scopeSet && scopeSet.size > 0 && scopeSet.size <= 8) {
-    const scoped = features.filter((f) =>
-      scopeSet.has(f.properties?.geo_name ?? "")
-    );
-    if (scoped.length > 0) return scoped;
+    if (matched.length > 0) return matched;
   }
   return features;
 }
 
 export function scopeKey(
-  scopeAreaNames: string[] | null,
-  selectedDistrict: string | null
+  counts: Map<string, number>,
 ): string {
-  return `${selectedDistrict ?? ""}|${scopeAreaNames?.join(",") ?? "all"}`;
+  const names = [...counts.entries()]
+    .filter(([, c]) => c > 0)
+    .map(([name]) => name)
+    .sort();
+  return names.join(",") || "all";
 }
 
 /**
