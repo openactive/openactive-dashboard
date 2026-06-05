@@ -60,6 +60,7 @@ export function ExplorerMobileChrome({
               summary={summary}
               selectionLabel={selectionLabel}
               isLoading={isLoading}
+              onNavigateAway={closePanel}
             />
           )}
         </ExplorerMobileSheet>

@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowTopRightOnSquareIcon } from "@heroicons/react/20/solid";
+import {
+  ArrowTopRightOnSquareIcon,
+  ChevronDoubleDownIcon,
+} from "@heroicons/react/20/solid";
 import { formatFullNumber, formatNumber } from "../lib/format";
 import { type ExplorerSummary as ExplorerSummaryData } from "../lib/explore-filters";
 import { ExplorerDetailsModal } from "./ExplorerDetailsModal";
@@ -14,6 +17,12 @@ interface ExplorerSummaryProps {
   layout?: SummaryLayout;
   /** When true, replace numbers with skeletons so users don't read stale values. */
   isLoading?: boolean;
+  /**
+   * Called just before a CTA scrolls/navigates away from the summary.
+   * Used by the mobile bottom sheet to close itself first so the records
+   * section isn't covered when the user lands on it.
+   */
+  onNavigateAway?: () => void;
 }
 
 /** Inline breakdown row: label left, big number right. */
@@ -68,6 +77,7 @@ export function ExplorerSummary({
   selectionLabel,
   layout = "panel",
   isLoading = false,
+  onNavigateAway,
 }: ExplorerSummaryProps) {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const total = summary.totalOpportunities;
@@ -78,6 +88,35 @@ export function ExplorerSummary({
     layout === "panel"
       ? "flex h-full flex-col overflow-hidden rounded-xl border border-oa-grey-200 bg-white shadow-[0_8px_32px_rgba(34,53,130,0.08)]"
       : "flex flex-col";
+
+  /**
+   * Smooth-scroll to the records section and move focus to its heading
+   * so keyboard and screen-reader users land in the same place sighted
+   * users do. Honours prefers-reduced-motion by jumping instantly.
+   */
+  const scrollToRecords = () => {
+    const target = document.getElementById("records");
+    const heading = document.getElementById("records-heading");
+    if (!target) return;
+
+    onNavigateAway?.();
+
+    const reduced =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    target.scrollIntoView({
+      behavior: reduced ? "auto" : "smooth",
+      block: "start",
+    });
+
+    // Wait for the scroll to settle before stealing focus, otherwise
+    // the focus call cancels the scroll animation in some browsers.
+    window.setTimeout(
+      () => heading?.focus({ preventScroll: true }),
+      reduced ? 0 : 450
+    );
+  };
 
   return (
     <>
@@ -159,7 +198,18 @@ export function ExplorerSummary({
           </dl>
 
           {showViewData && (
-            <div className="mt-auto pt-5">
+            <div className="mt-auto flex flex-col gap-2 pt-5">
+              <button
+                type="button"
+                onClick={scrollToRecords}
+                className="inline-flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-full bg-oa-blue px-4 py-2 text-sm font-semibold text-white hover:bg-oa-navy focus:outline-none focus-visible:ring-2 focus-visible:ring-oa-cyan"
+              >
+                Explore the records
+                <ChevronDoubleDownIcon
+                  className="h-4 w-4"
+                  aria-hidden="true"
+                />
+              </button>
               <button
                 type="button"
                 onClick={() => setDetailsOpen(true)}
