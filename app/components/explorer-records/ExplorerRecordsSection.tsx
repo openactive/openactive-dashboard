@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useReactiveOpportunityRecords } from "../../hooks/useReactiveOpportunityRecords";
-import type { ExplorerFilters } from "../../lib/explore-filters";
+import { ALL_FILTER, type ExplorerFilters } from "../../lib/explore-filters";
+import { formatFullNumber } from "../../lib/format";
 import type { OpportunityRecord } from "../../types/opportunity-records";
 import { RecordDetailPanel } from "./RecordDetailPanel";
 import { RecordsGrid } from "./RecordsGrid";
@@ -75,6 +76,7 @@ export function ExplorerRecordsSection({
     isLoading,
     isLoadingMore,
     hasMore,
+    total,
     error,
     status,
     loadMore,
@@ -109,6 +111,21 @@ export function ExplorerRecordsSection({
 
   const selectedKey = selectedRecord ? recordKey(selectedRecord) : null;
 
+  // Soft hint when the user is browsing the unfiltered firehose. We
+  // only mention "narrow your filters" when no filter is set yet —
+  // once they've narrowed at all, this nudge would just be noise.
+  const noFiltersApplied =
+    filters.district === ALL_FILTER &&
+    filters.areaScope === ALL_FILTER &&
+    filters.publisher === ALL_FILTER &&
+    filters.activity === ALL_FILTER;
+  const showBroadHint =
+    enabled &&
+    noFiltersApplied &&
+    items.length > 0 &&
+    total !== undefined &&
+    total > items.length * 2;
+
   return (
     <section
       ref={sectionRef}
@@ -139,6 +156,15 @@ export function ExplorerRecordsSection({
       <p className="sr-only" role="status" aria-live="polite">
         {status}
       </p>
+
+      {showBroadHint ? (
+        <p className="mt-4 rounded-md bg-oa-cyan/10 px-4 py-2 text-sm text-oa-navy ring-1 ring-oa-cyan/30">
+          Showing the first {items.length} of{" "}
+          <span className="font-semibold">{formatFullNumber(total!)}</span>{" "}
+          records — narrow the filters above to focus on a specific area,
+          publisher, or activity.
+        </p>
+      ) : null}
 
       <div className="mt-6">
         {enabled ? (

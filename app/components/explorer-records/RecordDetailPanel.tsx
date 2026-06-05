@@ -137,7 +137,6 @@ export function RecordDetailPanel({
       id={panelId}
       role="region"
       aria-labelledby={headingId}
-      aria-live="polite"
       className="mt-6 overflow-hidden rounded-2xl border border-oa-grey-200 bg-white shadow-[0_12px_48px_rgba(34,53,130,0.12)]"
     >
       <header className="flex items-start justify-between gap-4 border-b-4 border-oa-cyan bg-oa-navy px-5 py-4 sm:px-6">
