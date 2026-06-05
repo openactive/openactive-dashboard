@@ -5,7 +5,7 @@
   --foreground: #333333;
 
   /* OpenActive Brand Palette (from status repo) */
-  --oa-aqua: #74cbf2;
+  --oa-aqua: #74cbf2; --oa-aqua-light: #E5F3F8;
   --oa-cyan: #009de1;
   --oa-blue: #0065af;
   --oa-indigo: #433a8f;
