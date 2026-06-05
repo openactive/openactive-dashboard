@@ -15,6 +15,7 @@ import {
   getRecordTitle,
 } from "../../lib/record-display";
 import { useEscapeClose } from "../../hooks/useEscapeClose";
+import { RecordJsonView } from "./RecordJsonView";
 import { RecordTidyView } from "./RecordTidyView";
 
 type DetailTabKey = "tidy" | "json";
@@ -22,20 +23,11 @@ type DetailTabKey = "tidy" | "json";
 interface DetailTab {
   key: DetailTabKey;
   label: string;
-  description: string;
 }
 
 const TABS: DetailTab[] = [
-  {
-    key: "tidy",
-    label: "Tidy view",
-    description: "A friendly summary of what this record describes.",
-  },
-  {
-    key: "json",
-    label: "Raw JSON",
-    description: "The exact OpenActive payload published by the operator.",
-  },
+  { key: "tidy", label: "Tidy view" },
+  { key: "json", label: "Raw JSON" },
 ];
 
 const HORIZONTAL_KEYS = new Set(["ArrowRight", "ArrowLeft", "Home", "End"]);
@@ -57,10 +49,9 @@ interface RecordDetailPanelProps {
  * Inline detail view for a selected record.
  *
  * Opens below the grid (no overlay) so users keep the gallery in view.
- * Step 4 lays the structure: heading + close + tabs scaffold. The tab
- * bodies are intentionally placeholders here — step 5 fills the tidy
- * view, step 6 fills raw JSON. Splitting it this way keeps each PR
- * focused and reviewable.
+ * Two tabs share the same data: a friendly summary (Tidy view) and
+ * the raw OpenActive payload (Raw JSON). The tab strip uses the same
+ * ARIA pattern as TopBreakdownTabs (roving tabindex + arrow keys).
  */
 export function RecordDetailPanel({
   panelId,
@@ -231,13 +222,7 @@ export function RecordDetailPanel({
                 tab.key === "tidy" ? (
                   <RecordTidyView record={record} />
                 ) : (
-                  <div className="rounded-xl border border-dashed border-oa-grey-300 bg-oa-grey-50 px-5 py-8 text-sm text-oa-grey-700">
-                    <p className="font-medium text-oa-navy">{tab.label}</p>
-                    <p className="mt-1 text-oa-grey-600">{tab.description}</p>
-                    <p className="mt-3 text-xs text-oa-grey-500">
-                      Content arrives in the next step.
-                    </p>
-                  </div>
+                  <RecordJsonView record={record} />
                 )
               ) : null}
             </div>
