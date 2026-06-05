@@ -15,6 +15,7 @@ import {
   getRecordTitle,
 } from "../../lib/record-display";
 import { useEscapeClose } from "../../hooks/useEscapeClose";
+import { RecordTidyView } from "./RecordTidyView";
 
 type DetailTabKey = "tidy" | "json";
 
@@ -227,13 +228,17 @@ export function RecordDetailPanel({
               className="min-h-[16rem] py-5 focus:outline-none"
             >
               {selected ? (
-                <div className="rounded-xl border border-dashed border-oa-grey-300 bg-oa-grey-50 px-5 py-8 text-sm text-oa-grey-700">
-                  <p className="font-medium text-oa-navy">{tab.label}</p>
-                  <p className="mt-1 text-oa-grey-600">{tab.description}</p>
-                  <p className="mt-3 text-xs text-oa-grey-500">
-                    Content arrives in the next step.
-                  </p>
-                </div>
+                tab.key === "tidy" ? (
+                  <RecordTidyView record={record} />
+                ) : (
+                  <div className="rounded-xl border border-dashed border-oa-grey-300 bg-oa-grey-50 px-5 py-8 text-sm text-oa-grey-700">
+                    <p className="font-medium text-oa-navy">{tab.label}</p>
+                    <p className="mt-1 text-oa-grey-600">{tab.description}</p>
+                    <p className="mt-3 text-xs text-oa-grey-500">
+                      Content arrives in the next step.
+                    </p>
+                  </div>
+                )
               ) : null}
             </div>
           );
