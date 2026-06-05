@@ -95,9 +95,7 @@ body {
     inset 0 1px 0 rgb(255 255 255 / 0.95);
 }
 
-/* Drawer entrance animations.
-   Used by RecordDetailDrawer; gated behind `motion-safe:` in markup so
-   users with prefers-reduced-motion get an instant appearance. */
+/* Drawer entrance animations — applied via motion-safe: so reduced-motion users skip them. */
 @keyframes fadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }

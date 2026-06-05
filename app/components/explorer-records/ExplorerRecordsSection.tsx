@@ -30,13 +30,9 @@ function recordKey(record: OpportunityRecord): string {
 }
 
 /**
- * Layer 3 — record-level gallery, anchored at #records.
- *
- * The fetch is deferred until the section enters the viewport (or the
- * user follows the "Explore the records" CTA, which scrolls it into view).
- * That keeps the initial Layer 2 experience light without sacrificing
- * discoverability — the heading is always in the DOM so landmark
- * navigation works from page load.
+ * Layer 3 — record-level gallery, anchored at #records. Defers the
+ * fetch until the section enters the viewport so the initial Layer 2
+ * experience stays light.
  */
 export function ExplorerRecordsSection({
   filters,
@@ -45,13 +41,10 @@ export function ExplorerRecordsSection({
 }: ExplorerRecordsSectionProps) {
   const [enabled, setEnabled] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
-  // We track the full record (not just the key) so the drawer can render
-  // even if the record is no longer in `items` due to a refetch.
+  // Hold the full record (not just the key) so the drawer survives a refetch.
   const [selectedRecord, setSelectedRecord] =
     useState<OpportunityRecord | null>(null);
 
-  // ref points at the card button that opened the drawer — used to
-  // restore focus when the drawer closes.
   const triggerRef = useRef<HTMLElement | null>(null);
 
   // Stable ids so cards (aria-controls) and the drawer agree.
@@ -68,8 +61,7 @@ export function ExplorerRecordsSection({
           observer.disconnect();
         }
       },
-      // Start loading slightly before the section is in view so
-      // skeletons are already swapping for content as the user arrives.
+      // Pre-load slightly before the section is in view.
       { rootMargin: "200px" }
     );
     observer.observe(sectionRef.current);
@@ -88,8 +80,7 @@ export function ExplorerRecordsSection({
     retry,
   } = useReactiveOpportunityRecords({ filters, maps, enabled });
 
-  // Reset selection when the underlying filters change so a stale
-  // record doesn't keep the drawer open with no matching card.
+  // Reset selection when filters change so a stale record can't linger.
   useEffect(() => {
     setSelectedRecord(null);
   }, [filters]);
@@ -97,8 +88,6 @@ export function ExplorerRecordsSection({
   const handleSelect = useCallback(
     (record: OpportunityRecord) => {
       const key = recordKey(record);
-      // Capture which button opened the drawer so we can return focus
-      // when the drawer closes (or when the selection toggles off).
       triggerRef.current = document.getElementById(
         `${cardIdPrefix}-${record.feed_id}-${record.id}`
       );
@@ -116,9 +105,8 @@ export function ExplorerRecordsSection({
 
   const selectedKey = selectedRecord ? recordKey(selectedRecord) : null;
 
-  // Soft hint when the user is browsing the unfiltered firehose. We
-  // only mention "narrow your filters" when no filter is set yet —
-  // once they've narrowed at all, this nudge would just be noise.
+  // Only nudge "narrow your filters" when nothing is filtered yet —
+  // once they narrow at all, the hint would be noise.
   const noFiltersApplied =
     filters.district === ALL_FILTER &&
     filters.areaScope === ALL_FILTER &&
@@ -187,8 +175,7 @@ export function ExplorerRecordsSection({
             onRetry={retry}
           />
         ) : (
-          // Reserve vertical space before the section comes into view so
-          // the page doesn't jump when the grid mounts.
+          // Reserve vertical space so the page doesn't jump when the grid mounts.
           <div
             aria-hidden="true"
             className="h-64 rounded-2xl bg-slate-50 ring-1 ring-slate-200"
@@ -198,9 +185,7 @@ export function ExplorerRecordsSection({
         {selectedRecord ? (
           <RecordDetailDrawer
             drawerId={drawerId}
-            // Keying titleId on the record id makes the drawer's
-            // focus-on-mount effect re-fire when the user swaps cards
-            // without closing the drawer first.
+            // Re-key per record so the drawer re-focuses when swapping cards.
             titleId={`${drawerId}-heading-${selectedRecord.feed_id}-${selectedRecord.id}`}
             eyebrow={
               <>

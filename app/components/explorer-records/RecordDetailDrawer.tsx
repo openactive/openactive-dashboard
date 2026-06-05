@@ -14,42 +14,19 @@ import { useFocusTrap } from "../../hooks/useFocusTrap";
 interface RecordDetailDrawerProps {
   /** Stable id so triggering cards can aria-controls this drawer. */
   drawerId: string;
-  /** Used as the dialog's accessible name (aria-labelledby target). */
+  /** aria-labelledby target. Change it to re-fire the focus-on-mount effect. */
   titleId: string;
-  /** Rendered inside the dialog header above the title. */
   eyebrow?: ReactNode;
-  /** The dialog's main heading text. Becomes the accessible name. */
   title: ReactNode;
-  /** Body content — tabs and views slot in here. */
   children: ReactNode;
   onClose: () => void;
-  /**
-   * Element focus should return to when the drawer closes — usually the
-   * card button that opened it. Optional because the section may unmount
-   * the trigger if filters change.
-   */
+  /** Element to return focus to on close — usually the triggering card. */
   returnFocusRef?: RefObject<HTMLElement | null>;
 }
 
 /**
- * Responsive detail drawer for the records gallery.
- *
- * - Desktop (lg+): right-side panel ~36rem wide, content slides in over
- *   a soft scrim. Grid stays visible underneath the scrim so the user
- *   keeps context while inspecting a record.
- * - Mobile (<lg): full-width bottom sheet that fills most of the
- *   viewport, matching the existing ExplorerMobileSheet pattern.
- *
- * Behaviours:
- * - ESC closes
- * - Clicking the scrim closes
- * - Focus moves to the heading on mount (and again when the displayed
- *   record changes — see the `titleId` dep in the focus effect)
- * - Focus returns to `returnFocusRef` on unmount
- * - prefers-reduced-motion swaps the slide for instant appearance
- * - Tab/Shift+Tab are trapped inside the drawer
- * - role="dialog" + aria-modal="true" so screen readers treat the rest
- *   of the page as inert while the drawer is open
+ * Right-rail drawer (lg+) / bottom sheet (<lg) for inspecting a record.
+ * Owns focus management and scrim; content slots in via children.
  */
 export function RecordDetailDrawer({
   drawerId,
@@ -66,21 +43,18 @@ export function RecordDetailDrawer({
   useEscapeClose(true, onClose);
   useFocusTrap(dialogRef, true, { restoreFocus: false });
 
-  // Move focus to the heading on open and whenever the title changes
-  // (which happens when the user clicks a different card without
-  // closing the drawer first).
+  // Focus the heading on mount and on record swap. Deferred a frame so
+  // the focus call doesn't race the slide animation.
   useEffect(() => {
     const heading = headingRef.current;
     if (!heading) return;
-    // Defer to next frame so the dialog has actually mounted and the
-    // focus call doesn't race the animation.
     const raf = requestAnimationFrame(() => {
       heading.focus({ preventScroll: true });
     });
     return () => cancelAnimationFrame(raf);
   }, [titleId]);
 
-  // Lock body scroll while the drawer is open so the scrim feels real.
+  // Lock body scroll while the drawer is open.
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -89,7 +63,6 @@ export function RecordDetailDrawer({
     };
   }, []);
 
-  // Restore focus to the triggering card on unmount.
   useEffect(() => {
     return () => {
       returnFocusRef?.current?.focus();
@@ -98,14 +71,10 @@ export function RecordDetailDrawer({
 
   return (
     <div
-      // Fixed wrapper covers the viewport so the scrim and drawer can
-      // be positioned without leaking into the page flow. z-50 keeps it
-      // above the explorer's sticky elements.
       className="fixed inset-0 z-50 flex items-end justify-end lg:items-stretch"
       role="presentation"
     >
-      {/* Scrim — clicking dismisses. aria-hidden because the dialog
-          itself owns the accessible name. */}
+      {/* Scrim — aria-hidden because the dialog owns the accessible name. */}
       <div
         className="absolute inset-0 bg-oa-navy/40 backdrop-blur-[2px] motion-safe:animate-[fadeIn_180ms_ease-out]"
         aria-hidden="true"
@@ -119,19 +88,15 @@ export function RecordDetailDrawer({
         aria-modal="true"
         aria-labelledby={titleId}
         className={[
-          // Layout: bottom sheet on small screens, right rail on lg+.
           "relative flex w-full flex-col bg-white shadow-[0_-12px_48px_rgba(34,53,130,0.18)]",
-          // Bottom-sheet sizing for mobile/tablet
           "max-h-[92dvh] rounded-t-2xl",
-          // Right-rail sizing for desktop — full height, fixed width
           "lg:h-dvh lg:max-h-none lg:w-[36rem] lg:rounded-none lg:rounded-l-2xl lg:shadow-[-12px_0_48px_rgba(34,53,130,0.18)]",
-          // Slide-in motion; instant for reduced-motion users
           "motion-safe:animate-[slideUp_220ms_ease-out] motion-safe:lg:animate-[slideInRight_220ms_ease-out]",
         ].join(" ")}
       >
-        {/* Mobile drag handle (decorative). */}
+        {/* Mobile drag handle (decorative; matches ExplorerMobileSheet). */}
         <div
-          className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-white/40 lg:hidden"
+          className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-oa-grey-300 lg:hidden"
           aria-hidden="true"
         />
 

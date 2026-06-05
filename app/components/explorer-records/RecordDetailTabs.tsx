@@ -25,18 +25,8 @@ interface RecordDetailTabsProps {
 }
 
 /**
- * Tidy / Raw JSON tab strip for the record detail surface.
- *
- * Pure content component: the surrounding drawer (or any future host)
- * owns the heading and the close affordance. Keeps tab focus and
- * keyboard handling here so the same pattern works wherever this is
- * dropped in.
- *
- * Implements the standard ARIA tabs pattern:
- *  - real <button role=tab> with aria-selected / aria-controls
- *  - roving tabindex (only the active tab is in the tab order)
- *  - ArrowLeft / ArrowRight / Home / End move between tabs
- *  - inactive panels use `hidden` so SR skips them
+ * Tidy / Raw JSON tab strip. Standard ARIA tabs pattern: real role=tab
+ * buttons, roving tabindex, ArrowLeft/Right + Home/End to switch.
  */
 export function RecordDetailTabs({ record }: RecordDetailTabsProps) {
   const baseId = useId();
