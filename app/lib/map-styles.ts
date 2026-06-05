@@ -9,7 +9,7 @@ export const FOCUS_STROKE = "#e21483";
 const BASE_STROKE = "#8fa3b8";
 const OUT_OF_SCOPE_FILL = "#e8edf2";
 const OUT_OF_SCOPE_STROKE = "#c5ced8";
-const NO_DATA_FILL = "#7fa8c9";
+const NO_DATA_FILL = "#fff";
 const SELECTED_STROKE = "#223582";
 const SELECTED_FILL_FALLBACK = "#009de1";
 
