@@ -11,6 +11,14 @@ type RecordsGridProps = {
   hasMore: boolean;
   error: string | null;
   selectedRecordId: string | null;
+  /** Optional id of the detail panel cards open via aria-controls. */
+  detailPanelId?: string;
+  /**
+   * When provided, each card receives a stable id of the form
+   * `${prefix}-${feedId}-${recordId}`. Lets the parent return focus to
+   * the triggering card after the panel closes.
+   */
+  cardButtonIdPrefix?: string;
   onSelect: (record: OpportunityRecord) => void;
   onLoadMore: () => void;
   onRetry: () => void;
@@ -30,6 +38,8 @@ export function RecordsGrid({
   hasMore,
   error,
   selectedRecordId,
+  detailPanelId,
+  cardButtonIdPrefix,
   onSelect,
   onLoadMore,
   onRetry,
@@ -90,6 +100,12 @@ export function RecordsGrid({
                 record={record}
                 isSelected={key === selectedRecordId}
                 onSelect={onSelect}
+                controlsId={detailPanelId}
+                buttonId={
+                  cardButtonIdPrefix
+                    ? `${cardButtonIdPrefix}-${record.feed_id}-${record.id}`
+                    : undefined
+                }
               />
             </li>
           );

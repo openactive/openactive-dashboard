@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { forwardRef, useState } from "react";
 
 import type { OpportunityRecord } from "../../types/opportunity-records";
 import {
@@ -18,37 +18,53 @@ type RecordCardProps = {
   record: OpportunityRecord;
   isSelected: boolean;
   onSelect: (record: OpportunityRecord) => void;
+  /** id of the detail panel this card opens (for aria-controls). */
+  controlsId?: string;
+  /** Stable id on the underlying button so focus can be restored. */
+  buttonId?: string;
 };
 
 /**
  * Single record tile for the gallery. Whole surface is one button so
  * the click target matches the visual footprint and screen-reader users
  * hear one composed label rather than several siblings.
+ *
+ * When wired into the detail panel, the card doubles as a disclosure
+ * trigger — aria-expanded + aria-controls let assistive tech relate
+ * the card to the panel mounted below the grid.
  */
-export function RecordCard({ record, isSelected, onSelect }: RecordCardProps) {
-  const [imageFailed, setImageFailed] = useState(false);
+export const RecordCard = forwardRef<HTMLButtonElement, RecordCardProps>(
+  function RecordCard(
+    { record, isSelected, onSelect, controlsId, buttonId },
+    ref
+  ) {
+    const [imageFailed, setImageFailed] = useState(false);
 
-  const title = getRecordTitle(record);
-  const kindLabel = getRecordKindLabel(record);
-  const where = getRecordLocationLabel(record);
-  const when = getRecordDateLabel(record);
-  const imageUrl = getRecordImageUrl(record);
-  const price = getRecordPrice(record);
-  const priceLabel = formatRecordPrice(price);
-  const ariaLabel = getRecordCardAriaLabel(record);
+    const title = getRecordTitle(record);
+    const kindLabel = getRecordKindLabel(record);
+    const where = getRecordLocationLabel(record);
+    const when = getRecordDateLabel(record);
+    const imageUrl = getRecordImageUrl(record);
+    const price = getRecordPrice(record);
+    const priceLabel = formatRecordPrice(price);
+    const ariaLabel = getRecordCardAriaLabel(record);
 
-  const showImage = imageUrl && !imageFailed;
+    const showImage = imageUrl && !imageFailed;
 
-  return (
-    <button
-      type="button"
-      aria-pressed={isSelected}
-      aria-label={ariaLabel}
-      onClick={() => onSelect(record)}
-      className={`group flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-2xl bg-white text-left shadow-sm ring-1 ring-slate-200 transition hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-oa-cyan ${
-        isSelected ? "ring-2 ring-oa-blue" : ""
-      }`}
-    >
+    return (
+      <button
+        ref={ref}
+        id={buttonId}
+        type="button"
+        aria-pressed={isSelected}
+        aria-expanded={controlsId ? isSelected : undefined}
+        aria-controls={controlsId}
+        aria-label={ariaLabel}
+        onClick={() => onSelect(record)}
+        className={`group flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-2xl bg-white text-left shadow-sm ring-1 ring-slate-200 transition hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-oa-cyan ${
+          isSelected ? "ring-2 ring-oa-blue" : ""
+        }`}
+      >
       <div
         aria-hidden="true"
         className="relative aspect-[16/9] w-full overflow-hidden bg-slate-100"
@@ -131,4 +147,5 @@ export function RecordCard({ record, isSelected, onSelect }: RecordCardProps) {
       </div>
     </button>
   );
-}
+  }
+);

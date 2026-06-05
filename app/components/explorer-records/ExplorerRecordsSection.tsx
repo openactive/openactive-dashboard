@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useReactiveOpportunityRecords } from "../../hooks/useReactiveOpportunityRecords";
 import type { ExplorerFilters } from "../../lib/explore-filters";
 import type { OpportunityRecord } from "../../types/opportunity-records";
+import { RecordDetailPanel } from "./RecordDetailPanel";
 import { RecordsGrid } from "./RecordsGrid";
 
 type CodeMaps = {
@@ -38,9 +39,19 @@ export function ExplorerRecordsSection({
 }: ExplorerRecordsSectionProps) {
   const [enabled, setEnabled] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
-  // Selection lives here for step 3 so cards can reflect aria-pressed.
-  // Step 4 will hoist this to drive the detail slide-down panel.
-  const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  // We track the full record (not just the key) so the panel can render
+  // even if the record is no longer in `items` due to a refetch.
+  const [selectedRecord, setSelectedRecord] =
+    useState<OpportunityRecord | null>(null);
+
+  // ref points at the card button that opened the panel — used to
+  // restore focus when the panel closes.
+  const triggerRef = useRef<HTMLElement | null>(null);
+
+  // Stable ids so cards (aria-controls) and the panel agree.
+  const sectionUid = useId();
+  const panelId = `${sectionUid}-panel`;
+  const cardIdPrefix = `${sectionUid}-card`;
 
   useEffect(() => {
     if (enabled || !sectionRef.current) return;
@@ -70,11 +81,33 @@ export function ExplorerRecordsSection({
     retry,
   } = useReactiveOpportunityRecords({ filters, maps, enabled });
 
-  // Reset selection when the underlying filters change so a stale id
-  // doesn't keep highlighting a card that's no longer visible.
+  // Reset selection when the underlying filters change so a stale
+  // record doesn't keep the panel open with no matching card.
   useEffect(() => {
-    setSelectedKey(null);
+    setSelectedRecord(null);
   }, [filters]);
+
+  const handleSelect = useCallback(
+    (record: OpportunityRecord) => {
+      const key = recordKey(record);
+      // Capture which button opened the panel so we can return focus
+      // when the panel closes (or when the selection toggles off).
+      triggerRef.current = document.getElementById(
+        `${cardIdPrefix}-${record.feed_id}-${record.id}`
+      );
+
+      setSelectedRecord((current) =>
+        current && recordKey(current) === key ? null : record
+      );
+    },
+    [cardIdPrefix]
+  );
+
+  const handleClose = useCallback(() => {
+    setSelectedRecord(null);
+  }, []);
+
+  const selectedKey = selectedRecord ? recordKey(selectedRecord) : null;
 
   return (
     <section
@@ -116,7 +149,9 @@ export function ExplorerRecordsSection({
             hasMore={hasMore}
             error={error}
             selectedRecordId={selectedKey}
-            onSelect={(record) => setSelectedKey(recordKey(record))}
+            detailPanelId={panelId}
+            cardButtonIdPrefix={cardIdPrefix}
+            onSelect={handleSelect}
             onLoadMore={loadMore}
             onRetry={retry}
           />
@@ -128,6 +163,15 @@ export function ExplorerRecordsSection({
             className="h-64 rounded-2xl bg-slate-50 ring-1 ring-slate-200"
           />
         )}
+
+        {selectedRecord ? (
+          <RecordDetailPanel
+            panelId={panelId}
+            record={selectedRecord}
+            onClose={handleClose}
+            returnFocusRef={triggerRef}
+          />
+        ) : null}
       </div>
     </section>
   );
