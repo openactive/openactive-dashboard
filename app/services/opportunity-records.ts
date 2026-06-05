@@ -1,13 +1,11 @@
 "use server";
 
 import { apiFetch } from "./api-client";
-import type {
-  OpportunityRecordsQuery,
-  OpportunityRecordsResponse,
+import {
+  DEFAULT_RECORDS_LIMIT,
+  type OpportunityRecordsQuery,
+  type OpportunityRecordsResponse,
 } from "../types/opportunity-records";
-
-/** Default page size for the records gallery. */
-export const DEFAULT_RECORDS_LIMIT = 20;
 
 /**
  * Server Action: fetch a page of raw opportunity records, optionally

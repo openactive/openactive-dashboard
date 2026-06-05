@@ -49,3 +49,10 @@ export type OpportunityRecordsQuery = {
   offset?: number;
   limit?: number;
 };
+
+/**
+ * Default page size for the records gallery. Lives here (not in the
+ * server-action module) because Next.js only allows async-function
+ * exports from `"use server"` files.
+ */
+export const DEFAULT_RECORDS_LIMIT = 20;

@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useReactiveOpportunityRecords } from "../../hooks/useReactiveOpportunityRecords";
 import type { ExplorerFilters } from "../../lib/explore-filters";
+import type { OpportunityRecord } from "../../types/opportunity-records";
+import { RecordsGrid } from "./RecordsGrid";
 
 type CodeMaps = {
   districtCodeByName: Map<string, string>;
@@ -14,6 +16,10 @@ interface ExplorerRecordsSectionProps {
   filters: ExplorerFilters;
   maps: CodeMaps;
   selectionLabel: string;
+}
+
+function recordKey(record: OpportunityRecord): string {
+  return `${record.feed_id}:${record.id}`;
 }
 
 /**
@@ -32,6 +38,9 @@ export function ExplorerRecordsSection({
 }: ExplorerRecordsSectionProps) {
   const [enabled, setEnabled] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
+  // Selection lives here for step 3 so cards can reflect aria-pressed.
+  // Step 4 will hoist this to drive the detail slide-down panel.
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
 
   useEffect(() => {
     if (enabled || !sectionRef.current) return;
@@ -50,8 +59,22 @@ export function ExplorerRecordsSection({
     return () => observer.disconnect();
   }, [enabled]);
 
-  const { items, isLoading, hasMore, total, error, status } =
-    useReactiveOpportunityRecords({ filters, maps, enabled });
+  const {
+    items,
+    isLoading,
+    isLoadingMore,
+    hasMore,
+    error,
+    status,
+    loadMore,
+    retry,
+  } = useReactiveOpportunityRecords({ filters, maps, enabled });
+
+  // Reset selection when the underlying filters change so a stale id
+  // doesn't keep highlighting a card that's no longer visible.
+  useEffect(() => {
+    setSelectedKey(null);
+  }, [filters]);
 
   return (
     <section
@@ -85,22 +108,26 @@ export function ExplorerRecordsSection({
       </p>
 
       <div className="mt-6">
-        {/*
-          Step 2 placeholder — the real gallery, load-more and detail panel
-          land in steps 3 and beyond. Showing a tiny diagnostic line so we
-          can verify the wiring during review.
-        */}
-        <div className="rounded-xl border border-dashed border-oa-grey-300 bg-white px-5 py-8 text-center text-sm text-oa-grey-600">
-          {!enabled
-            ? "Records will load as you reach this section…"
-            : error
-              ? error
-              : isLoading
-                ? "Loading records…"
-                : items.length === 0
-                  ? "No records match the current filters."
-                  : `${items.length}${total ? ` of ${total}` : ""} records ready · grid arrives in step 3${hasMore ? " · more available" : ""}`}
-        </div>
+        {enabled ? (
+          <RecordsGrid
+            items={items}
+            isLoading={isLoading}
+            isLoadingMore={isLoadingMore}
+            hasMore={hasMore}
+            error={error}
+            selectedRecordId={selectedKey}
+            onSelect={(record) => setSelectedKey(recordKey(record))}
+            onLoadMore={loadMore}
+            onRetry={retry}
+          />
+        ) : (
+          // Reserve vertical space before the section comes into view so
+          // the page doesn't jump when the grid mounts.
+          <div
+            aria-hidden="true"
+            className="h-64 rounded-2xl bg-slate-50 ring-1 ring-slate-200"
+          />
+        )}
       </div>
     </section>
   );

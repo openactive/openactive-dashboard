@@ -6,13 +6,11 @@ import {
   type ExplorerFilters,
 } from "../lib/explore-filters";
 import { buildLocationFilterQuery } from "../lib/explorer-location-query";
+import { getOpportunityRecords } from "../services/opportunity-records";
 import {
   DEFAULT_RECORDS_LIMIT,
-  getOpportunityRecords,
-} from "../services/opportunity-records";
-import type {
-  OpportunityRecord,
-  OpportunityRecordsQuery,
+  type OpportunityRecord,
+  type OpportunityRecordsQuery,
 } from "../types/opportunity-records";
 
 type CodeMaps = {
