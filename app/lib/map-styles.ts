@@ -9,7 +9,7 @@ export const FOCUS_STROKE = "#e21483";
 const BASE_STROKE = "#8fa3b8";
 const OUT_OF_SCOPE_FILL = "#e8edf2";
 const OUT_OF_SCOPE_STROKE = "#c5ced8";
-const NO_DATA_FILL = "#7fa8c9";
+const NO_DATA_FILL = "#fff";
 const SELECTED_STROKE = "#223582";
 const SELECTED_FILL_FALLBACK = "#009de1";
 
@@ -41,8 +41,8 @@ function resolveFeatureState(
   return { name, isSelected, inScope };
 }
 
-export const LEGEND_FROM = "#cfe7f7";
-export const LEGEND_TO = "#1a2a6b";
+export const LEGEND_FROM = "#F6EDE0";
+export const LEGEND_TO = "#952082";
 
 export function buildColorScale(counts: Map<string, number>) {
   const values = [...counts.values()].filter((v) => v > 0);
@@ -112,29 +112,30 @@ export function strokeWidthForFeature(
 
 export function getFitFeatures(
   features: LadFeature[],
-  scopeSet: Set<string> | null,
-  selectedDistrict: string | null
+  counts: Map<string, number>,
 ): LadFeature[] {
-  if (selectedDistrict) {
-    const match = features.filter(
-      (f) => f.properties?.geo_name === selectedDistrict
+  const dataNames = new Set(
+    [...counts.entries()]
+      .filter(([, c]) => c > 0)
+      .map(([name]) => name),
+  );
+  if (dataNames.size > 0 && dataNames.size < features.length) {
+    const matched = features.filter(
+      (f) => dataNames.has(f.properties?.geo_name ?? ""),
     );
-    if (match.length > 0) return match;
-  }
-  if (scopeSet && scopeSet.size > 0 && scopeSet.size <= 8) {
-    const scoped = features.filter((f) =>
-      scopeSet.has(f.properties?.geo_name ?? "")
-    );
-    if (scoped.length > 0) return scoped;
+    if (matched.length > 0) return matched;
   }
   return features;
 }
 
 export function scopeKey(
-  scopeAreaNames: string[] | null,
-  selectedDistrict: string | null
+  counts: Map<string, number>,
 ): string {
-  return `${selectedDistrict ?? ""}|${scopeAreaNames?.join(",") ?? "all"}`;
+  const names = [...counts.entries()]
+    .filter(([, c]) => c > 0)
+    .map(([name]) => name)
+    .sort();
+  return names.join(",") || "all";
 }
 
 /**

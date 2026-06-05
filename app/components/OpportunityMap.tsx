@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import * as d3 from "d3";
 import type { DistrictCount } from "../lib/explore-filters";
 import {
@@ -49,6 +49,12 @@ export function OpportunityMap({
   const countByDistrict = useRef(new Map<string, number>());
   countByDistrict.current = new Map(
     districtCounts.map((d) => [d.district, d.count])
+  );
+
+  /** Stable key representing which districts currently have data. */
+  const dataFitKey = useMemo(
+    () => scopeKey(new Map(districtCounts.map((d) => [d.district, d.count]))),
+    [districtCounts],
   );
 
   useEffect(() => {
@@ -108,15 +114,16 @@ export function OpportunityMap({
       (scopeSet !== null && scopeSet.size > 0 && scopeSet.size <= 8);
 
     const allFeatures = geojson.features;
-    const fitTargets = getFitFeatures(allFeatures, scopeSet, selectedDistrict);
+    const fitTargets = getFitFeatures(allFeatures, counts);
     const fitCollection = { type: "FeatureCollection" as const, features: fitTargets };
 
-    const currentScopeKey = scopeKey(scopeAreaNames, selectedDistrict);
+    const currentScopeKey = dataFitKey;
     const shouldResetZoom = lastScopeKeyRef.current !== currentScopeKey;
     lastScopeKeyRef.current = currentScopeKey;
 
     const { width, height } = container.getBoundingClientRect();
-    const pad = isFocused ? 40 : 12;
+    const isFitToSubset = fitTargets.length < allFeatures.length;
+    const pad = isFitToSubset ? 40 : 12;
     const projection = d3.geoMercator().fitExtent(
       [[pad, pad], [Math.max(width - pad, 100), Math.max(height - pad, 200)]],
       fitCollection as d3.GeoPermissibleObjects
@@ -184,7 +191,7 @@ export function OpportunityMap({
 
     const resizeObserver = new ResizeObserver(() => {
       const { width: w, height: h } = container.getBoundingClientRect();
-      const p = isFocused ? 40 : 12;
+      const p = isFitToSubset ? 40 : 12;
       projection.fitExtent(
         [[p, p], [Math.max(w - p, 100), Math.max(h - p, 200)]],
         fitCollection as d3.GeoPermissibleObjects
@@ -202,7 +209,7 @@ export function OpportunityMap({
       mapReadyRef.current = false;
       zoomBehaviorRef.current = null;
     };
-  }, [status, geojson, scopeAreaNames, selectedDistrict, tooltipId]);
+  }, [status, geojson, dataFitKey, scopeAreaNames, selectedDistrict, tooltipId]);
 
   const zoomBy = useCallback((factor: number) => {
     const svg = svgRef.current;
@@ -224,9 +231,7 @@ export function OpportunityMap({
     ? countByDistrict.current.get(focusedDistrict)
     : undefined;
 
-  const isAutoFramed =
-    Boolean(selectedDistrict) ||
-    (scopeAreaNames && scopeAreaNames.length > 0 && scopeAreaNames.length <= 8);
+  const isAutoFramed = dataFitKey !== "all";
 
   const zoomControlsClass =
     "absolute top-3 right-3 z-30 flex flex-col gap-0.5 oa-glass rounded-md p-0.5 shadow-sm sm:top-4 sm:right-4 lg:top-auto lg:bottom-5 lg:right-5 lg:rounded-lg lg:p-1";
@@ -241,12 +246,12 @@ export function OpportunityMap({
         className="relative h-full min-h-[480px] w-full flex-1 touch-none outline-none [-webkit-tap-highlight-color:transparent] [&_svg]:outline-none [&_svg:focus]:outline-none [&_path]:outline-none"
         style={{ background: "linear-gradient(165deg, #e4ecf4 0%, #d6e2ec 45%, #c8d6e2 100%)" }}
       >
-        {isAutoFramed && selectedDistrict && (
+        {isAutoFramed && (
           <p
             className="absolute bottom-42 left-4 z-10 rounded-lg px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-oa-navy oa-glass lg:hidden"
             aria-hidden="true"
           >
-            Framed on {selectedDistrict}
+            Framed on filtered data
           </p>
         )}
 
