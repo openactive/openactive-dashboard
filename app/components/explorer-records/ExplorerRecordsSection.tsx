@@ -4,8 +4,13 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useReactiveOpportunityRecords } from "../../hooks/useReactiveOpportunityRecords";
 import { ALL_FILTER, type ExplorerFilters } from "../../lib/explore-filters";
 import { formatFullNumber } from "../../lib/format";
+import {
+  getRecordKindLabel,
+  getRecordTitle,
+} from "../../lib/record-display";
 import type { OpportunityRecord } from "../../types/opportunity-records";
-import { RecordDetailPanel } from "./RecordDetailPanel";
+import { RecordDetailDrawer } from "./RecordDetailDrawer";
+import { RecordDetailTabs } from "./RecordDetailTabs";
 import { RecordsGrid } from "./RecordsGrid";
 
 type CodeMaps = {
@@ -40,18 +45,18 @@ export function ExplorerRecordsSection({
 }: ExplorerRecordsSectionProps) {
   const [enabled, setEnabled] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
-  // We track the full record (not just the key) so the panel can render
+  // We track the full record (not just the key) so the drawer can render
   // even if the record is no longer in `items` due to a refetch.
   const [selectedRecord, setSelectedRecord] =
     useState<OpportunityRecord | null>(null);
 
-  // ref points at the card button that opened the panel — used to
-  // restore focus when the panel closes.
+  // ref points at the card button that opened the drawer — used to
+  // restore focus when the drawer closes.
   const triggerRef = useRef<HTMLElement | null>(null);
 
-  // Stable ids so cards (aria-controls) and the panel agree.
+  // Stable ids so cards (aria-controls) and the drawer agree.
   const sectionUid = useId();
-  const panelId = `${sectionUid}-panel`;
+  const drawerId = `${sectionUid}-drawer`;
   const cardIdPrefix = `${sectionUid}-card`;
 
   useEffect(() => {
@@ -84,7 +89,7 @@ export function ExplorerRecordsSection({
   } = useReactiveOpportunityRecords({ filters, maps, enabled });
 
   // Reset selection when the underlying filters change so a stale
-  // record doesn't keep the panel open with no matching card.
+  // record doesn't keep the drawer open with no matching card.
   useEffect(() => {
     setSelectedRecord(null);
   }, [filters]);
@@ -92,8 +97,8 @@ export function ExplorerRecordsSection({
   const handleSelect = useCallback(
     (record: OpportunityRecord) => {
       const key = recordKey(record);
-      // Capture which button opened the panel so we can return focus
-      // when the panel closes (or when the selection toggles off).
+      // Capture which button opened the drawer so we can return focus
+      // when the drawer closes (or when the selection toggles off).
       triggerRef.current = document.getElementById(
         `${cardIdPrefix}-${record.feed_id}-${record.id}`
       );
@@ -175,7 +180,7 @@ export function ExplorerRecordsSection({
             hasMore={hasMore}
             error={error}
             selectedRecordId={selectedKey}
-            detailPanelId={panelId}
+            detailDrawerId={drawerId}
             cardButtonIdPrefix={cardIdPrefix}
             onSelect={handleSelect}
             onLoadMore={loadMore}
@@ -191,12 +196,29 @@ export function ExplorerRecordsSection({
         )}
 
         {selectedRecord ? (
-          <RecordDetailPanel
-            panelId={panelId}
-            record={selectedRecord}
+          <RecordDetailDrawer
+            drawerId={drawerId}
+            // Keying titleId on the record id makes the drawer's
+            // focus-on-mount effect re-fire when the user swaps cards
+            // without closing the drawer first.
+            titleId={`${drawerId}-heading-${selectedRecord.feed_id}-${selectedRecord.id}`}
+            eyebrow={
+              <>
+                {getRecordKindLabel(selectedRecord)}
+                {selectedRecord.publisher_name ? (
+                  <span className="font-medium normal-case tracking-normal text-white/70">
+                    {" "}
+                    · {selectedRecord.publisher_name}
+                  </span>
+                ) : null}
+              </>
+            }
+            title={getRecordTitle(selectedRecord)}
             onClose={handleClose}
             returnFocusRef={triggerRef}
-          />
+          >
+            <RecordDetailTabs record={selectedRecord} />
+          </RecordDetailDrawer>
         ) : null}
       </div>
     </section>
