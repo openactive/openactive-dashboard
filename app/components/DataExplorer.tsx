@@ -12,7 +12,6 @@ import {
   type MobilePanel,
 } from "./ExplorerMobileChrome";
 import { OpportunityMap } from "./OpportunityMap";
-import { ExplorerRecordsSection } from "./explorer-records/ExplorerRecordsSection";
 import type { GeoHierarchy } from "../lib/geo-hierarchy";
 import { getAreaSelectionLabel } from "../lib/geo-hierarchy";
 import { getAreaNamesInScope } from "../lib/geo-hierarchy";
@@ -256,12 +255,6 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
           />
         </div>
       </div>
-
-      <ExplorerRecordsSection
-        filters={filters}
-        maps={codeMaps}
-        selectionLabel={selectionLabel}
-      />
     </div>
   );
 }
