@@ -38,6 +38,12 @@ export function DataExplorerSection() {
           >
             Skip to map filters
           </a>
+          <a
+            href="#records"
+            className="sr-only focus:fixed focus:left-44 focus:top-4 focus:z-50 focus:block focus:h-auto focus:w-auto focus:overflow-visible focus:rounded-sm focus:bg-oa-navy focus:px-3 focus:py-2 focus:text-sm focus:font-semibold focus:text-white focus:outline-none focus:ring-2 focus:ring-oa-cyan"
+          >
+            Skip to records
+          </a>
         </header>
 
         <Suspense fallback={<ExplorerSectionLoading />}>
