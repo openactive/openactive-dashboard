@@ -1,4 +1,5 @@
 import { DataExplorerSection } from "./components/DataExplorerSection";
+import { FeedQualitySection } from "./components/feed-quality/FeedQualitySection";
 import { HeroSection } from "./components/HeroSection";
 
 export default function Home() {
@@ -6,6 +7,7 @@ export default function Home() {
     <div className="flex flex-col">
       <HeroSection />
       <DataExplorerSection />
+      <FeedQualitySection />
     </div>
   );
 }
