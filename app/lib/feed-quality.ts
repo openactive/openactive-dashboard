@@ -10,32 +10,32 @@ export const COMPLETENESS_BANDS = {
   high: {
     label: "High completeness",
     description: "Field is present in 70–100% of items",
-    cellClass: "bg-emerald-50 text-emerald-900 ring-emerald-200",
-    dotClass: "bg-emerald-500",
+    cellClass: "bg-oa-cyan/15 text-oa-navy",
+    dotClass: "bg-oa-cyan",
   },
   moderate: {
     label: "Moderate completeness",
     description: "Field is present in 35–70% of items",
-    cellClass: "bg-amber-50 text-amber-900 ring-amber-200",
-    dotClass: "bg-amber-500",
+    cellClass: "bg-oa-yellow/20 text-oa-navy",
+    dotClass: "bg-oa-yellow",
   },
   low: {
     label: "Low completeness",
     description: "Field is present in 1–35% of items",
-    cellClass: "bg-red-50 text-red-900 ring-red-200",
-    dotClass: "bg-red-500",
+    cellClass: "bg-oa-scarlet/10 text-oa-navy",
+    dotClass: "bg-oa-scarlet",
   },
   none: {
     label: "No completeness",
     description: "Items exist but never include this field (0%)",
-    cellClass: "bg-red-100 text-red-950 ring-red-300",
-    dotClass: "bg-red-600",
+    cellClass: "bg-oa-scarlet/25 text-oa-scarlet",
+    dotClass: "bg-oa-scarlet",
   },
   na: {
     label: "Not assessed",
     description: "No future items in this feed to assess",
-    cellClass: "bg-slate-50 text-slate-500 ring-slate-200",
-    dotClass: "bg-slate-300",
+    cellClass: "bg-oa-grey-50 text-oa-grey-500",
+    dotClass: "bg-oa-grey-300",
   },
 } as const;
 
