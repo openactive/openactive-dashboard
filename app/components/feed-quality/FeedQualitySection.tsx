@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useFeedQuality } from "../../hooks/useFeedQuality";
 import { ErrorBanner } from "../ErrorBanner";
 import { FeedQualitySummary } from "./FeedQualitySummary";
+import { FeedQualityTable } from "./FeedQualityTable";
 
 export function FeedQualitySection() {
   const [enabled, setEnabled] = useState(false);
@@ -24,7 +25,7 @@ export function FeedQualitySection() {
     return () => observer.disconnect();
   }, [enabled]);
 
-  const { rows, isLoading, error, retry } = useFeedQuality(enabled);
+  const { rows, groups, isLoading, error, retry } = useFeedQuality(enabled);
 
   const counts = useMemo(() => {
     let okCount = 0;
@@ -62,9 +63,12 @@ export function FeedQualitySection() {
           </p>
         </header>
 
-        <div className="mt-10">
+        <div className="mt-10 space-y-8">
           {!enabled || isLoading ? (
-            <SummarySkeleton />
+            <>
+              <SummarySkeleton />
+              <TableSkeleton />
+            </>
           ) : error ? (
             <ErrorBanner
               heading="Couldn't load feed quality."
@@ -74,7 +78,10 @@ export function FeedQualitySection() {
           ) : counts.total === 0 ? (
             <EmptyState />
           ) : (
-            <FeedQualitySummary {...counts} />
+            <>
+              <FeedQualitySummary {...counts} />
+              <FeedQualityTable groups={groups} />
+            </>
           )}
         </div>
       </div>
@@ -110,5 +117,31 @@ function EmptyState() {
     <p className="rounded-2xl bg-oa-grey-50 p-6 text-sm text-oa-grey-600 ring-1 ring-oa-grey-200">
       No feeds to assess yet.
     </p>
+  );
+}
+
+function TableSkeleton() {
+  return (
+    <div
+      role="status"
+      aria-label="Loading feed quality table"
+      className="overflow-hidden rounded-sm bg-white shadow-sm ring-1 ring-oa-grey-200 animate-pulse"
+    >
+      <div className="h-11 bg-oa-navy" />
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div
+          key={i}
+          className="flex items-center gap-3 border-t border-oa-grey-200 px-3 py-3"
+        >
+          <div className="h-5 w-5 shrink-0 rounded-full bg-oa-grey-200" />
+          <div className="h-3 w-40 rounded bg-oa-grey-200" />
+          <div className="ml-auto flex gap-2">
+            <div className="h-7 w-12 rounded bg-oa-grey-100" />
+            <div className="h-7 w-12 rounded bg-oa-grey-100" />
+            <div className="h-7 w-12 rounded bg-oa-grey-100" />
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }

@@ -6,6 +6,12 @@ export const STATUS_LABELS: Record<FeedStatus, string> = {
   ERROR: "Error",
 };
 
+export const STATUS_DOT_CLASS: Record<FeedStatus, string> = {
+  OK: "bg-oa-cyan",
+  WARNING: "bg-oa-yellow",
+  ERROR: "bg-oa-scarlet",
+};
+
 export const COMPLETENESS_BANDS = {
   high: {
     label: "High completeness",
@@ -47,6 +53,20 @@ export function getCompletenessBand(value: number | null): CompletenessBand {
   if (value >= 70) return "high";
   if (value >= 35) return "moderate";
   return "low";
+}
+
+// A feed is either activity-based or facility-based, never both — pick
+// whichever one the publisher actually fills in.
+export function getActivityOrFacilityCompleteness(
+  row: FeedQualityRow
+): number | null {
+  return row.activities_completeness ?? row.facilities_completeness;
+}
+
+// "ScheduledSession" -> "Scheduled session", "FacilityUse" -> "Facility use"
+export function humaniseFeedType(feedType: string): string {
+  const spaced = feedType.replace(/([a-z])([A-Z])/g, "$1 $2");
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1).toLowerCase();
 }
 
 const STATUS_RANK: Record<FeedStatus, number> = {
