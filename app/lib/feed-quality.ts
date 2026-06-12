@@ -55,21 +55,51 @@ export function getCompletenessBand(value: number | null): CompletenessBand {
   return "low";
 }
 
-// A feed is either activity-based or facility-based, never both — pick
-// whichever one the publisher actually fills in.
+// Feeds are either activity-based or facility-based, never both.
 export function getActivityOrFacilityCompleteness(
   row: FeedQualityRow
 ): number | null {
   return row.activities_completeness ?? row.facilities_completeness;
 }
 
-// "ScheduledSession" -> "Scheduled session", "FacilityUse" -> "Facility use"
+// Average of the four fields the table colours in.
+// Returns null when there's nothing to score.
+export function getQualityScore(row: FeedQualityRow): number | null {
+  const values = [
+    row.start_date_completeness,
+    row.end_date_completeness,
+    row.location_completeness,
+    getActivityOrFacilityCompleteness(row),
+  ].filter((v): v is number => v !== null);
+  if (values.length === 0) return null;
+  return values.reduce((sum, v) => sum + v, 0) / values.length;
+}
+
+// Returns -1 when no feed in the group can be scored, so those groups
+// always sink to the bottom of a sort.
+export function getGroupQualityScore(group: FeedQualityGroup): number {
+  const scores = group.feeds
+    .map(getQualityScore)
+    .filter((v): v is number => v !== null);
+  if (scores.length === 0) return -1;
+  return scores.reduce((sum, v) => sum + v, 0) / scores.length;
+}
+
+export function getGroupActivityCount(group: FeedQualityGroup): number {
+  return group.feeds.reduce(
+    (sum, f) => sum + f.num_future_opportunity_items,
+    0
+  );
+}
+
+// "ScheduledSession" -> "Scheduled session"
 export function humaniseFeedType(feedType: string): string {
   const spaced = feedType.replace(/([a-z])([A-Z])/g, "$1 $2");
   return spaced.charAt(0).toUpperCase() + spaced.slice(1).toLowerCase();
 }
 
-const STATUS_RANK: Record<FeedStatus, number> = {
+// Higher number = worse status.
+export const STATUS_RANK: Record<FeedStatus, number> = {
   OK: 0,
   WARNING: 1,
   ERROR: 2,
@@ -83,9 +113,8 @@ export function getWorstStatus(rows: FeedQualityRow[]): FeedStatus {
   );
 }
 
-// Some publishers send a generic dataset_name like "Sessions and Facilities".
-// When that happens we humanise the dataset_url subdomain instead so the
-// table still shows something identifiable.
+// Some publishers ship a useless generic name. When they do, fall back
+// to the URL subdomain so the table still shows something identifiable.
 const GENERIC_DATASET_NAMES = new Set([
   "sessions and facilities",
   "openactive",
