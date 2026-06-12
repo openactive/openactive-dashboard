@@ -50,10 +50,7 @@ export function FeedQualitySummary({
   ];
 
   return (
-    <article
-      aria-label="Feed status overview"
-      className="rounded-sm bg-white p-6 shadow-sm ring-1 ring-oa-grey-200 sm:p-7"
-    >
+    <article aria-label="Feed status overview">
       <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-oa-grey-600">
         Feed status
       </p>

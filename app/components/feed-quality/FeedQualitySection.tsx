@@ -94,7 +94,7 @@ function SummarySkeleton() {
     <div
       role="status"
       aria-label="Loading feed status"
-      className="rounded-sm bg-white p-6 shadow-sm ring-1 ring-oa-grey-200 sm:p-7 animate-pulse"
+      className="animate-pulse"
     >
       <div className="h-3 w-24 rounded bg-oa-grey-200" />
       <div className="mt-3 h-10 w-32 rounded bg-oa-grey-200" />
@@ -125,7 +125,7 @@ function TableSkeleton() {
     <div
       role="status"
       aria-label="Loading feed quality table"
-      className="overflow-hidden rounded-sm bg-white shadow-sm ring-1 ring-oa-grey-200 animate-pulse"
+      className="overflow-hidden rounded-sm bg-white ring-1 ring-oa-grey-200 animate-pulse"
     >
       <div className="h-11 bg-oa-navy" />
       {Array.from({ length: 6 }).map((_, i) => (
