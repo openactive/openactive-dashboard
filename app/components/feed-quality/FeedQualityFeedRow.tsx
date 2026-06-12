@@ -1,6 +1,6 @@
 import { ExternalDataLink } from "./ExternalDataLink";
 import { FeedQualityCell } from "./FeedQualityCell";
-import { FeedQualityStatusIcon } from "./FeedQualityStatusIcon";
+import { FeedQualityStatusButton } from "./FeedQualityStatusButton";
 import {
   formatLastAssessed,
   getActivityOrFacilityCompleteness,
@@ -24,7 +24,11 @@ export function FeedQualityFeedRow({ feed, dataset }: FeedQualityFeedRowProps) {
   return (
     <tr className="border-t border-oa-grey-200 hover:bg-oa-grey-50">
       <td className="px-3 py-2.5 text-center align-middle">
-        <FeedQualityStatusIcon status={feed.status} />
+        <FeedQualityStatusButton
+          status={feed.status}
+          warnings={feed.warnings}
+          errors={feed.errors}
+        />
       </td>
 
       <td className="px-3 py-2.5 align-middle">
