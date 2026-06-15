@@ -92,3 +92,11 @@ body {
     0 12px 40px rgb(34 53 130 / 0.18),
     inset 0 1px 0 rgb(255 255 255 / 0.95);
 }
+
+.no-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE / old Edge */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome / Safari */
+}
