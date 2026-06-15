@@ -33,15 +33,16 @@ interface FeedQualitySortSelectProps {
 }
 
 /**
- * Pins the trigger to a fixed width so the toolbar doesn't reflow when the
- * selected label changes length.
+ * Pins the trigger to a fixed width on desktop so the toolbar doesn't reflow
+ * when the selected label changes length. On mobile the trigger fills its
+ * container so the dropdown sits flush with the search bar above it.
  */
 export function FeedQualitySortSelect({
   value,
   onChange,
 }: FeedQualitySortSelectProps) {
   return (
-    <div className="[&_button[aria-haspopup=listbox]]:w-72 [&_button[aria-haspopup=listbox]]:justify-between">
+    <div className="w-full lg:w-auto [&_button[aria-haspopup=listbox]]:w-full [&_button[aria-haspopup=listbox]]:justify-between lg:[&_button[aria-haspopup=listbox]]:w-72">
       <FilterDropdown
         label="Sort"
         options={SORT_OPTIONS}

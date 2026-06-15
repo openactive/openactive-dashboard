@@ -4,6 +4,7 @@ import { FeedQualityStatusButton } from "./FeedQualityStatusButton";
 import {
   formatLastAssessed,
   getActivityOrFacilityCompleteness,
+  getQualityScore,
   humaniseFeedType,
   STATUS_DOT_CLASS,
 } from "../../lib/feed-quality";
@@ -60,8 +61,7 @@ export function FeedQualityFeedRow({ feed, dataset }: FeedQualityFeedRowProps) {
         )}
       </td>
 
-      <FeedQualityCell value={feed.start_date_completeness} />
-      <FeedQualityCell value={feed.end_date_completeness} />
+      <FeedQualityCell value={getQualityScore(feed)} />
       <FeedQualityCell value={feed.location_completeness} />
       <FeedQualityCell value={getActivityOrFacilityCompleteness(feed)} />
 

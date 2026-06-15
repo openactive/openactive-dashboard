@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
 import { FeedQualityColourKey } from "./FeedQualityColourKey";
+import { FeedQualityDatasetCard } from "./FeedQualityDatasetCard";
 import { FeedQualityDatasetGroup } from "./FeedQualityDatasetGroup";
 import {
   FeedQualitySortSelect,
@@ -39,16 +40,10 @@ const COLUMNS: Column[] = [
   { key: "status", label: "Status", srOnly: true, align: "center" },
   { key: "feed", label: "Feed", align: "left" },
   {
-    key: "start_date",
-    label: "Start date",
+    key: "quality",
+    label: "Quality",
     align: "center",
-    hint: "% of future items with a start date",
-  },
-  {
-    key: "end_date",
-    label: "End date",
-    align: "center",
-    hint: "% of future items with an end date",
+    hint: "Average completeness across location, activity/facility, and start and end dates",
   },
   {
     key: "location",
@@ -160,7 +155,7 @@ export function FeedQualityTable({ groups }: FeedQualityTableProps) {
     setVisibleCount((c) => c + PAGE_SIZE);
   }, []);
 
-  // Auto-load when the sentinel scrolls into the inner table area; the button
+  // Auto-load when the sentinel scrolls into view; the button
   // below is the keyboard / screen-reader fallback for users who never scroll.
   useEffect(() => {
     if (!hasMore || !sentinelRef.current) return;
@@ -191,8 +186,8 @@ export function FeedQualityTable({ groups }: FeedQualityTableProps) {
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        <label className="flex w-full max-w-sm items-center gap-2 rounded-sm border border-oa-grey-300 bg-white px-3 py-2 focus-within:border-oa-cyan focus-within:ring-1 focus-within:ring-oa-cyan">
+      <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center lg:gap-x-3 lg:gap-y-2">
+        <label className="flex w-full items-center gap-2 rounded-sm border border-oa-grey-300 bg-white px-3 py-2 focus-within:border-oa-cyan focus-within:ring-1 focus-within:ring-oa-cyan lg:max-w-sm">
           <MagnifyingGlassIcon
             aria-hidden="true"
             className="h-4 w-4 shrink-0 text-oa-grey-500"
@@ -215,19 +210,22 @@ export function FeedQualityTable({ groups }: FeedQualityTableProps) {
           total={groups.length}
         />
 
-        {/* ml-auto on the first right-side item pushes everything after it
-            against the right edge — sort, colour key, collapse toggle. */}
-        <div className="ml-auto flex flex-wrap items-center gap-x-3 gap-y-2">
+        {/* On desktop ml-auto pushes this group to the right edge; on mobile
+            it owns its own row, with the colour key + collapse toggle wrapped
+            into a sub-row so they sit side-by-side under the sort. */}
+        <div className="flex flex-col gap-2 lg:ml-auto lg:flex-row lg:flex-wrap lg:items-center lg:gap-x-3">
           <FeedQualitySortSelect value={sortKey} onChange={setSortKey} />
-          <FeedQualityColourKey />
-          <button
-            type="button"
-            onClick={collapseToggle}
-            aria-pressed={!allExpanded}
-            className="cursor-pointer rounded-sm px-2 py-1 text-xs font-semibold text-oa-blue underline-offset-2 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-oa-cyan"
-          >
-            {allExpanded ? "Collapse all" : "Expand all"}
-          </button>
+          <div className="flex items-center justify-between gap-3 lg:justify-start">
+            <FeedQualityColourKey />
+            <button
+              type="button"
+              onClick={collapseToggle}
+              aria-pressed={!allExpanded}
+              className="cursor-pointer rounded-sm px-2 py-1 text-xs font-semibold text-oa-blue underline-offset-2 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-oa-cyan"
+            >
+              {allExpanded ? "Collapse all" : "Expand all"}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -242,9 +240,12 @@ export function FeedQualityTable({ groups }: FeedQualityTableProps) {
       ) : (
         <div
           ref={scrollRef}
-          className="max-h-[40rem] overflow-auto rounded-sm bg-white ring-1 ring-oa-grey-200"
+          className="max-h-[40rem] overflow-auto rounded-sm bg-oa-grey-50 p-2 lg:bg-white lg:p-0 lg:ring-1 lg:ring-oa-grey-200"
         >
-          <table id="feed-quality-table" className="w-full border-collapse">
+          <table
+            id="feed-quality-table"
+            className="hidden w-full border-collapse lg:table"
+          >
             <caption className="sr-only">
               Feed quality by publisher. Each row shows a single feed&apos;s
               completeness for the fields that decide whether its opportunities
@@ -284,6 +285,18 @@ export function FeedQualityTable({ groups }: FeedQualityTableProps) {
               />
             ))}
           </table>
+
+          <div className="space-y-3 lg:hidden">
+            {visibleGroups.map((group) => (
+              <FeedQualityDatasetCard
+                key={group.datasetUrl}
+                group={group}
+                collapsed={collapsed.has(group.datasetUrl)}
+                onToggle={() => toggle(group.datasetUrl)}
+              />
+            ))}
+          </div>
+
           {hasMore && (
             <div
               ref={sentinelRef}

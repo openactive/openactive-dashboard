@@ -28,7 +28,7 @@ export function FeedQualityStatusFilter({
     <div
       role="group"
       aria-label="Filter publishers by status"
-      className="flex flex-wrap items-center gap-1.5"
+      className="no-scrollbar -mx-1 flex items-center gap-1.5 overflow-x-auto px-1 pb-1"
     >
       <Chip
         label="All"
@@ -71,7 +71,7 @@ function Chip({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-oa-cyan ${
+      className={`inline-flex shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-oa-cyan ${
         active
           ? "border-oa-navy bg-oa-navy text-white"
           : "border-oa-grey-300 bg-white text-oa-grey-700 hover:border-oa-navy hover:text-oa-navy"
