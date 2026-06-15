@@ -83,7 +83,7 @@ export function TopBreakdownTabs({ tabs }: TopBreakdownTabsProps) {
               tabIndex={selected ? 0 : -1}
               onClick={() => setActive(tab.key)}
               onKeyDown={(event) => onKeyDown(event, index)}
-              className={`-mb-px shrink-0 cursor-pointer whitespace-nowrap border-b-2 px-3 py-2 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-oa-cyan ${
+              className={`-mb-px shrink-0 cursor-pointer whitespace-nowrap border-b-2 px-3 py-2 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-oa-cyan ${
                 selected
                   ? "border-oa-cyan text-oa-navy"
                   : "border-transparent text-oa-grey-600 hover:text-oa-navy"
@@ -117,7 +117,7 @@ export function TopBreakdownTabs({ tabs }: TopBreakdownTabsProps) {
             aria-labelledby={`${baseId}-tab-${tab.key}`}
             hidden={!selected}
             tabIndex={0}
-            className="min-h-[28rem] pt-5 focus:outline-none"
+            className="pt-5 focus:outline-none"
           >
             {selected && (
               <>

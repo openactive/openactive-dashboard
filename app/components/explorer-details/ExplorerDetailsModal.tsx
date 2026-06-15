@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { XMarkIcon } from "@heroicons/react/20/solid";
+import { ArrowRightIcon, XMarkIcon } from "@heroicons/react/20/solid";
 import { useEscapeClose } from "../../hooks/useEscapeClose";
 import { formatFullNumber, formatNumber } from "../../lib/format";
 import type { ExplorerSummary } from "../../lib/explore-filters";
@@ -173,6 +173,27 @@ export function ExplorerDetailsModal({
             />
           </div>
         </div>
+
+        {/* Sticky footer: closes the modal and jumps the page to
+            #feed-quality.  */}
+        <aside
+          aria-label="Check feed quality"
+          className="border-t-4 border-oa-cyan bg-oa-grey-50 px-6 py-4"
+        >
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+            <h3 className="text-sm font-bold text-oa-navy sm:text-base">
+              Are these publishers shipping clean data?
+            </h3>
+            <a
+              href="#feed-quality"
+              onClick={onClose}
+              className="inline-flex shrink-0 cursor-pointer items-center gap-2 self-start rounded-sm bg-oa-navy px-4 py-2.5 text-sm font-semibold text-white hover:bg-oa-blue focus:outline-none focus-visible:ring-2 focus-visible:ring-oa-cyan focus-visible:ring-offset-2 sm:self-auto"
+            >
+              Check feed quality
+              <ArrowRightIcon aria-hidden="true" className="h-4 w-4" />
+            </a>
+          </div>
+        </aside>
       </div>
     </div>
   );
