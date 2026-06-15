@@ -48,7 +48,7 @@ export function FeedQualityDatasetCard({
         >
           <ChevronDownIcon
             aria-hidden="true"
-            className={`h-4 w-4 text-oa-grey-500 transition-transform ${
+            className={`h-4 w-4 text-oa-grey-500 motion-safe:transition-transform ${
               collapsed ? "-rotate-90" : ""
             }`}
           />

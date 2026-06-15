@@ -184,6 +184,25 @@ export function FeedQualityTable({ groups }: FeedQualityTableProps) {
     setCollapsed(allExpanded ? new Set(groups.map((g) => g.datasetUrl)) : new Set());
   }, [allExpanded, groups]);
 
+  // True when at least one filter is doing something — used to show the
+  // clear-filters affordance only when it'd actually do something.
+  const hasActiveFilters = query.trim() !== "" || statusFilter !== "all";
+  const clearFilters = useCallback(() => {
+    setQuery("");
+    setStatusFilter("all");
+  }, []);
+
+  // Plain-English summary for the live region. Repeats whatever the user
+  // currently sees so screen readers know if their filter actually matched.
+  const liveMessage = useMemo(() => {
+    const count = filteredGroups.length;
+    const noun = count === 1 ? "publisher" : "publishers";
+    if (!hasActiveFilters) return "";
+    return count === 0
+      ? "No publishers match the current filters."
+      : `${count} ${noun} match the current filters.`;
+  }, [filteredGroups.length, hasActiveFilters]);
+
   return (
     <div className="space-y-3">
       <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center lg:gap-x-3 lg:gap-y-2">
@@ -229,14 +248,37 @@ export function FeedQualityTable({ groups }: FeedQualityTableProps) {
         </div>
       </div>
 
+      {/* Politely announce result counts to assistive tech when filters
+          change. Sighted users see the table change directly, so this stays
+          visually hidden. */}
+      <p className="sr-only" role="status" aria-live="polite">
+        {liveMessage}
+      </p>
+
       {filteredGroups.length === 0 ? (
-        <p className="rounded-sm bg-white p-6 text-center text-sm text-oa-grey-600 ring-1 ring-oa-grey-200">
-          {query
-            ? `No publishers match "${query}"${
-                statusFilter !== "all" ? " in this status" : ""
-              }.`
-            : "No publishers in this status."}
-        </p>
+        <div className="rounded-sm bg-white p-8 text-center ring-1 ring-oa-grey-200">
+          <p className="text-base font-semibold text-oa-navy">
+            No publishers match those filters.
+          </p>
+          <p className="mt-1 text-sm text-oa-grey-600">
+            {query
+              ? `Nothing matches "${query}"${
+                  statusFilter !== "all"
+                    ? ` in the ${statusFilter === "OK" ? "Healthy" : statusFilter === "WARNING" ? "Warnings" : "Errors"} status`
+                    : ""
+                }.`
+              : "Try a different status or clear the search."}
+          </p>
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="mt-4 inline-flex cursor-pointer items-center rounded-sm border border-oa-navy px-3 py-1.5 text-xs font-semibold text-oa-navy hover:bg-oa-navy hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-oa-cyan"
+            >
+              Clear filters
+            </button>
+          )}
+        </div>
       ) : (
         <div
           ref={scrollRef}
