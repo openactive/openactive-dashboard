@@ -44,7 +44,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
 
   const pickerHierarchy = useReactiveAreaHierarchy({
     publisher: filters.publisher,
-    activity: filters.activity,
+    activity: filters.activity[0] ?? ALL_FILTER,
     fallback: hierarchy,
   });
 
@@ -61,8 +61,12 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
   );
 
   const onActivityChange = useCallback(
-    (value: string) => updateFilter("activity", value),
-    [updateFilter]
+    (value: string) =>
+      setFilters((current) => ({
+        ...current,
+        activity: value === ALL_FILTER ? [] : [value],
+      })),
+    []
   );
 
   const onMapReset = useCallback(
@@ -105,10 +109,10 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     setFilters((current) => {
       if (
         names.length === 0 ||
-        (current.activity !== ALL_FILTER &&
-          !names.includes(current.activity))
+        (current.activity.length > 0 &&
+          !names.includes(current.activity[0]))
       ) {
-        return { ...current, activity: ALL_FILTER };
+        return { ...current, activity: [] };
       }
       return current;
     });
@@ -131,7 +135,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     maps: codeMaps,
     fetchNames: getPublishers,
     onFetched: onPublishersFetched,
-    activity: filters.activity,
+    activity: filters.activity[0],
   });
 
   const activityOptions = useLocationScopedFilterOptions({

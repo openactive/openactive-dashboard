@@ -26,7 +26,7 @@ function hasActiveFilters(filters: ExplorerFilters): boolean {
     filters.district !== ALL_FILTER ||
     filters.areaScope !== ALL_FILTER ||
     filters.publisher !== ALL_FILTER ||
-    filters.activity !== ALL_FILTER
+    filters.activity.length > 0
   );
 }
 
@@ -135,7 +135,7 @@ export function ExplorerFilterBar({
             label="Activity"
             layout={isSheet ? "sheet" : isOverlay ? "glass" : "field"}
             options={activityOptions}
-            value={filters.activity}
+            value={filters.activity[0] ?? ALL_FILTER}
             onChange={onActivityChange}
             searchable
           />
