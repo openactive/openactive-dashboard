@@ -61,11 +61,8 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
   );
 
   const onActivityChange = useCallback(
-    (value: string) =>
-      setFilters((current) => ({
-        ...current,
-        activity: value === ALL_FILTER ? [] : [value],
-      })),
+    (values: string[]) =>
+      setFilters((current) => ({ ...current, activity: values })),
     []
   );
 
@@ -107,14 +104,15 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
 
   const onActivitiesFetched = useCallback((names: string[]) => {
     setFilters((current) => {
-      if (
-        names.length === 0 ||
-        (current.activity.length > 0 &&
-          !names.includes(current.activity[0]))
-      ) {
-        return { ...current, activity: [] };
-      }
-      return current;
+      if (current.activity.length === 0) return current;
+      if (names.length === 0) return { ...current, activity: [] };
+      // Drop any selected values that the new options list no longer
+      // contains (e.g. user changed location and that activity isn't
+      // there). Keep the rest so partial selections survive.
+      const allowed = new Set(names);
+      const next = current.activity.filter((a) => allowed.has(a));
+      if (next.length === current.activity.length) return current;
+      return { ...current, activity: next };
     });
   }, []);
 

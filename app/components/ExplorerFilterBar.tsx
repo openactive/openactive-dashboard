@@ -17,7 +17,7 @@ interface ExplorerFilterBarProps {
   activityOptions: ExplorerFilterOption[];
   onFiltersChange: (filters: ExplorerFilters) => void;
   onPublisherChange: (value: string) => void;
-  onActivityChange: (value: string) => void;
+  onActivityChange: (values: string[]) => void;
   layout?: "stacked" | "overlay" | "sheet";
 }
 
@@ -135,7 +135,8 @@ export function ExplorerFilterBar({
             label="Activity"
             layout={isSheet ? "sheet" : isOverlay ? "glass" : "field"}
             options={activityOptions}
-            value={filters.activity[0] ?? ALL_FILTER}
+            mode="multi"
+            value={filters.activity}
             onChange={onActivityChange}
             searchable
           />
