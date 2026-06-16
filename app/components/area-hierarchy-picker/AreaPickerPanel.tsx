@@ -5,7 +5,11 @@ import {
   EXPLORER_SHADOW_LG,
 } from "../../lib/explorer-ui-styles";
 import type { ExplorerFilters } from "../../lib/explore-filters";
-import { searchAreasGlobal, type AreaSearchHit } from "../../lib/area-search";
+import {
+  searchAreasGlobal,
+  searchAreasInCountry,
+  type AreaSearchHit,
+} from "../../lib/area-search";
 import { AreaPickerList } from "./AreaPickerList";
 import type { AreaPickerVariant, DrillLevel } from "./types";
 import type { GeoCountry, GeoHierarchy, GeoRegion } from "../../lib/geo-hierarchy";
@@ -76,16 +80,21 @@ export function AreaPickerPanel({
   const isSheet = variant === "sheet";
   const showSearch =
     drill.type === "root" ||
+    drill.type === "country" ||
     (drill.type === "region" && drill.region.areas.length > 8);
   const searchCopy = getSearchInputCopy(drill);
 
   const trimmedQuery = query.trim();
   const searchResults = useMemo<AreaSearchHit[] | null>(() => {
-    if (drill.type === "root" && trimmedQuery) {
+    if (!trimmedQuery) return null;
+    if (drill.type === "root") {
       return searchAreasGlobal(hierarchy, trimmedQuery);
     }
+    if (drill.type === "country") {
+      return searchAreasInCountry(drill.country, trimmedQuery);
+    }
     return null;
-  }, [drill.type, trimmedQuery, hierarchy]);
+  }, [drill, trimmedQuery, hierarchy]);
 
   const liveMessage = useMemo(() => {
     if (!searchResults) return "";
