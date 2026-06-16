@@ -1,10 +1,11 @@
 import { ChevronLeftIcon } from "@heroicons/react/20/solid";
-import type { RefObject } from "react";
+import { useMemo, type RefObject } from "react";
 import {
   EXPLORER_GLASS_BACKDROP_BLUR_MD,
   EXPLORER_SHADOW_LG,
 } from "../../lib/explorer-ui-styles";
 import type { ExplorerFilters } from "../../lib/explore-filters";
+import { searchAreasGlobal, type AreaSearchHit } from "../../lib/area-search";
 import { AreaPickerList } from "./AreaPickerList";
 import type { AreaPickerVariant, DrillLevel } from "./types";
 import type { GeoCountry, GeoHierarchy, GeoRegion } from "../../lib/geo-hierarchy";
@@ -78,6 +79,22 @@ export function AreaPickerPanel({
     (drill.type === "region" && drill.region.areas.length > 8);
   const searchCopy = getSearchInputCopy(drill);
 
+  const trimmedQuery = query.trim();
+  const searchResults = useMemo<AreaSearchHit[] | null>(() => {
+    if (drill.type === "root" && trimmedQuery) {
+      return searchAreasGlobal(hierarchy, trimmedQuery);
+    }
+    return null;
+  }, [drill.type, trimmedQuery, hierarchy]);
+
+  const liveMessage = useMemo(() => {
+    if (!searchResults) return "";
+    const count = searchResults.length;
+    if (count === 0) return `No districts match "${trimmedQuery}".`;
+    if (count === 1) return `1 district matches "${trimmedQuery}".`;
+    return `${count} districts match "${trimmedQuery}".`;
+  }, [searchResults, trimmedQuery]);
+
   return (
     <div
       id={listboxId}
@@ -138,6 +155,10 @@ export function AreaPickerPanel({
         </div>
       )}
 
+      <div role="status" aria-live="polite" className="sr-only">
+        {liveMessage}
+      </div>
+
       <ul
         ref={listRef}
         role="group"
@@ -153,6 +174,7 @@ export function AreaPickerPanel({
           hierarchy={hierarchy}
           query={query}
           filters={filters}
+          searchResults={searchResults}
           onSelectScope={onSelectScope}
           onSelectArea={onSelectArea}
           onDrillCountry={onDrillCountry}

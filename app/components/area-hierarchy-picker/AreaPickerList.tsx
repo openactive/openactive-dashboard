@@ -5,6 +5,7 @@ import {
   type GeoHierarchy,
   type GeoRegion,
 } from "../../lib/geo-hierarchy";
+import type { AreaSearchHit } from "../../lib/area-search";
 import { AreaPickerRow } from "./AreaPickerRow";
 import type { DrillLevel } from "./types";
 
@@ -13,6 +14,7 @@ interface AreaPickerListProps {
   hierarchy: GeoHierarchy;
   query: string;
   filters: ExplorerFilters;
+  searchResults: AreaSearchHit[] | null;
   onSelectScope: (scope: string) => void;
   onSelectArea: (name: string) => void;
   onDrillCountry: (country: GeoCountry) => void;
@@ -44,6 +46,7 @@ export function AreaPickerList({
   hierarchy,
   query,
   filters,
+  searchResults,
   onSelectScope,
   onSelectArea,
   onDrillCountry,
@@ -52,6 +55,29 @@ export function AreaPickerList({
   const { countryId, regionId } = getSelectionAncestors(hierarchy, filters);
   const isAllSelected =
     filters.district === ALL_FILTER && filters.areaScope === ALL_FILTER;
+
+  if (searchResults) {
+    if (searchResults.length === 0) {
+      return (
+        <li className="px-4 py-6 text-center text-sm text-oa-grey-500">
+          No districts match your search.
+        </li>
+      );
+    }
+    return (
+      <>
+        {searchResults.map((hit) => (
+          <AreaPickerRow
+            key={`${hit.countryId}:${hit.regionId}:${hit.geoCode}`}
+            label={hit.name}
+            subLabel={`${hit.countryLabel} › ${hit.regionLabel}`}
+            selected={hit.name === filters.district}
+            onSelect={() => onSelectArea(hit.name)}
+          />
+        ))}
+      </>
+    );
+  }
 
   if (drill.type === "root") {
     return (
