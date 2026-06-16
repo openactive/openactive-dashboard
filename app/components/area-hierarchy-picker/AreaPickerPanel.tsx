@@ -29,6 +29,29 @@ interface AreaPickerPanelProps {
   onDrillRegion: (country: GeoCountry, region: GeoRegion) => void;
 }
 
+function getSearchInputCopy(drill: DrillLevel): {
+  placeholder: string;
+  srLabel: string;
+} {
+  switch (drill.type) {
+    case "root":
+      return {
+        placeholder: "Search any district…",
+        srLabel: "Search districts across all countries",
+      };
+    case "country":
+      return {
+        placeholder: `Search districts in ${drill.country.label}…`,
+        srLabel: `Search districts in ${drill.country.label}`,
+      };
+    case "region":
+      return {
+        placeholder: "Search areas…",
+        srLabel: `Search areas in ${drill.region.label}`,
+      };
+  }
+}
+
 export function AreaPickerPanel({
   listboxId,
   titleId,
@@ -51,7 +74,9 @@ export function AreaPickerPanel({
   const isGlass = variant === "glass";
   const isSheet = variant === "sheet";
   const showSearch =
-    drill.type === "region" && drill.region.areas.length > 8;
+    drill.type === "root" ||
+    (drill.type === "region" && drill.region.areas.length > 8);
+  const searchCopy = getSearchInputCopy(drill);
 
   return (
     <div
@@ -100,14 +125,14 @@ export function AreaPickerPanel({
       {showSearch && (
         <div className="border-b border-oa-grey-200 px-2 py-2">
           <label htmlFor={`${listboxId}-search`} className="sr-only">
-            Search areas in {drill.region.label}
+            {searchCopy.srLabel}
           </label>
           <input
             id={`${listboxId}-search`}
             type="search"
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
-            placeholder="Search areas…"
+            placeholder={searchCopy.placeholder}
             className="w-full rounded-sm border border-oa-grey-300 bg-white px-2 py-1.5 text-sm text-oa-grey-800 placeholder:text-oa-grey-400 focus:border-oa-cyan focus:outline-none focus:ring-1 focus:ring-oa-cyan"
           />
         </div>
