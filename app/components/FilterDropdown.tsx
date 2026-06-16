@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
-import { CheckIcon, ChevronDownIcon } from "@heroicons/react/20/solid";
+import { CheckIcon, ChevronDownIcon, XMarkIcon } from "@heroicons/react/20/solid";
 import { useListbox, type ListboxOption } from "../hooks/useListbox";
 import {
   ALL_FILTER,
@@ -20,12 +20,8 @@ import {
 
 export type FilterOption = ListboxOption;
 
-/**
- * Multi-select draft commits this long after the last toggle. Closing
- * the dropdown (Esc, Tab, click-outside, trigger toggle) flushes
- * immediately
- */
 const MULTI_DEBOUNCE_MS = 300;
+const MAX_VISIBLE_PILLS = 2;
 
 function isMessageOption(option: FilterOption): boolean {
   return (
@@ -152,6 +148,23 @@ export function FilterDropdown(props: FilterDropdownProps) {
       });
     }
     scheduleCommit();
+  };
+
+  // Skip the debounce: a pill click is a one-shot action, not part of
+  // a series of toggles. Move focus back to the trigger because the
+  // pill that had focus is about to be removed from the DOM.
+  const removeValue = (val: string) => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+    const next = new Set(draftRef.current);
+    next.delete(val);
+    setDraft(next);
+    (onChangeRef.current as FilterDropdownMultiProps["onChange"])(
+      Array.from(next)
+    );
+    requestAnimationFrame(() => triggerRef.current?.focus());
   };
 
   // Cancel any in-flight debounce on unmount.
@@ -410,6 +423,89 @@ export function FilterDropdown(props: FilterDropdownProps) {
   );
 
   if (isField) {
+    if (isMulti) {
+      const selected = (props as FilterDropdownMultiProps).value;
+      const visiblePills = selected.slice(0, MAX_VISIBLE_PILLS);
+      const overflow = selected.length - visiblePills.length;
+      const allOption = options.find((o) => o.value === ALL_FILTER);
+      const emptyLabel = allOption?.label ?? "All";
+
+      // Pills sit alongside the trigger, not inside it: a button can't
+      // contain another button. The wrapper carries the field styling
+      // so they read as one control.
+      const multiWrapperClass = isGlass
+        ? "flex min-h-[2.625rem] w-full flex-wrap items-center gap-1.5 rounded-lg border border-white/80 bg-white/70 px-2 py-1.5 shadow-sm backdrop-blur-sm transition-colors hover:border-oa-cyan/50 hover:bg-white/85 focus-within:border-oa-cyan focus-within:ring-2 focus-within:ring-oa-cyan/25"
+        : "flex min-h-[2.625rem] w-full flex-wrap items-center gap-1.5 rounded-lg border border-oa-grey-300 bg-oa-grey-50 px-2 py-1.5 transition-colors hover:border-oa-cyan hover:bg-white focus-within:border-oa-cyan focus-within:ring-2 focus-within:ring-oa-cyan/25";
+
+      const pillClass =
+        "inline-flex max-w-full cursor-pointer items-center gap-1 rounded-full bg-white px-2 py-0.5 text-xs font-medium text-oa-navy ring-1 ring-oa-grey-300 transition-colors hover:bg-oa-grey-50 hover:ring-oa-cyan focus:outline-none focus-visible:ring-2 focus-visible:ring-oa-cyan";
+
+      const compactTriggerClass =
+        "inline-flex cursor-pointer items-center gap-1 rounded px-1.5 py-0.5 text-xs font-medium text-oa-grey-600 hover:text-oa-navy focus:outline-none focus-visible:ring-2 focus-visible:ring-oa-cyan";
+
+      const emptyTriggerClass =
+        "flex flex-1 cursor-pointer items-center justify-between gap-2 rounded px-1 py-0.5 text-left text-sm text-oa-navy focus:outline-none focus-visible:ring-2 focus-visible:ring-oa-cyan";
+
+      return root(
+        <>
+          <label
+            id={labelId}
+            htmlFor={triggerId}
+            className={`${EXPLORER_LABEL_BASE} ${
+              isGlass ? EXPLORER_LABEL_GLASS_TEXT : EXPLORER_LABEL_DEFAULT_TEXT
+            }`}
+          >
+            {label}
+          </label>
+          <div className={multiWrapperClass}>
+            {visiblePills.map((name) => {
+              const optLabel =
+                options.find((o) => o.value === name)?.label ?? name;
+              return (
+                <button
+                  key={name}
+                  type="button"
+                  onClick={() => removeValue(name)}
+                  aria-label={`Remove ${optLabel}`}
+                  className={pillClass}
+                  title={optLabel}
+                >
+                  <span className="truncate max-w-[10rem]">{optLabel}</span>
+                  <XMarkIcon className="h-3 w-3 shrink-0" aria-hidden="true" />
+                </button>
+              );
+            })}
+            <button
+              ref={triggerRef}
+              id={triggerId}
+              type="button"
+              className={
+                selected.length === 0 ? emptyTriggerClass : compactTriggerClass
+              }
+              onClick={() => (open ? setOpen(false) : openListbox())}
+              onKeyDown={handleTriggerKeyDown}
+              aria-haspopup="listbox"
+              aria-expanded={open}
+              aria-controls={listboxId}
+              aria-labelledby={labelId}
+            >
+              {selected.length === 0 ? (
+                <span className="truncate">{emptyLabel}</span>
+              ) : overflow > 0 ? (
+                <span>+{overflow} more</span>
+              ) : (
+                <span className="sr-only">Show options</span>
+              )}
+              <ChevronDownIcon
+                className={`h-4 w-4 shrink-0 text-oa-grey-500 transition-transform ${open ? "rotate-180" : ""}`}
+                aria-hidden="true"
+              />
+            </button>
+          </div>
+        </>
+      );
+    }
+
     return root(
       <>
         <label
