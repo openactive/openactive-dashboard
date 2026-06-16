@@ -78,7 +78,9 @@ export function AreaHierarchyPicker({
   const handleTabExit = useTabExitClose(containerRef, open, closePicker);
 
   const queryRef = useRef(query);
-  queryRef.current = query;
+  useEffect(() => {
+    queryRef.current = query;
+  }, [query]);
 
   const focusPanelEntry = useCallback(() => {
     requestAnimationFrame(() => {
