@@ -21,10 +21,7 @@ export function useAreaPickerDrill(
   const [query, setQuery] = useState("");
 
   useEffect(() => {
-    if (!open) {
-      setQuery("");
-      return;
-    }
+    if (!open) return;
     setDrill(
       drillLevelForSelection(hierarchy, filters.district, filters.areaScope)
     );
@@ -38,6 +35,7 @@ export function useAreaPickerDrill(
   const applyScope = useCallback(
     (scope: string) => {
       onChange(selectAreaScope(filters, scope));
+      setQuery("");
       closePicker();
     },
     [filters, onChange, closePicker]
@@ -46,6 +44,7 @@ export function useAreaPickerDrill(
   const applyArea = useCallback(
     (name: string) => {
       onChange(selectArea(filters, name));
+      setQuery("");
       closePicker();
     },
     [filters, onChange, closePicker]
