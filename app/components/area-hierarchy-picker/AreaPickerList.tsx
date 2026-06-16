@@ -6,6 +6,7 @@ import {
   type GeoRegion,
 } from "../../lib/geo-hierarchy";
 import type { AreaSearchHit } from "../../lib/area-search";
+import { scoreAreaMatch } from "../../lib/area-search";
 import { AreaPickerRow } from "./AreaPickerRow";
 import type { DrillLevel } from "./types";
 
@@ -121,10 +122,17 @@ export function AreaPickerList({
     );
   }
 
-  const q = query.trim().toLowerCase();
-  const areas = drill.region.areas.filter((a) =>
-    q ? a.name.toLowerCase().includes(q) : true
-  );
+  const trimmed = query.trim();
+  const areas = trimmed
+    ? drill.region.areas
+        .map((area) => ({ area, score: scoreAreaMatch(area.name, trimmed) }))
+        .filter((x) => x.score !== -Infinity)
+        .sort(
+          (a, b) =>
+            b.score - a.score || a.area.name.localeCompare(b.area.name)
+        )
+        .map((x) => x.area)
+    : drill.region.areas;
 
   return (
     <>
