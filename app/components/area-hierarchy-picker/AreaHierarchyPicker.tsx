@@ -77,15 +77,27 @@ export function AreaHierarchyPicker({
   const handleFocusLeave = useFocusLeaveClose(containerRef, open, closePicker);
   const handleTabExit = useTabExitClose(containerRef, open, closePicker);
 
+  const queryRef = useRef(query);
+  queryRef.current = query;
+
   const focusPanelEntry = useCallback(() => {
     requestAnimationFrame(() => {
+      if (queryRef.current) {
+        const input = document.getElementById(
+          `${listboxId}-search`
+        ) as HTMLInputElement | null;
+        if (input) {
+          input.focus();
+          return;
+        }
+      }
       if (backRef.current) {
         backRef.current.focus();
         return;
       }
       listRef.current?.querySelector<HTMLButtonElement>("button")?.focus();
     });
-  }, []);
+  }, [listboxId]);
 
   useEffect(() => {
     if (!open) return;
