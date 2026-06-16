@@ -44,7 +44,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
 
   const pickerHierarchy = useReactiveAreaHierarchy({
     publisher: filters.publisher,
-    activity: filters.activity[0] ?? ALL_FILTER,
+    activity: filters.activity,
     fallback: hierarchy,
   });
 
@@ -135,7 +135,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     maps: codeMaps,
     fetchNames: getPublishers,
     onFetched: onPublishersFetched,
-    activity: filters.activity[0],
+    activity: filters.activity,
   });
 
   const activityOptions = useLocationScopedFilterOptions({

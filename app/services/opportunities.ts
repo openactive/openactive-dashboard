@@ -19,7 +19,7 @@ export async function getOpportunities(
   if (query.district) params.set("district", query.district);
   if (query.region) params.set("region", query.region);
   if (query.country) params.set("country", query.country);
-  if (query.activity) params.set("activity", query.activity);
+  if (query.activity?.length) params.set("activity", query.activity.join(","));
 
   const path =
     params.size > 0 ? `/opportunities?${params.toString()}` : "/opportunities";

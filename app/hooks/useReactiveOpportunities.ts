@@ -149,7 +149,7 @@ export function useReactiveOpportunities({
   const query: OpportunitiesQuery = {
     ...locationQuery,
     ...(filters.publisher !== ALL_FILTER ? { publisher: filters.publisher } : {}),
-    ...(filters.activity.length > 0 ? { activity: filters.activity[0] } : {}),
+    ...(filters.activity.length > 0 ? { activity: filters.activity } : {}),
   };
   const cacheKey = JSON.stringify(query);
 

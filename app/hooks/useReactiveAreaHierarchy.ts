@@ -8,7 +8,7 @@ import { getAllAreas } from "../services/areas";
 
 interface Params {
   publisher: string;
-  activity: string;
+  activity: string[];
   fallback: GeoHierarchy;
 }
 
@@ -27,7 +27,7 @@ export function useReactiveAreaHierarchy({
 
   useEffect(() => {
     const hasPublisher = publisher && publisher !== ALL_FILTER;
-    const hasActivity = activity && activity !== ALL_FILTER;
+    const hasActivity = activity.length > 0;
 
     if (!hasPublisher && !hasActivity) {
       setHierarchy(fallback);
