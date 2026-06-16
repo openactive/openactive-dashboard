@@ -62,8 +62,7 @@ export function getActivityOrFacilityCompleteness(
   return row.activities_completeness ?? row.facilities_completeness;
 }
 
-// Average of the four fields the table colours in.
-// Returns null when there's nothing to score.
+// Average of the four fields the table colours in. Null when no field has a value.
 export function getQualityScore(row: FeedQualityRow): number | null {
   const values = [
     row.start_date_completeness,

@@ -1,9 +1,7 @@
 interface ErrorBannerProps {
   message: string;
   onRetry: () => void;
-  /** Override the leading sentence. Defaults to a generic phrase. */
   heading?: string;
-  /** Override the retry button label. Defaults to "Try again". */
   retryLabel?: string;
 }
 

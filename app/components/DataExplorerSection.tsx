@@ -8,10 +8,6 @@ async function DataExplorerLoaded() {
   return <DataExplorer hierarchy={hierarchy} />;
 }
 
-/**
- * Layer 2 — Interactive Data Explorer (home page section).
- * Anchored at #data for in-page navigation from the hero CTA.
- */
 export function DataExplorerSection() {
   return (
     <section

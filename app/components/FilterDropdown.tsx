@@ -63,13 +63,9 @@ interface FilterDropdownProps {
   onChange: (value: string) => void;
   id?: string;
   layout?: "inline" | "field" | "glass" | "sheet";
-  /** Show a search field to filter options (for long lists). */
   searchable?: boolean;
 }
 
-/**
- * Accessible custom select
- */
 export function FilterDropdown({
   label,
   options,

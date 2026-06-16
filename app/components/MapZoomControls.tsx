@@ -5,7 +5,6 @@ interface MapZoomControlsProps {
   onZoomIn: () => void;
   onZoomOut: () => void;
   onReset: () => void;
-  /** Smaller buttons on mobile, default size from lg breakpoint up */
   compact?: boolean;
 }
 

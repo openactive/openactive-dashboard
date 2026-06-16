@@ -11,10 +11,7 @@ import type { ExplorerMobileChromeProps } from "../../lib/explorer-types";
 
 export type { MobilePanel, ExplorerMobileChromeProps } from "../../lib/explorer-types";
 
-/**
- * Mobile/tablet chrome: filter trigger, stats dock, and slide-up sheets.
- * Keeps the map clear by default — panels open on demand.
- */
+/** Mobile/tablet chrome: filter trigger, stats dock, and slide-up sheets. */
 export function ExplorerMobileChrome({
   panel,
   onPanelChange,

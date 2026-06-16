@@ -9,9 +9,6 @@ import type {
 /**
  * Server Action: fetch active opportunities, optionally narrowed by
  * publisher, location codes, and activity/facility label.
- *
- * All supplied filters are combined with AND. With no filters, the API
- * returns every row — the response is large, so cache aggressively.
  */
 export async function getOpportunities(
   query: OpportunitiesQuery = {}

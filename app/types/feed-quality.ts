@@ -1,9 +1,7 @@
 /** Types for GET /feed-quality. */
 
-// Real array — use it to render lists.
 export const FEED_STATUSES = ["OK", "WARNING", "ERROR"] as const;
 
-// Type only — stops typos in code that touches status.
 export type FeedStatus = (typeof FEED_STATUSES)[number];
 
 export interface FeedQualityRow {

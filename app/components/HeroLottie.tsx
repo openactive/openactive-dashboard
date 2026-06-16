@@ -1,9 +1,5 @@
 "use client";
 
-/**
- * HeroLottie — embedded Lottie animation as background decoration.
- * Uses an iframe embed from lottie.host — zero dependencies.
- */
 export function HeroLottie() {
   return (
     <iframe

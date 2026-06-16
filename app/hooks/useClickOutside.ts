@@ -2,10 +2,7 @@
 
 import { useEffect, type RefObject } from "react";
 
-/**
- * Calls `onClickOutside` when the user presses the mouse button outside `containerRef`.
- * Only active while `enabled` is true (e.g. when a popover is open).
- */
+/** Calls `onClickOutside` on mousedown outside `containerRef` while `enabled`. */
 export function useClickOutside(
   containerRef: RefObject<HTMLElement | null>,
   enabled: boolean,

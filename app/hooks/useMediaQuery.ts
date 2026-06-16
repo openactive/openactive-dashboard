@@ -2,9 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-/**
- * Subscribes to a CSS media query and returns whether it currently matches.
- */
+/** Subscribes to a CSS media query. */
 export function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState(() => {
     if (typeof window === "undefined") return false;

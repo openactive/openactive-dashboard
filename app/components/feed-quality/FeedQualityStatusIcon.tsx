@@ -18,7 +18,6 @@ const STATUS_ICONS: Record<
 
 interface FeedQualityStatusIconProps {
   status: FeedStatus;
-  // Tailwind size classes (e.g. "h-5 w-5"). Defaults match table row text.
   sizeClass?: string;
 }
 

@@ -3,10 +3,7 @@
 import { useCallback, type RefObject } from "react";
 import { getFocusableElements } from "../lib/focusable";
 
-/**
- * Closes a popover when Tab moves forward from the last focusable item,
- * or Shift+Tab backward from the first (before focus leaves the container).
- */
+/** Closes a popover when Tab moves past the first/last focusable child. */
 export function useTabExitClose(
   containerRef: RefObject<HTMLElement | null>,
   enabled: boolean,

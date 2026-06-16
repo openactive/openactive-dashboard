@@ -3,25 +3,14 @@ import { ArrowUpIcon, ArrowDownIcon } from "@heroicons/react/16/solid";
 export type TrendDirection = "up" | "down" | "neutral";
 
 interface StatCardProps {
-  /** The label describing the stat */
   label: string;
-  /** The primary numeric or text value */
   value: string | number;
-  /** Optional formatted change string, e.g. "+12%" */
   change?: string;
-  /** Direction of the trend — determines colour and icon */
   trend?: TrendDirection;
-  /** Whether a positive trend is good (green) or bad (red). Default: true */
   positiveIsGood?: boolean;
-  /** Optional unit or suffix shown after the value */
   unit?: string;
 }
 
-/**
- * StatCard — a key metric tile used across all dashboard layers.
- * Displays a label, prominent value, and an optional trend indicator.
- * Fully responsive and WCAG-accessible with proper ARIA markup.
- */
 export function StatCard({
   label,
   value,

@@ -6,11 +6,7 @@ interface StatRowProps {
   sub?: string;
 }
 
-/**
- * Single label/value pair used inside the details modal's `<dl>` lists.
- * The hidden full number serves screen readers when the visible figure
- * is abbreviated (e.g. "5.8m").
- */
+/** The sr-only span carries the un-abbreviated number for screen readers. */
 export function StatRow({ label, value, sub }: StatRowProps) {
   return (
     <div className="flex items-baseline justify-between gap-3 py-3">

@@ -8,11 +8,8 @@ export type BadgeVariant =
   | "neutral";
 
 interface BadgeProps {
-  /** The badge content (text or icon + text) */
   children: ReactNode;
-  /** Visual variant — maps to semantic colours */
   variant?: BadgeVariant;
-  /** Optional accessible label when badge content alone is insufficient */
   "aria-label"?: string;
 }
 
@@ -24,10 +21,6 @@ const variantStyles: Record<BadgeVariant, string> = {
   neutral: "bg-oa-grey-100 text-oa-grey-600 ring-oa-grey-500/20",
 };
 
-/**
- * Badge — a small inline status indicator used to display data quality,
- * feed status, or categorical labels across the dashboard.
- */
 export function Badge({
   children,
   variant = "neutral",

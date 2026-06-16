@@ -1,6 +1,5 @@
 import type { GeoCountry, GeoHierarchy } from "./geo-hierarchy";
 
-/** Single matching district with the context needed to render it as a row. */
 export type AreaSearchHit = {
   name: string;
   geoCode: string;
@@ -8,7 +7,6 @@ export type AreaSearchHit = {
   regionId: string;
   countryLabel: string;
   countryId: string;
-  /** Higher = better match. Used internally for sorting. */
   score: number;
 };
 

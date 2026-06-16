@@ -115,10 +115,6 @@ async function StatsStripContent() {
   );
 }
 
-/**
- * StatsStrip — live ecosystem stats fetched server-side.
- * Shows a skeleton while loading and a fallback if the API is unavailable.
- */
 export function StatsStrip() {
   return (
     <Suspense fallback={<StatsStripSkeleton />}>
