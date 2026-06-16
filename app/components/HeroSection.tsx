@@ -1,9 +1,6 @@
 import { HeroLottie } from "./HeroLottie";
 import { StatsStrip } from "./StatsStrip";
 
-/**
- * Layer 1 — Hero and ecosystem summary stats (home page section).
- */
 export function HeroSection() {
   return (
     <section
@@ -12,7 +9,6 @@ export function HeroSection() {
     >
       <div className="mx-auto w-full max-w-448 px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-16 2xl:px-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          {/* Left — Text + CTAs */}
           <div className="max-w-xl">
             <p className="text-oa-aqua font-semibold text-sm uppercase tracking-widest mb-4">
               Open Data Intelligence
@@ -51,7 +47,6 @@ export function HeroSection() {
             </div>
           </div>
 
-          {/* Right — Lottie animation */}
           <div className="flex items-center justify-center">
             <div className="w-full aspect-square">
               <HeroLottie />

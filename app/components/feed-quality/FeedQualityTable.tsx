@@ -32,7 +32,6 @@ interface Column {
   label: string;
   srOnly?: boolean;
   align: "left" | "center" | "right";
-  // Tooltip shown on the column header for sighted users.
   hint?: string;
 }
 
@@ -135,8 +134,8 @@ export function FeedQualityTable({ groups }: FeedQualityTableProps) {
             getGroupActivityCount(b) - getGroupActivityCount(a) || byName(a, b)
         );
       default:
-        // Unreachable — every SortKey is handled above. Fallback returns
-        // the un-sorted array so the function always has a return value.
+        // Unreachable — TypeScript narrows SortKey above, but the default
+        // keeps the function returning a value if the union ever widens.
         return arr;
     }
   }, [filteredGroups, sortKey]);
@@ -184,8 +183,6 @@ export function FeedQualityTable({ groups }: FeedQualityTableProps) {
     setCollapsed(allExpanded ? new Set(groups.map((g) => g.datasetUrl)) : new Set());
   }, [allExpanded, groups]);
 
-  // True when at least one filter is doing something — used to show the
-  // clear-filters affordance only when it'd actually do something.
   const hasActiveFilters = query.trim() !== "" || statusFilter !== "all";
   const clearFilters = useCallback(() => {
     setQuery("");

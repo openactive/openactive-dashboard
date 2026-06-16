@@ -25,7 +25,6 @@ interface OpportunityMapProps {
   districtCounts: DistrictCount[];
   scopeAreaNames: string[] | null;
   selectedDistrict: string | null;
-  /** Invoked when the user clicks the map's reset control. */
   onReset?: () => void;
 }
 

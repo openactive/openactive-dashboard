@@ -12,11 +12,9 @@ interface ExplorerSummaryProps {
   summary: ExplorerSummaryData;
   selectionLabel: string;
   layout?: SummaryLayout;
-  /** When true, replace numbers with skeletons so users don't read stale values. */
   isLoading?: boolean;
 }
 
-/** Inline breakdown row: label left, big number right. */
 function StatRow({
   label,
   value,

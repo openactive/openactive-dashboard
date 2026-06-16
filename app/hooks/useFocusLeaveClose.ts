@@ -2,9 +2,7 @@
 
 import { useCallback, type RefObject } from "react";
 
-/**
- * Closes a popover when focus leaves its container (e.g. Tab to the next field).
- */
+/** Closes a popover when focus leaves `containerRef`. */
 export function useFocusLeaveClose(
   containerRef: RefObject<HTMLElement | null>,
   enabled: boolean,

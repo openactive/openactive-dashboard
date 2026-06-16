@@ -2,10 +2,7 @@
 
 import { useEffect } from "react";
 
-/**
- * Registers a keydown listener that calls `onClose` when Escape is pressed,
- * but only while `isOpen` is true. Cleans up on unmount or when closed.
- */
+/** Calls `onClose` when Escape is pressed and `isOpen` is true. */
 export function useEscapeClose(isOpen: boolean, onClose: () => void): void {
   useEffect(() => {
     if (!isOpen) return;

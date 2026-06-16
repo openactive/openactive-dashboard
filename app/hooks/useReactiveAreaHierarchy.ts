@@ -9,16 +9,13 @@ import { getAllAreas } from "../services/areas";
 interface Params {
   publisher: string;
   activity: string;
-  /** Used when no publisher/activity filter is active. */
   fallback: GeoHierarchy;
 }
 
 /**
- * Returns a hierarchy narrowed to the countries/regions/districts that
- * contain data given the current publisher/activity filters.
- *
- * When both filters are ALL, returns the provided fallback (no network call).
- * Otherwise fetches a narrowed /areas response and transforms it.
+ * Hierarchy narrowed to the countries/regions/districts that contain
+ * data for the current publisher/activity filters. Returns `fallback`
+ * (no network call) when both filters are ALL.
  */
 export function useReactiveAreaHierarchy({
   publisher,

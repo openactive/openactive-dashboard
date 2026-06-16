@@ -38,14 +38,12 @@ export type ExplorerSummary = {
   activityOpportunities: number;
   /** Opportunities flagged is_activity=false — Facility Use (spaces, equipment). */
   facilityOpportunities: number;
-  /** Top 10 by total opportunity count, descending. */
   topAreas: RankedItem[];
   topPublishers: RankedItem[];
   topProviders: RankedItem[];
   topActivities: RankedItem[];
 };
 
-/** How many entries each `top*` list keeps. */
 export const EXPLORER_TOP_LIMIT = 10;
 
 export const EXPLORER_SUMMARY_METRIC_DEFS = {
@@ -79,7 +77,6 @@ export type DistrictCount = {
   count: number;
 };
 
-/** Apply a specific area and clear broader scope */
 export function selectArea(
   filters: ExplorerFilters,
   areaName: string
@@ -91,7 +88,6 @@ export function selectArea(
   };
 }
 
-/** Apply country or region scope (no single area) */
 export function selectAreaScope(
   filters: ExplorerFilters,
   scope: string

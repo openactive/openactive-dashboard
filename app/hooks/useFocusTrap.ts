@@ -8,9 +8,7 @@ type UseFocusTrapOptions = {
   restoreFocus?: boolean;
 };
 
-/**
- * Keep keyboard focus inside a modal dialog (Tab / Shift+Tab wrap within the container).
- */
+/** Trap Tab / Shift+Tab focus inside `containerRef` while `active`. */
 export function useFocusTrap(
   containerRef: RefObject<HTMLElement | null>,
   active: boolean,

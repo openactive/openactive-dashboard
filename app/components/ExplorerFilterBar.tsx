@@ -30,9 +30,6 @@ function hasActiveFilters(filters: ExplorerFilters): boolean {
   );
 }
 
-/**
- * Filter bar for the data explorer.
- */
 export function ExplorerFilterBar({
   hierarchy,
   filters,

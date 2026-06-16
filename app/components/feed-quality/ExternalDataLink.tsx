@@ -3,7 +3,6 @@ import { ArrowTopRightOnSquareIcon } from "@heroicons/react/20/solid";
 interface ExternalDataLinkProps {
   href: string;
   label: string;
-  // Tailwind classes for the link text (size / weight / colour).
   className?: string;
 }
 

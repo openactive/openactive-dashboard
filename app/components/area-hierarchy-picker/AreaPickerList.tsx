@@ -19,10 +19,7 @@ interface AreaPickerListProps {
   onDrillRegion: (country: GeoCountry, region: GeoRegion) => void;
 }
 
-/**
- * Locate the country/region that the current selection lives under,
- * so we can highlight ancestors at any drill level.
- */
+/** Country/region IDs the current selection lives under, for ancestor highlighting. */
 function getSelectionAncestors(
   hierarchy: GeoHierarchy,
   filters: ExplorerFilters

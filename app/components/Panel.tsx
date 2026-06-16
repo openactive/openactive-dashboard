@@ -1,22 +1,13 @@
 import { ReactNode } from "react";
 
 interface PanelProps {
-  /** Optional panel title rendered as an h2 */
   title?: string;
-  /** Optional description below the title */
   description?: string;
-  /** Panel content */
   children: ReactNode;
-  /** Additional CSS classes */
   className?: string;
-  /** Whether to remove default padding (useful for full-bleed charts) */
   noPadding?: boolean;
 }
 
-/**
- * Panel — a white card container used to group related content
- * such as charts, tables, or stat grids within a dashboard layer.
- */
 export function Panel({
   title,
   description,
@@ -51,7 +42,6 @@ export function Panel({
   );
 }
 
-/** Convert a title string into a valid HTML id */
 function toId(str: string): string {
   return str
     .toLowerCase()

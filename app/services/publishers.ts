@@ -5,7 +5,6 @@ import type { PublishersQuery, PublishersResponse } from "../types/publishers";
 
 /**
  * Server Action: fetch publisher names filtered by location codes.
- * Called directly from client components — no proxy route needed.
  */
 export async function getPublishers(
   query: PublishersQuery = {}

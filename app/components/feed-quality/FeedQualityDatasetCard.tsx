@@ -16,7 +16,6 @@ export function FeedQualityDatasetCard({
   collapsed,
   onToggle,
 }: FeedQualityDatasetCardProps) {
-  // Shared surface so every card stands as its own panel on the page bg.
   const wrapClass =
     "overflow-hidden rounded-sm bg-white shadow-sm ring-1 ring-oa-grey-200";
 

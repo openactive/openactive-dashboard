@@ -15,16 +15,11 @@ type UseListboxParams = {
   value: string;
   onChange: (value: string) => void;
   idPrefix?: string;
-  /** Focus first option when the list opens (default true). */
   focusOptionOnOpen?: boolean;
-  /** Letter typeahead on the listbox root (default true). */
   typeahead?: boolean;
 };
 
-/**
- * Listbox with focusable option buttons — Tab moves between options (same as area picker).
- * Arrow keys, Enter, Escape, and typeahead are also supported.
- */
+/** Listbox where Tab moves between option buttons (matches the area picker). */
 export function useListbox({
   options,
   value,
