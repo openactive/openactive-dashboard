@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
-import { ChevronDownIcon } from "@heroicons/react/20/solid";
+import { CheckIcon, ChevronDownIcon } from "@heroicons/react/20/solid";
 import { useListbox, type ListboxOption } from "../hooks/useListbox";
 import {
   ALL_FILTER,
@@ -20,6 +20,13 @@ import {
 
 export type FilterOption = ListboxOption;
 
+/**
+ * Multi-select draft commits this long after the last toggle. Closing
+ * the dropdown (Esc, Tab, click-outside, trigger toggle) flushes
+ * immediately
+ */
+const MULTI_DEBOUNCE_MS = 300;
+
 function isMessageOption(option: FilterOption): boolean {
   return (
     option.value === FILTER_LOADING_VALUE ||
@@ -36,7 +43,7 @@ function filterOptions(options: FilterOption[], query: string): FilterOption[] {
   );
 }
 
-function getTriggerLabel(
+function getSingleTriggerLabel(
   options: FilterOption[],
   value: string
 ): string {
@@ -56,31 +63,104 @@ function getTriggerLabel(
   return allOption?.label ?? "All";
 }
 
-interface FilterDropdownProps {
-  label: string;
-  options: FilterOption[];
+function getMultiTriggerLabel(
+  options: FilterOption[],
+  selected: readonly string[]
+): string {
+  if (selected.length === 0) {
+    const allOption = options.find((o) => o.value === ALL_FILTER);
+    return allOption?.label ?? "All";
+  }
+  if (selected.length === 1) {
+    const opt = options.find((o) => o.value === selected[0]);
+    return opt?.label ?? selected[0];
+  }
+  return `${selected.length} selected`;
+}
+
+type FilterDropdownSingleProps = {
+  mode?: "single";
   value: string;
   onChange: (value: string) => void;
+};
+
+type FilterDropdownMultiProps = {
+  mode: "multi";
+  value: string[];
+  onChange: (values: string[]) => void;
+};
+
+type FilterDropdownProps = (
+  | FilterDropdownSingleProps
+  | FilterDropdownMultiProps
+) & {
+  label: string;
+  options: FilterOption[];
   id?: string;
   layout?: "inline" | "field" | "glass" | "sheet";
   searchable?: boolean;
-}
+};
 
-export function FilterDropdown({
-  label,
-  options,
-  value,
-  onChange,
-  id,
-  layout = "inline",
-  searchable = false,
-}: FilterDropdownProps) {
+export function FilterDropdown(props: FilterDropdownProps) {
+  const { label, options, id, layout = "inline", searchable = false } = props;
+  const isMulti = props.mode === "multi";
   const isGlass = layout === "glass";
   const isSheet = layout === "sheet";
   const isField = layout === "field" || isGlass || isSheet;
   const searchId = useId();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState("");
+
+  // Multi-select draft. Local Set for fast has/add/delete; synced from
+  // props on open, committed via 300ms debounce, flushed on close.
+  const [draft, setDraft] = useState<Set<string>>(
+    () => new Set(isMulti ? (props as FilterDropdownMultiProps).value : [])
+  );
+  const draftRef = useRef(draft);
+  draftRef.current = draft;
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onChangeRef = useRef(props.onChange);
+  onChangeRef.current = props.onChange;
+
+  const commitDraft = () => {
+    if (!isMulti) return;
+    (onChangeRef.current as FilterDropdownMultiProps["onChange"])(
+      Array.from(draftRef.current)
+    );
+  };
+
+  const scheduleCommit = () => {
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = setTimeout(() => {
+      debounceTimerRef.current = null;
+      commitDraft();
+    }, MULTI_DEBOUNCE_MS);
+  };
+
+  const toggleValue = (val: string) => {
+    if (val === ALL_FILTER) {
+      // The 'All' row clears the multi-select draft. ALL_FILTER is the
+      // single-mode sentinel; in multi mode an empty array is its
+      // equivalent (no filter active).
+      setDraft(new Set());
+    } else {
+      setDraft((prev) => {
+        const next = new Set(prev);
+        if (next.has(val)) next.delete(val);
+        else next.add(val);
+        return next;
+      });
+    }
+    scheduleCommit();
+  };
+
+  // Cancel any in-flight debounce on unmount.
+  useEffect(
+    () => () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    },
+    []
+  );
 
   const displayOptions = useMemo(
     () => (searchable ? filterOptions(options, query) : options),
@@ -97,7 +177,15 @@ export function FilterDropdown({
     [displayOptions]
   );
 
-  const triggerLabel = getTriggerLabel(options, value);
+  const triggerLabel = isMulti
+    ? getMultiTriggerLabel(
+        options,
+        (props as FilterDropdownMultiProps).value
+      )
+    : getSingleTriggerLabel(
+        options,
+        (props as FilterDropdownSingleProps).value
+      );
   const hasSelectableSource = options.some((o) => !isMessageOption(o));
 
   const {
@@ -110,6 +198,7 @@ export function FilterDropdown({
     labelId,
     listboxId,
     openListbox,
+    closeListbox,
     selectIndex,
     setOptionRef,
     handleTriggerKeyDown,
@@ -118,12 +207,30 @@ export function FilterDropdown({
     handleFocusLeave,
   } = useListbox({
     options: selectableOptions,
-    value,
-    onChange,
+    value: isMulti ? "" : (props as FilterDropdownSingleProps).value,
+    onChange: isMulti
+      ? () => {}
+      : (props as FilterDropdownSingleProps).onChange,
     idPrefix: id,
     focusOptionOnOpen: !searchable && selectableOptions.length > 0,
     typeahead: !searchable,
   });
+
+  // Multi mode: snapshot the parent value into the draft on open (handles
+  // external resets like 'Clear all') and flush any pending commit on close.
+  useEffect(() => {
+    if (!isMulti) return;
+    if (open) {
+      setDraft(new Set((props as FilterDropdownMultiProps).value));
+      return;
+    }
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+      commitDraft();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional: only fire on open transitions
+  }, [isMulti, open]);
 
   useEffect(() => {
     if (!open) {
@@ -158,7 +265,11 @@ export function FilterDropdown({
         </li>
       ))}
       {selectableOptions.map((option, index) => {
-        const selected = option.value === value;
+        const selected = isMulti
+          ? option.value === ALL_FILTER
+            ? draft.size === 0
+            : draft.has(option.value)
+          : option.value === (props as FilterDropdownSingleProps).value;
         return (
           <li
             key={option.value}
@@ -170,16 +281,52 @@ export function FilterDropdown({
               type="button"
               role="option"
               aria-selected={selected}
-              className={`w-full cursor-pointer truncate px-3 py-2 text-left text-sm transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-oa-cyan first:rounded-t-sm last:rounded-b-sm ${
-                selected
-                  ? "bg-oa-navy font-medium text-white"
-                  : "text-oa-grey-800 hover:bg-oa-grey-50 focus:bg-oa-cyan/10"
-              }`}
-              onClick={() => selectIndex(index)}
-              onKeyDown={(e) => handleOptionKeyDown(e, index)}
+              className={
+                isMulti
+                  ? `flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-oa-cyan first:rounded-t-sm last:rounded-b-sm ${
+                      selected
+                        ? "bg-oa-cyan/10 font-medium text-oa-grey-900 hover:bg-oa-cyan/15"
+                        : "text-oa-grey-800 hover:bg-oa-grey-50 focus:bg-oa-cyan/10"
+                    }`
+                  : `w-full cursor-pointer truncate px-3 py-2 text-left text-sm transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-oa-cyan first:rounded-t-sm last:rounded-b-sm ${
+                      selected
+                        ? "bg-oa-navy font-medium text-white"
+                        : "text-oa-grey-800 hover:bg-oa-grey-50 focus:bg-oa-cyan/10"
+                    }`
+              }
+              onClick={() =>
+                isMulti ? toggleValue(option.value) : selectIndex(index)
+              }
+              onKeyDown={(e) => {
+                // Multi mode: Enter closes (and flushes via the open/close
+                // effect). Space falls through to the button's default
+                // click → toggleValue, leaving the dropdown open.
+                if (isMulti && e.key === "Enter") {
+                  e.preventDefault();
+                  closeListbox();
+                  return;
+                }
+                handleOptionKeyDown(e, index);
+              }}
               title={option.label}
             >
-              {option.label}
+              {isMulti ? (
+                <>
+                  <span
+                    aria-hidden="true"
+                    className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border ${
+                      selected
+                        ? "border-oa-cyan bg-oa-cyan text-white"
+                        : "border-oa-grey-400 bg-white"
+                    }`}
+                  >
+                    {selected && <CheckIcon className="h-3 w-3" />}
+                  </span>
+                  <span className="truncate">{option.label}</span>
+                </>
+              ) : (
+                option.label
+              )}
             </button>
           </li>
         );
@@ -227,6 +374,7 @@ export function FilterDropdown({
           ref={listboxRef}
           id={listboxId}
           role="listbox"
+          aria-multiselectable={isMulti || undefined}
           aria-labelledby={isField ? labelId : undefined}
           aria-label={isField ? undefined : label}
           className="max-h-48 overflow-y-auto py-1"
@@ -239,6 +387,7 @@ export function FilterDropdown({
         ref={listboxRef}
         id={listboxId}
         role="listbox"
+        aria-multiselectable={isMulti || undefined}
         aria-labelledby={isField ? labelId : undefined}
         aria-label={isField ? undefined : label}
         className={listClass}
