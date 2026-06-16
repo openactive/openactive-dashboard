@@ -77,21 +77,14 @@ export function AreaHierarchyPicker({
   const handleFocusLeave = useFocusLeaveClose(containerRef, open, closePicker);
   const handleTabExit = useTabExitClose(containerRef, open, closePicker);
 
-  const queryRef = useRef(query);
-  useEffect(() => {
-    queryRef.current = query;
-  }, [query]);
-
   const focusPanelEntry = useCallback(() => {
     requestAnimationFrame(() => {
-      if (queryRef.current) {
-        const input = document.getElementById(
-          `${listboxId}-search`
-        ) as HTMLInputElement | null;
-        if (input) {
-          input.focus();
-          return;
-        }
+      const input = document.getElementById(
+        `${listboxId}-search`
+      ) as HTMLInputElement | null;
+      if (input) {
+        input.focus();
+        return;
       }
       if (backRef.current) {
         backRef.current.focus();
@@ -119,19 +112,51 @@ export function AreaHierarchyPicker({
     options[index + direction]?.focus();
   };
 
+  const focusFirstOption = () => {
+    listRef.current
+      ?.querySelector<HTMLButtonElement>("button[data-picker-option]")
+      ?.focus();
+  };
+
+  const focusSearchInput = () => {
+    const input = document.getElementById(
+      `${listboxId}-search`
+    ) as HTMLInputElement | null;
+    input?.focus();
+  };
+
   const handlePanelKeyDown = (e: React.KeyboardEvent) => {
     handleTabExit(e);
 
     const target = e.target as HTMLElement;
-    if (e.key === "ArrowDown" && target.matches("[data-picker-option]")) {
+    const isOption = target.matches("[data-picker-option]");
+    const isSearchInput = target.id === `${listboxId}-search`;
+
+    if (e.key === "ArrowDown") {
+      if (isOption) {
+        e.preventDefault();
+        focusSiblingOption(target, 1);
+      } else if (isSearchInput) {
+        e.preventDefault();
+        focusFirstOption();
+      }
+    } else if (e.key === "ArrowUp" && isOption) {
       e.preventDefault();
-      focusSiblingOption(target, 1);
-    } else if (e.key === "ArrowUp" && target.matches("[data-picker-option]")) {
-      e.preventDefault();
-      focusSiblingOption(target, -1);
+      const options = listRef.current
+        ? Array.from(
+            listRef.current.querySelectorAll<HTMLButtonElement>(
+              "button[data-picker-option]"
+            )
+          )
+        : [];
+      if (options.indexOf(target as HTMLButtonElement) === 0) {
+        focusSearchInput();
+      } else {
+        focusSiblingOption(target, -1);
+      }
     } else if (
       e.key === "ArrowLeft" &&
-      target.matches("[data-picker-option]") &&
+      isOption &&
       drill.type !== "root"
     ) {
       e.preventDefault();
