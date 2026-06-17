@@ -113,10 +113,15 @@ export function FilterDropdown(props: FilterDropdownProps) {
     () => new Set(isMulti ? (props as FilterDropdownMultiProps).value : [])
   );
   const draftRef = useRef(draft);
-  draftRef.current = draft;
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onChangeRef = useRef(props.onChange);
-  onChangeRef.current = props.onChange;
+
+  // The debounce timer and the unmount cleanup read these refs after
+  // render, so they need the latest values.
+  useEffect(() => {
+    draftRef.current = draft;
+    onChangeRef.current = props.onChange;
+  }, [draft, props.onChange]);
 
   const commitDraft = () => {
     if (!isMulti) return;
@@ -167,11 +172,18 @@ export function FilterDropdown(props: FilterDropdownProps) {
     requestAnimationFrame(() => triggerRef.current?.focus());
   };
 
-  // Cancel any in-flight debounce on unmount.
+  // Flush any pending draft on unmount so a sheet/modal close that
+  // tears down the dropdown mid-debounce doesn't drop the toggles
+  // the user just made.
   useEffect(
     () => () => {
-      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
+        commitDraft();
+      }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount/unmount only
     []
   );
 
@@ -487,15 +499,20 @@ export function FilterDropdown(props: FilterDropdownProps) {
               aria-haspopup="listbox"
               aria-expanded={open}
               aria-controls={listboxId}
-              aria-labelledby={labelId}
+              aria-labelledby={`${labelId} ${triggerId}-state`}
             >
+              <span id={`${triggerId}-state`} className="sr-only">
+                {selected.length === 0
+                  ? emptyLabel
+                  : `${selected.length} selected`}
+              </span>
               {selected.length === 0 ? (
-                <span className="truncate">{emptyLabel}</span>
+                <span aria-hidden="true" className="truncate">
+                  {emptyLabel}
+                </span>
               ) : overflow > 0 ? (
-                <span>+{overflow} more</span>
-              ) : (
-                <span className="sr-only">Show options</span>
-              )}
+                <span aria-hidden="true">+{overflow} more</span>
+              ) : null}
               <ChevronDownIcon
                 className={`h-4 w-4 shrink-0 text-oa-grey-500 transition-transform ${open ? "rotate-180" : ""}`}
                 aria-hidden="true"
