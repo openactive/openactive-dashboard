@@ -1,0 +1,12 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "next": {
+    "entry": [
+      "next.config.{js,ts,cjs,mjs}",
+      "app/**/{page,layout,loading,error,not-found,template,default,route,global-error,sitemap,robots,manifest,opengraph-image,twitter-image,icon,apple-icon,favicon}.{js,ts,jsx,tsx}",
+      "app/**/instrumentation.{js,ts}",
+      "middleware.{js,ts}"
+    ]
+  },
+  "ignoreBinaries": ["next"]
+}
