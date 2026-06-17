@@ -29,5 +29,5 @@ export type OpportunitiesQuery = {
   district?: string;
   region?: string;
   country?: string;
-  activity?: string;
+  activity?: string[];
 };

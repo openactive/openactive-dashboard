@@ -12,7 +12,9 @@ export function useFocusLeaveClose(
     (event: React.FocusEvent) => {
       if (!enabled) return;
       const next = event.relatedTarget as Node | null;
-      if (next && containerRef.current?.contains(next)) return;
+
+      if (!next) return;
+      if (containerRef.current?.contains(next)) return;
       onClose();
     },
     [containerRef, enabled, onClose]

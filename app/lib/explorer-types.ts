@@ -14,7 +14,7 @@ export interface ExplorerFilterControlProps {
   activityOptions: ExplorerFilterOption[];
   onFiltersChange: (filters: ExplorerFilters) => void;
   onPublisherChange: (value: string) => void;
-  onActivityChange: (value: string) => void;
+  onActivityChange: (values: string[]) => void;
 }
 
 export interface ExplorerMobileChromeProps {
