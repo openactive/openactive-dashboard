@@ -306,19 +306,15 @@ export function FilterDropdown(props: FilterDropdownProps) {
               type="button"
               role="option"
               aria-selected={selected}
-              className={
+              className={`${
                 isMulti
-                  ? `flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-oa-cyan first:rounded-t-sm last:rounded-b-sm ${
-                      selected
-                        ? "bg-oa-cyan/10 font-medium text-oa-grey-900 hover:bg-oa-cyan/15"
-                        : "text-oa-grey-800 hover:bg-oa-grey-50 focus:bg-oa-cyan/10"
-                    }`
-                  : `w-full cursor-pointer truncate px-3 py-2 text-left text-sm transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-oa-cyan first:rounded-t-sm last:rounded-b-sm ${
-                      selected
-                        ? "bg-oa-navy font-medium text-white"
-                        : "text-oa-grey-800 hover:bg-oa-grey-50 focus:bg-oa-cyan/10"
-                    }`
-              }
+                  ? "flex w-full items-center gap-2"
+                  : "w-full truncate"
+              } cursor-pointer px-3 py-2 text-left text-sm transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-oa-cyan first:rounded-t-sm last:rounded-b-sm ${
+                selected
+                  ? "bg-oa-navy font-medium text-white"
+                  : "text-oa-grey-800 hover:bg-oa-grey-50 focus:bg-oa-cyan/10"
+              }`}
               onClick={() =>
                 isMulti ? toggleValue(option.value) : selectIndex(index)
               }
@@ -341,7 +337,7 @@ export function FilterDropdown(props: FilterDropdownProps) {
                     aria-hidden="true"
                     className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border ${
                       selected
-                        ? "border-oa-cyan bg-oa-cyan text-white"
+                        ? "border-white bg-white text-oa-navy"
                         : "border-oa-grey-400 bg-white"
                     }`}
                   >
@@ -453,7 +449,7 @@ export function FilterDropdown(props: FilterDropdownProps) {
         "inline-flex max-w-full cursor-pointer items-center gap-1 rounded-full bg-white px-2 py-0.5 text-xs font-medium text-oa-navy ring-1 ring-oa-grey-300 transition-colors hover:bg-oa-grey-50 hover:ring-oa-cyan focus:outline-none focus-visible:ring-2 focus-visible:ring-oa-cyan";
 
       const compactTriggerClass =
-        "inline-flex cursor-pointer items-center gap-1 rounded px-1.5 py-0.5 text-xs font-medium text-oa-grey-600 hover:text-oa-navy focus:outline-none focus-visible:ring-2 focus-visible:ring-oa-cyan";
+        "ml-auto inline-flex cursor-pointer items-center gap-1 rounded px-1.5 py-0.5 text-xs font-medium text-oa-grey-600 hover:text-oa-navy focus:outline-none focus-visible:ring-2 focus-visible:ring-oa-cyan";
 
       const emptyTriggerClass =
         "flex flex-1 cursor-pointer items-center justify-between gap-2 rounded px-1 py-0.5 text-left text-sm text-oa-navy focus:outline-none focus-visible:ring-2 focus-visible:ring-oa-cyan";
