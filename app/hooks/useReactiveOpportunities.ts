@@ -143,7 +143,10 @@ export function useReactiveOpportunities({
     districtCounts: [],
   });
   const [isLoading, setIsLoading] = useState(true);
-  const cacheRef = useRef<Map<string, Omit<Result, "isLoading">>>(new Map());
+ 
+  const cacheRef = useRef<Map<string, Promise<Omit<Result, "isLoading">>>>(
+    new Map()
+  );
 
   const locationQuery = buildLocationFilterQuery(filters, maps);
   const query: OpportunitiesQuery = {
@@ -154,24 +157,26 @@ export function useReactiveOpportunities({
   const cacheKey = JSON.stringify(query);
 
   useEffect(() => {
-    const cached = cacheRef.current.get(cacheKey);
-    if (cached) {
-      setData(cached);
-      setIsLoading(false);
-      return;
+    let promise = cacheRef.current.get(cacheKey);
+    if (!promise) {
+      setIsLoading(true);
+      promise = getOpportunities(query)
+        .then((rows) =>
+          rows.length === 0
+            ? { summary: EMPTY_SUMMARY, districtCounts: [] }
+            : reduce(rows)
+        )
+        .catch((err) => {
+          cacheRef.current.delete(cacheKey);
+          throw err;
+        });
+      cacheRef.current.set(cacheKey, promise);
     }
 
     let cancelled = false;
-    setIsLoading(true);
-
-    getOpportunities(query)
-      .then((rows) => {
+    promise
+      .then((next) => {
         if (cancelled) return;
-        const next =
-          rows.length === 0
-            ? { summary: EMPTY_SUMMARY, districtCounts: [] }
-            : reduce(rows);
-        cacheRef.current.set(cacheKey, next);
         setData(next);
         setIsLoading(false);
       })

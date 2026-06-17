@@ -36,6 +36,11 @@ type UseLocationScopedFilterOptionsParams = {
   activity?: string[];
 };
 
+type FetchResult = {
+  options: ExplorerFilterOption[];
+  names: string[];
+};
+
 export function useLocationScopedFilterOptions({
   item,
   allLabel,
@@ -51,65 +56,71 @@ export function useLocationScopedFilterOptions({
   const [options, setOptions] = useState<ExplorerFilterOption[]>([
     { value: ALL_FILTER, label: allLabel },
   ]);
-  const cacheRef = useRef<Map<string, ExplorerFilterOption[]>>(new Map());
+  // Stores in-flight Promises. Resolved promises stay in the map for cheap re-use.
+  const cacheRef = useRef<Map<string, Promise<FetchResult>>>(new Map());
   const onFetchedRef = useRef(onFetched);
   onFetchedRef.current = onFetched;
 
   useEffect(() => {
-    let cancelled = false;
     const query = {
       ...buildLocationFilterQuery(filters, maps),
       ...(publisher && publisher !== ALL_FILTER ? { publisher } : {}),
       ...(activity && activity.length > 0 ? { activity } : {}),
     };
     const cacheKey = JSON.stringify({ query, item });
-    const cached = cacheRef.current.get(cacheKey);
 
-    if (cached) {
-      setOptions(cached);
-      return;
+    let promise = cacheRef.current.get(cacheKey);
+    const wasCached = promise !== undefined;
+
+    if (!promise) {
+      setOptions((prev) => {
+        const withoutMessages = prev.filter(
+          (o) =>
+            o.value !== FILTER_LOADING_VALUE &&
+            o.value !== FILTER_EMPTY_VALUE
+        );
+        const hasAll = withoutMessages.some((o) => o.value === ALL_FILTER);
+        const base = hasAll
+          ? withoutMessages
+          : [{ value: ALL_FILTER, label: allLabel }, ...withoutMessages];
+
+        return [
+          base[0],
+          { value: FILTER_LOADING_VALUE, label: loadingLabel },
+          ...base.slice(1),
+        ];
+      });
+
+      promise = fetchNames(query)
+        .then((names) => {
+          const nextOptions: ExplorerFilterOption[] =
+            names.length === 0
+              ? [
+                  {
+                    value: FILTER_EMPTY_VALUE,
+                    label: getLocationEmptyMessage(filters, hierarchy, item),
+                  },
+                ]
+              : [
+                  { value: ALL_FILTER, label: allLabel },
+                  ...names.map((name) => ({ value: name, label: name })),
+                ];
+          return { options: nextOptions, names };
+        })
+        .catch((err) => {
+          cacheRef.current.delete(cacheKey);
+          throw err;
+        });
+      cacheRef.current.set(cacheKey, promise);
     }
 
-    // Keep the previous options visible during fetch. Add a loading
-    // row at the top so the user knows we're refreshing.
-    setOptions((prev) => {
-      const withoutMessages = prev.filter(
-        (o) =>
-          o.value !== FILTER_LOADING_VALUE &&
-          o.value !== FILTER_EMPTY_VALUE
-      );
-      const hasAll = withoutMessages.some((o) => o.value === ALL_FILTER);
-      const base = hasAll
-        ? withoutMessages
-        : [{ value: ALL_FILTER, label: allLabel }, ...withoutMessages];
-
-      return [
-        base[0],
-        { value: FILTER_LOADING_VALUE, label: loadingLabel },
-        ...base.slice(1),
-      ];
-    });
-
-    fetchNames(query)
-      .then((names) => {
+    let cancelled = false;
+    promise
+      .then((result) => {
         if (cancelled) return;
+        setOptions(result.options);
 
-        const next: ExplorerFilterOption[] =
-          names.length === 0
-            ? [
-                {
-                  value: FILTER_EMPTY_VALUE,
-                  label: getLocationEmptyMessage(filters, hierarchy, item),
-                },
-              ]
-            : [
-                { value: ALL_FILTER, label: allLabel },
-                ...names.map((name) => ({ value: name, label: name })),
-              ];
-
-        cacheRef.current.set(cacheKey, next);
-        setOptions(next);
-        onFetchedRef.current?.(names);
+        if (!wasCached) onFetchedRef.current?.(result.names);
       })
       .catch(() => {
         if (cancelled) return;
