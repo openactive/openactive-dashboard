@@ -21,6 +21,7 @@ import {
   type ExplorerFilters,
 } from "../lib/explore-filters";
 import { getActivities } from "../services/activities";
+import { getOrganizations } from "../services/organizations";
 import { getPublishers } from "../services/publishers";
 
 interface DataExplorerProps {
@@ -58,6 +59,11 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
 
   const onPublisherChange = useCallback(
     (value: string) => updateFilter("publisher", value),
+    [updateFilter]
+  );
+
+  const onOrganizationChange = useCallback(
+    (value: string) => updateFilter("organization", value),
     [updateFilter]
   );
 
@@ -103,6 +109,19 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     });
   }, []);
 
+  const onOrganizationsFetched = useCallback((names: string[]) => {
+    setFilters((current) => {
+      if (
+        names.length === 0 ||
+        (current.organization !== ALL_FILTER &&
+          !names.includes(current.organization))
+      ) {
+        return { ...current, organization: ALL_FILTER };
+      }
+      return current;
+    });
+  }, []);
+
   const onActivitiesFetched = useCallback((names: string[]) => {
     setFilters((current) => {
       if (current.activity.length === 0) return current;
@@ -135,6 +154,19 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     fetchNames: getPublishers,
     onFetched: onPublishersFetched,
     organization: filters.organization,
+    activity: filters.activity,
+  });
+
+  const organizationOptions = useLocationScopedFilterOptions({
+    item: "organizations",
+    allLabel: "All providers",
+    loadingLabel: "Loading providers…",
+    hierarchy,
+    filters: areaFilters,
+    maps: codeMaps,
+    fetchNames: getOrganizations,
+    onFetched: onOrganizationsFetched,
+    publisher: filters.publisher,
     activity: filters.activity,
   });
 
@@ -177,17 +209,21 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
       hierarchy: pickerHierarchy,
       filters,
       publisherOptions,
+      organizationOptions,
       activityOptions,
       onFiltersChange: setFilters,
       onPublisherChange,
+      onOrganizationChange,
       onActivityChange,
     }),
     [
       pickerHierarchy,
       filters,
       publisherOptions,
+      organizationOptions,
       activityOptions,
       onPublisherChange,
+      onOrganizationChange,
       onActivityChange,
     ]
   );

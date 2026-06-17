@@ -14,9 +14,11 @@ interface ExplorerFilterBarProps {
   hierarchy: GeoHierarchy;
   filters: ExplorerFilters;
   publisherOptions: ExplorerFilterOption[];
+  organizationOptions: ExplorerFilterOption[];
   activityOptions: ExplorerFilterOption[];
   onFiltersChange: (filters: ExplorerFilters) => void;
   onPublisherChange: (value: string) => void;
+  onOrganizationChange: (value: string) => void;
   onActivityChange: (values: string[]) => void;
   layout?: "stacked" | "overlay" | "sheet";
 }
@@ -26,6 +28,7 @@ function hasActiveFilters(filters: ExplorerFilters): boolean {
     filters.district !== ALL_FILTER ||
     filters.areaScope !== ALL_FILTER ||
     filters.publisher !== ALL_FILTER ||
+    filters.organization !== ALL_FILTER ||
     filters.activity.length > 0
   );
 }
@@ -34,9 +37,11 @@ export function ExplorerFilterBar({
   hierarchy,
   filters,
   publisherOptions,
+  organizationOptions,
   activityOptions,
   onFiltersChange,
   onPublisherChange,
+  onOrganizationChange,
   onActivityChange,
   layout = "stacked",
 }: ExplorerFilterBarProps) {
@@ -105,7 +110,7 @@ export function ExplorerFilterBar({
         className={
           isOverlay || isSheet
             ? "flex flex-col gap-3"
-            : "grid grid-cols-1 md:grid-cols-3 md:divide-x md:divide-oa-grey-200"
+            : "grid grid-cols-1 md:grid-cols-4 md:divide-x md:divide-oa-grey-200"
         }
         role="group"
         aria-label="Data filters"
@@ -126,6 +131,17 @@ export function ExplorerFilterBar({
             options={publisherOptions}
             value={filters.publisher}
             onChange={onPublisherChange}
+            searchable
+          />
+        </div>
+        <div className={isOverlay || isSheet ? "" : "border-b border-oa-grey-200 p-4 md:border-b-0"}>
+          <FilterDropdown
+            id="explorer-organization"
+            label="Activity/Facility Providers"
+            layout={isSheet ? "sheet" : isOverlay ? "glass" : "field"}
+            options={organizationOptions}
+            value={filters.organization}
+            onChange={onOrganizationChange}
             searchable
           />
         </div>

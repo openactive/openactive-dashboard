@@ -11,9 +11,11 @@ interface ExplorerFilterControlProps {
   hierarchy: GeoHierarchy;
   filters: ExplorerFilters;
   publisherOptions: ExplorerFilterOption[];
+  organizationOptions: ExplorerFilterOption[];
   activityOptions: ExplorerFilterOption[];
   onFiltersChange: (filters: ExplorerFilters) => void;
   onPublisherChange: (value: string) => void;
+  onOrganizationChange: (value: string) => void;
   onActivityChange: (values: string[]) => void;
 }
 
