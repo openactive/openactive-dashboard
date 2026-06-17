@@ -37,13 +37,15 @@ const EMPTY_SUMMARY: ExplorerSummary = {
   totalOpportunities: 0,
   areaCount: 0,
   publisherCount: 0,
-  providerCount: 0,
+  feedCount: 0,
+  organizationCount: 0,
   activityCount: 0,
   activityOpportunities: 0,
   facilityOpportunities: 0,
   topAreas: [],
   topPublishers: [],
-  topProviders: [],
+  topFeeds: [],
+  topOrganizations: [],
   topActivities: [],
 };
 
@@ -67,7 +69,8 @@ function reduce(rows: Opportunity[]): {
 } {
   const countByDistrict = new Map<string, number>();
   const countByPublisher = new Map<string, number>();
-  const countByProvider = new Map<string, number>();
+  const countByFeed = new Map<string, number>();
+  const countByOrganization = new Map<string, number>();
   const countByActivity = new Map<string, number>();
   let totalOpportunities = 0;
   let activityOpportunities = 0;
@@ -75,6 +78,18 @@ function reduce(rows: Opportunity[]): {
 
   const bump = (m: Map<string, number>, key: string, n: number) =>
     m.set(key, (m.get(key) ?? 0) + n);
+
+  const bumpFromJsonArray = (
+    m: Map<string, number>,
+    raw: string,
+    n: number
+  ) => {
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return;
+    for (const v of parsed) {
+      if (typeof v === "string" && v.trim()) bump(m, v, n);
+    }
+  };
 
   for (const row of rows) {
     const n = row.opportunity_count;
@@ -84,25 +99,9 @@ function reduce(rows: Opportunity[]): {
 
     if (row.district_name) bump(countByDistrict, row.district_name, n);
     if (row.publisher) bump(countByPublisher, row.publisher, n);
-    if (row.provider) bump(countByProvider, row.provider, n);
-
-    // activity_or_facility is a JSON-encoded string array; parse defensively.
-    // Each name in the array shares this row's opportunity_count — typical
-    // rows have a single entry, but we handle multi-tag rows safely.
-    if (row.activity_or_facility) {
-      try {
-        const parsed: unknown = JSON.parse(row.activity_or_facility);
-        if (Array.isArray(parsed)) {
-          for (const v of parsed) {
-            if (typeof v === "string" && v.trim()) {
-              bump(countByActivity, v, n);
-            }
-          }
-        }
-      } catch {
-        // Ignore malformed entries — count nothing rather than crash.
-      }
-    }
+    if (row.provider) bump(countByFeed, row.provider, n);
+    if (row.organization_names) bumpFromJsonArray(countByOrganization, row.organization_names, n);
+    if (row.activity_or_facility) bumpFromJsonArray(countByActivity, row.activity_or_facility, n);
   }
 
   const districtCounts: DistrictCount[] = [...countByDistrict.entries()]
@@ -114,13 +113,15 @@ function reduce(rows: Opportunity[]): {
       totalOpportunities,
       areaCount: countByDistrict.size,
       publisherCount: countByPublisher.size,
-      providerCount: countByProvider.size,
+      feedCount: countByFeed.size,
+      organizationCount: countByOrganization.size,
       activityCount: countByActivity.size,
       activityOpportunities,
       facilityOpportunities,
       topAreas: rankTop(countByDistrict, EXPLORER_TOP_LIMIT),
       topPublishers: rankTop(countByPublisher, EXPLORER_TOP_LIMIT),
-      topProviders: rankTop(countByProvider, EXPLORER_TOP_LIMIT),
+      topFeeds: rankTop(countByFeed, EXPLORER_TOP_LIMIT),
+      topOrganizations: rankTop(countByOrganization, EXPLORER_TOP_LIMIT),
       topActivities: rankTop(countByActivity, EXPLORER_TOP_LIMIT),
     },
     districtCounts,

@@ -15,6 +15,8 @@ export interface Opportunity {
   is_activity: boolean;
   /** JSON-encoded string array, e.g. `"[]"` or `"[\"Sports Hall\"]"`. */
   activity_or_facility: string;
+  /** JSON-encoded string array of organization names, e.g. `"[\"Active Hartlepool\"]"`. */
+  organization_names: string;
   district_code: string;
   region_code: string;
   region_name: string;
