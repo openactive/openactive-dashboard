@@ -16,6 +16,7 @@ export async function getOpportunities(
   const params = new URLSearchParams();
 
   if (query.publisher) params.set("publisher", query.publisher);
+  if (query.organization) params.set("organization", query.organization);
   if (query.district) params.set("district", query.district);
   if (query.region) params.set("region", query.region);
   if (query.country) params.set("country", query.country);
