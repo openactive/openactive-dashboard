@@ -7,6 +7,5 @@
       "app/**/instrumentation.{js,ts}",
       "middleware.{js,ts}"
     ]
-  },
-  "ignoreBinaries": ["next"]
+  }
 }
