@@ -8,17 +8,19 @@ import { getAllAreas } from "../services/areas";
 
 interface Params {
   publisher: string;
+  organization: string;
   activity: string[];
   fallback: GeoHierarchy;
 }
 
 /**
  * Hierarchy narrowed to the countries/regions/districts that contain
- * data for the current publisher/activity filters. Returns `fallback`
- * (no network call) when both filters are ALL.
+ * data for the current publisher/organization/activity filters. Returns
+ * `fallback` (no network call) when all three are ALL.
  */
 export function useReactiveAreaHierarchy({
   publisher,
+  organization,
   activity,
   fallback,
 }: Params): GeoHierarchy {
@@ -28,15 +30,17 @@ export function useReactiveAreaHierarchy({
 
   useEffect(() => {
     const hasPublisher = publisher && publisher !== ALL_FILTER;
+    const hasOrganization = organization && organization !== ALL_FILTER;
     const hasActivity = activity.length > 0;
 
-    if (!hasPublisher && !hasActivity) {
+    if (!hasPublisher && !hasOrganization && !hasActivity) {
       setHierarchy(fallback);
       return;
     }
 
     const query = {
       ...(hasPublisher ? { publisher } : {}),
+      ...(hasOrganization ? { organization } : {}),
       ...(hasActivity ? { activity } : {}),
     };
     const cacheKey = JSON.stringify(query);
@@ -65,7 +69,7 @@ export function useReactiveAreaHierarchy({
     return () => {
       cancelled = true;
     };
-  }, [publisher, activity, fallback]);
+  }, [publisher, organization, activity, fallback]);
 
   return hierarchy;
 }

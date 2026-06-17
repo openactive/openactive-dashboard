@@ -32,5 +32,6 @@ export type AreasResponse = Record<string, AreaCountry>;
 
 export type AreasQuery = {
   publisher?: string;
+  organization?: string;
   activity?: string[];
 };

@@ -5,7 +5,12 @@ import { formatNumber } from "../../lib/format";
 import type { RankedItem } from "../../lib/explore-filters";
 import { RankedList } from "./RankedList";
 
-export type TabKey = "areas" | "publishers" | "providers" | "activities";
+export type TabKey =
+  | "areas"
+  | "publishers"
+  | "feeds"
+  | "providers"
+  | "activities";
 
 interface TabSpec {
   key: TabKey;
@@ -35,6 +40,7 @@ export function TopBreakdownTabs({ tabs }: TopBreakdownTabsProps) {
   const tabRefs = useRef<Record<TabKey, HTMLButtonElement | null>>({
     areas: null,
     publishers: null,
+    feeds: null,
     providers: null,
     activities: null,
   });

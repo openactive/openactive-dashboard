@@ -71,7 +71,7 @@ export function ExplorerMobileStatsDock({
           </button>
         </div>
 
-        <dl className="mt-3 grid grid-cols-3 gap-2 border-t border-oa-grey-100 pt-3">
+        <dl className="mt-3 grid grid-cols-4 gap-2 border-t border-oa-grey-100 pt-3">
           {METRICS.map(({ key, label }) => (
             <div key={key} className="text-center">
               <dt className="text-[10px] font-medium uppercase tracking-wide text-oa-grey-500">

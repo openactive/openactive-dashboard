@@ -125,8 +125,9 @@ export function ExplorerDetailsModal({
               </h3>
               <dl className="mt-3 divide-y divide-oa-grey-100">
                 <StatRow label="Local areas" value={summary.areaCount} />
-                <StatRow label="Publishers" value={summary.publisherCount} />
-                <StatRow label="Providers" value={summary.providerCount} />
+                <StatRow label="Feed Publishers" value={summary.publisherCount} />
+                <StatRow label="Feeds" value={summary.feedCount} />
+                <StatRow label="Activity/Facility Providers" value={summary.organizationCount} />
                 <StatRow
                   label="Activities & facilities"
                   value={summary.activityCount}
@@ -150,16 +151,23 @@ export function ExplorerDetailsModal({
                 },
                 {
                   key: "publishers",
-                  label: "Publishers",
+                  label: "Feed Publishers",
                   items: summary.topPublishers,
                   total: summary.publisherCount,
                   barColor: "bg-oa-blue",
                 },
                 {
+                  key: "feeds",
+                  label: "Feeds",
+                  items: summary.topFeeds,
+                  total: summary.feedCount,
+                  barColor: "bg-oa-magenta",
+                },
+                {
                   key: "providers",
-                  label: "Providers",
-                  items: summary.topProviders,
-                  total: summary.providerCount,
+                  label: "Activity/Facility Providers",
+                  items: summary.topOrganizations,
+                  total: summary.organizationCount,
                   barColor: "bg-oa-purple",
                 },
                 {

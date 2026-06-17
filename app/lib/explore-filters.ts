@@ -11,6 +11,7 @@ export type ExplorerFilters = {
   /** Geographic scope when no specific area: all | country:{id} | region:{country}:{region} */
   areaScope: string;
   publisher: string;
+  organization: string;
   /** Selected activity names. Empty array = no activity filter. */
   activity: string[];
 };
@@ -19,6 +20,7 @@ export const DEFAULT_EXPLORER_FILTERS: ExplorerFilters = {
   district: ALL_FILTER,
   areaScope: ALL_FILTER,
   publisher: ALL_FILTER,
+  organization: ALL_FILTER,
   activity: [],
 };
 
@@ -33,7 +35,8 @@ export type ExplorerSummary = {
   totalOpportunities: number;
   areaCount: number;
   publisherCount: number;
-  providerCount: number;
+  feedCount: number;
+  organizationCount: number;
   activityCount: number;
   /** Opportunities flagged is_activity=true — Physical Activity (sessions, classes, events). */
   activityOpportunities: number;
@@ -41,7 +44,8 @@ export type ExplorerSummary = {
   facilityOpportunities: number;
   topAreas: RankedItem[];
   topPublishers: RankedItem[];
-  topProviders: RankedItem[];
+  topFeeds: RankedItem[];
+  topOrganizations: RankedItem[];
   topActivities: RankedItem[];
 };
 
@@ -54,9 +58,14 @@ export const EXPLORER_SUMMARY_METRIC_DEFS = {
     color: "bg-oa-cyan",
   },
   publisherCount: {
-    desktopLabel: "Publishers",
+    desktopLabel: "Feed Publishers",
     mobileLabel: "Publishers",
     color: "bg-oa-blue",
+  },
+  organizationCount: {
+    desktopLabel: "Activity/Facility Providers",
+    mobileLabel: "Providers",
+    color: "bg-oa-purple",
   },
   activityCount: {
     desktopLabel: "Activities",
@@ -70,6 +79,7 @@ export type ExplorerSummaryMetricKey = keyof typeof EXPLORER_SUMMARY_METRIC_DEFS
 export const EXPLORER_SUMMARY_METRIC_KEYS: ExplorerSummaryMetricKey[] = [
   "areaCount",
   "publisherCount",
+  "organizationCount",
   "activityCount",
 ];
 

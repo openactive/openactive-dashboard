@@ -29,10 +29,15 @@ type UseLocationScopedFilterOptionsParams = {
   filters: Pick<ExplorerFilters, "district" | "areaScope">;
   maps: CodeMaps;
   fetchNames: (
-    query: LocationQuery & { publisher?: string; activity?: string[] }
+    query: LocationQuery & {
+      publisher?: string;
+      organization?: string;
+      activity?: string[];
+    }
   ) => Promise<string[]>;
   onFetched?: (names: string[]) => void;
   publisher?: string;
+  organization?: string;
   activity?: string[];
 };
 
@@ -51,6 +56,7 @@ export function useLocationScopedFilterOptions({
   fetchNames,
   onFetched,
   publisher,
+  organization,
   activity,
 }: UseLocationScopedFilterOptionsParams) {
   const [options, setOptions] = useState<ExplorerFilterOption[]>([
@@ -65,6 +71,7 @@ export function useLocationScopedFilterOptions({
     const query = {
       ...buildLocationFilterQuery(filters, maps),
       ...(publisher && publisher !== ALL_FILTER ? { publisher } : {}),
+      ...(organization && organization !== ALL_FILTER ? { organization } : {}),
       ...(activity && activity.length > 0 ? { activity } : {}),
     };
     const cacheKey = JSON.stringify({ query, item });
@@ -140,6 +147,7 @@ export function useLocationScopedFilterOptions({
     loadingLabel,
     fetchNames,
     publisher,
+    organization,
     activity,
   ]);
 

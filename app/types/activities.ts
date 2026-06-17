@@ -5,4 +5,5 @@ export type ActivitiesQuery = {
   region?: string;
   country?: string;
   publisher?: string;
+  organization?: string;
 };

@@ -150,8 +150,18 @@ export function ExplorerSummary({
               isLoading={isLoading}
             />
             <StatRow
-              label="Publishers"
+              label="Feed Publishers"
               value={summary.publisherCount}
+              isLoading={isLoading}
+            />
+            <StatRow
+              label="Activity/Facility Providers"
+              value={summary.organizationCount}
+              isLoading={isLoading}
+            />
+            <StatRow
+              label="Activities"
+              value={summary.activityCount}
               isLoading={isLoading}
             />
           </dl>
