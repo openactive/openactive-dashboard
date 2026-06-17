@@ -1,9 +1,9 @@
-export interface AreaDistrict {
+interface AreaDistrict {
   district_name: string;
   district_code: string;
 }
 
-export interface AreaRegion {
+interface AreaRegion {
   region_code: string;
   districts: AreaDistrict[];
 }
@@ -20,7 +20,7 @@ export interface AreaCountryWithRegions {
   regions: Array<Record<string, AreaRegion>>;
 }
 
-export interface AreaCountryWithDistricts {
+interface AreaCountryWithDistricts {
   country_code: string;
   districts: AreaDistrict[];
 }

@@ -9,7 +9,7 @@ function getEnvVar(name: string): string {
 const BASE_URL = getEnvVar("OPENACTIVE_API_BASE_URL");
 const TOKEN = getEnvVar("OPENACTIVE_API_TOKEN");
 
-export class ApiError extends Error {
+class ApiError extends Error {
   constructor(
     public status: number,
     message: string

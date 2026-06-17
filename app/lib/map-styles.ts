@@ -13,7 +13,7 @@ const NO_DATA_FILL = "#fff";
 const SELECTED_STROKE = "#223582";
 const SELECTED_FILL_FALLBACK = "#009de1";
 
-export interface GeoProperties {
+interface GeoProperties {
   geo_code: string;
   geo_name: string;
   geo_type: string;

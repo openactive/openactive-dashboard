@@ -7,7 +7,7 @@ import type { GeoHierarchy } from "./geo-hierarchy";
 
 export type MobilePanel = "none" | "filters" | "stats";
 
-export interface ExplorerFilterControlProps {
+interface ExplorerFilterControlProps {
   hierarchy: GeoHierarchy;
   filters: ExplorerFilters;
   publisherOptions: ExplorerFilterOption[];

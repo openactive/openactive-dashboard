@@ -5,7 +5,7 @@
   --foreground: #333333;
 
   /* OpenActive Brand Palette (from status repo) */
-  --oa-aqua: #74cbf2; --oa-aqua-light: #E5F3F8;
+  --oa-aqua: #74cbf2;
   --oa-cyan: #009de1;
   --oa-blue: #0065af;
   --oa-indigo: #433a8f;
@@ -13,9 +13,7 @@
   --oa-purple: #952082;
   --oa-magenta: #e21483;
   --oa-orange: #e73b2e;
-  --oa-yellow: #f7a836; --oa-yellow-light: #F6EDE0;
-  --oa-turquoise: #009dc3;
-  --oa-lilac: #a64895;
+  --oa-yellow: #f7a836;
   --oa-scarlet: #be1622;
 
   /* Neutrals */
@@ -28,14 +26,10 @@
   --oa-grey-600: #4b5563;
   --oa-grey-700: #374151;
   --oa-grey-800: #1f2937;
-  --oa-grey-900: #111827;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 
   /* Brand colors */
   --color-oa-aqua: var(--oa-aqua);
@@ -47,8 +41,6 @@
   --color-oa-magenta: var(--oa-magenta);
   --color-oa-orange: var(--oa-orange);
   --color-oa-yellow: var(--oa-yellow);
-  --color-oa-turquoise: var(--oa-turquoise);
-  --color-oa-lilac: var(--oa-lilac);
   --color-oa-scarlet: var(--oa-scarlet);
 
   /* Neutrals */
@@ -61,7 +53,6 @@
   --color-oa-grey-600: var(--oa-grey-600);
   --color-oa-grey-700: var(--oa-grey-700);
   --color-oa-grey-800: var(--oa-grey-800);
-  --color-oa-grey-900: var(--oa-grey-900);
 
   /* Wide homepage content (hero + data explorer) — 120rem / 1920px */
   --max-width-448: 120rem;

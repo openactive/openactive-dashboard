@@ -2,7 +2,7 @@
 
 import { FilterDropdown, type FilterOption } from "../FilterDropdown";
 
-export const SORT_KEYS = [
+const SORT_KEYS = [
   "quality-best",
   "activities-most",
   "status-worst",
@@ -13,7 +13,7 @@ export const SORT_KEYS = [
 
 export type SortKey = (typeof SORT_KEYS)[number];
 
-export const SORT_LABELS: Record<SortKey, string> = {
+const SORT_LABELS: Record<SortKey, string> = {
   "quality-best": "Most qualitative first",
   "activities-most": "Most activities first",
   "status-worst": "Issues first",

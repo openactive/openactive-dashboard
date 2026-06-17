@@ -11,7 +11,7 @@ export type AreaSearchHit = {
 };
 
 /** Lowercase, strip diacritics, trim. Used by every match check. */
-export function normalizeAreaName(s: string): string {
+function normalizeAreaName(s: string): string {
   return s
     .normalize("NFD")
     .replace(/\p{Diacritic}/gu, "")

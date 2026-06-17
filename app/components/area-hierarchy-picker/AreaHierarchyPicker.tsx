@@ -21,7 +21,7 @@ import { AreaPickerPanel } from "./AreaPickerPanel";
 import type { AreaPickerVariant } from "./types";
 import { useAreaPickerDrill } from "./use-area-picker-drill";
 
-export interface AreaHierarchyPickerProps {
+interface AreaHierarchyPickerProps {
   hierarchy: GeoHierarchy;
   filters: ExplorerFilters;
   onChange: (filters: ExplorerFilters) => void;
