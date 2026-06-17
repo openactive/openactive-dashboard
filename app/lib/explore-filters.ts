@@ -11,6 +11,7 @@ export type ExplorerFilters = {
   /** Geographic scope when no specific area: all | country:{id} | region:{country}:{region} */
   areaScope: string;
   publisher: string;
+  organization: string;
   /** Selected activity names. Empty array = no activity filter. */
   activity: string[];
 };
@@ -19,6 +20,7 @@ export const DEFAULT_EXPLORER_FILTERS: ExplorerFilters = {
   district: ALL_FILTER,
   areaScope: ALL_FILTER,
   publisher: ALL_FILTER,
+  organization: ALL_FILTER,
   activity: [],
 };
 
