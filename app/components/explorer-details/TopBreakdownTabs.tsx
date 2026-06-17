@@ -7,7 +7,7 @@ import { RankedList } from "./RankedList";
 
 export type TabKey = "areas" | "publishers" | "providers" | "activities";
 
-export interface TabSpec {
+interface TabSpec {
   key: TabKey;
   label: string;
   items: RankedItem[];
