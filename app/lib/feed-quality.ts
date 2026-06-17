@@ -104,7 +104,7 @@ export const STATUS_RANK: Record<FeedStatus, number> = {
   ERROR: 2,
 };
 
-export function getWorstStatus(rows: FeedQualityRow[]): FeedStatus {
+function getWorstStatus(rows: FeedQualityRow[]): FeedStatus {
   return rows.reduce<FeedStatus>(
     (worst, row) =>
       STATUS_RANK[row.status] > STATUS_RANK[worst] ? row.status : worst,
@@ -135,7 +135,7 @@ function humaniseSubdomain(url: string): string | null {
   }
 }
 
-export function getDatasetDisplayName(row: FeedQualityRow): string {
+function getDatasetDisplayName(row: FeedQualityRow): string {
   const trimmed = row.dataset_name.trim();
   const isGeneric =
     !trimmed || GENERIC_DATASET_NAMES.has(trimmed.toLowerCase());
