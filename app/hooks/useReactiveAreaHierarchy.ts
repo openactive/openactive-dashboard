@@ -23,7 +23,8 @@ export function useReactiveAreaHierarchy({
   fallback,
 }: Params): GeoHierarchy {
   const [hierarchy, setHierarchy] = useState<GeoHierarchy>(fallback);
-  const cacheRef = useRef<Map<string, GeoHierarchy>>(new Map());
+  // Stores in-flight Promises (not resolved values). Resolved promises stay in the map for cheap re-use.
+  const cacheRef = useRef<Map<string, Promise<GeoHierarchy>>>(new Map());
 
   useEffect(() => {
     const hasPublisher = publisher && publisher !== ALL_FILTER;
@@ -39,24 +40,26 @@ export function useReactiveAreaHierarchy({
       ...(hasActivity ? { activity } : {}),
     };
     const cacheKey = JSON.stringify(query);
-    const cached = cacheRef.current.get(cacheKey);
 
-    if (cached) {
-      setHierarchy(cached);
-      return;
+    let promise = cacheRef.current.get(cacheKey);
+    if (!promise) {
+      promise = getAllAreas(query)
+        .then(transformAreasToHierarchy)
+        .catch((err) => {
+          // Evict on failure so a later retry can actually re-fetch.
+          cacheRef.current.delete(cacheKey);
+          throw err;
+        });
+      cacheRef.current.set(cacheKey, promise);
     }
 
     let cancelled = false;
-    getAllAreas(query)
-      .then((raw) => {
-        if (cancelled) return;
-        const next = transformAreasToHierarchy(raw);
-        cacheRef.current.set(cacheKey, next);
-        setHierarchy(next);
+    promise
+      .then((next) => {
+        if (!cancelled) setHierarchy(next);
       })
       .catch(() => {
-        if (cancelled) return;
-        setHierarchy(fallback);
+        if (!cancelled) setHierarchy(fallback);
       });
 
     return () => {
