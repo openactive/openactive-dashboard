@@ -3,7 +3,7 @@ import type { GeoHierarchy } from "./geo-hierarchy";
 import { parseAreaScope } from "./geo-hierarchy";
 import type { ActivitiesQuery } from "../types/activities";
 
-export type LocationScopedItem = "publishers" | "activities";
+export type LocationScopedItem = "publishers" | "activities" | "organizations";
 
 type CodeMaps = {
   districtCodeByName: Map<string, string>;
@@ -51,7 +51,12 @@ export function getLocationEmptyMessage(
   hierarchy: GeoHierarchy,
   item: LocationScopedItem
 ): string {
-  const noun = item === "publishers" ? "publishers" : "activities";
+  const noun =
+    item === "publishers"
+      ? "publishers"
+      : item === "organizations"
+        ? "providers"
+        : "activities";
 
   if (filters.district !== ALL_FILTER) {
     return `No ${noun} in ${filters.district}`;

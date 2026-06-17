@@ -44,6 +44,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
 
   const pickerHierarchy = useReactiveAreaHierarchy({
     publisher: filters.publisher,
+    organization: filters.organization,
     activity: filters.activity,
     fallback: hierarchy,
   });
@@ -133,6 +134,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     maps: codeMaps,
     fetchNames: getPublishers,
     onFetched: onPublishersFetched,
+    organization: filters.organization,
     activity: filters.activity,
   });
 
@@ -146,6 +148,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     fetchNames: getActivities,
     onFetched: onActivitiesFetched,
     publisher: filters.publisher,
+    organization: filters.organization,
   });
 
   // Summary card + map choropleth are both driven by /opportunities.
