@@ -296,9 +296,8 @@ export function FeedQualityTable({ groups, view }: FeedQualityTableProps) {
             className="hidden w-full border-collapse lg:table"
           >
             <caption className="sr-only">
-              Feed quality by publisher. Each row shows a single feed&apos;s
-              completeness for the fields that decide whether its opportunities
-              count in OpenActive&apos;s headline figures.
+              {VIEW_CONFIGS[view].label} by publisher. Each row shows a single
+              feed&apos;s completeness for the relevant fields.
             </caption>
             <thead className="sticky top-0 z-10">
               <tr>

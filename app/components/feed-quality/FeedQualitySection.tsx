@@ -59,10 +59,13 @@ export function FeedQualitySection() {
             Feed quality
           </h2>
           <p className="mt-4 text-base text-oa-grey-700 leading-relaxed max-w-prose">
-            See how each publisher&apos;s feeds measure against the fields that
-            decide whether their opportunities count in OpenActive&apos;s
-            headline figures: date, location, and activity or facility.
-            Provider quality coming soon.
+            See how each publisher&apos;s feeds measure up. Switch between{" "}
+            <strong className="font-semibold text-oa-navy">data completeness</strong>
+            {" "}(the fields that decide whether opportunities count in
+            OpenActive&apos;s headline figures) and{" "}
+            <strong className="font-semibold text-oa-navy">content quality</strong>
+            {" "}(the optional fields that make those opportunities genuinely
+            useful, like age range, level, and accessibility support).
           </p>
         </header>
 
