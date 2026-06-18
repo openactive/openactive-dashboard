@@ -3,16 +3,22 @@
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { ExternalDataLink } from "./ExternalDataLink";
 import { FeedQualityFeedCard } from "./FeedQualityFeedCard";
-import { STATUS_DOT_CLASS, type FeedQualityGroup } from "../../lib/feed-quality";
+import {
+  STATUS_DOT_CLASS,
+  type FeedQualityGroup,
+  type FeedQualityView,
+} from "../../lib/feed-quality";
 
 interface FeedQualityDatasetCardProps {
   group: FeedQualityGroup;
+  view: FeedQualityView;
   collapsed: boolean;
   onToggle: () => void;
 }
 
 export function FeedQualityDatasetCard({
   group,
+  view,
   collapsed,
   onToggle,
 }: FeedQualityDatasetCardProps) {
@@ -26,6 +32,7 @@ export function FeedQualityDatasetCard({
       <section className={wrapClass} aria-label={group.datasetName}>
         <FeedQualityFeedCard
           feed={group.feeds[0]}
+          view={view}
           dataset={{
             name: group.datasetName,
             url: group.datasetUrl,
@@ -72,7 +79,7 @@ export function FeedQualityDatasetCard({
       {!collapsed && (
         <div className="divide-y divide-oa-grey-200">
           {group.feeds.map((feed) => (
-            <FeedQualityFeedCard key={feed.feed_url} feed={feed} />
+            <FeedQualityFeedCard key={feed.feed_url} feed={feed} view={view} />
           ))}
         </div>
       )}

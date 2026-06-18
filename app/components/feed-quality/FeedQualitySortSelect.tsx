@@ -14,7 +14,7 @@ const SORT_KEYS = [
 export type SortKey = (typeof SORT_KEYS)[number];
 
 const SORT_LABELS: Record<SortKey, string> = {
-  "quality-best": "Most qualitative first",
+  "quality-best": "Highest quality first",
   "activities-most": "Most activities first",
   "status-worst": "Issues first",
   "updated-newest": "Last assessed (newest)",

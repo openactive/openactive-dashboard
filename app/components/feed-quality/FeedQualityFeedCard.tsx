@@ -1,25 +1,28 @@
 import { ExternalDataLink } from "./ExternalDataLink";
 import { FeedQualityStatusButton } from "./FeedQualityStatusButton";
+import { FeedVersionBadge } from "./FeedVersionBadge";
 import {
   COMPLETENESS_BANDS,
+  VIEW_CONFIGS,
   formatLastAssessed,
-  getActivityOrFacilityCompleteness,
   getCompletenessBand,
-  getQualityScore,
   humaniseFeedType,
   STATUS_DOT_CLASS,
+  type FeedQualityView,
 } from "../../lib/feed-quality";
 import { formatFullNumber } from "../../lib/format";
 import type { FeedQualityRow, FeedStatus } from "../../types/feed-quality";
 
 interface FeedQualityFeedCardProps {
   feed: FeedQualityRow;
+  view: FeedQualityView;
   // Provided for single-feed datasets so the card carries the publisher name
   // and worst-status dot at the top, mirroring the table's merged-row mode.
   dataset?: { name: string; url: string; worstStatus: FeedStatus };
 }
 
-export function FeedQualityFeedCard({ feed, dataset }: FeedQualityFeedCardProps) {
+export function FeedQualityFeedCard({ feed, view, dataset }: FeedQualityFeedCardProps) {
+  const config = VIEW_CONFIGS[view];
   const { relative, absolute } = formatLastAssessed(feed.last_assessed);
   const typeLabel = humaniseFeedType(feed.feed_type);
 
@@ -50,12 +53,14 @@ export function FeedQualityFeedCard({ feed, dataset }: FeedQualityFeedCardProps)
           label={typeLabel}
           className="text-sm font-medium text-oa-grey-800"
         />
+        <FeedVersionBadge version={feed.feed_version} />
       </div>
 
       <dl className="grid grid-cols-3 gap-1.5">
-        <Stat label="Quality" value={getQualityScore(feed)} />
-        <Stat label="Location" value={feed.location_completeness} />
-        <Stat label="Activity" value={getActivityOrFacilityCompleteness(feed)} />
+        <Stat label="Quality" value={config.getScore(feed)} />
+        {config.completenessColumns.map((col) => (
+          <Stat key={col.key} label={col.label} value={col.get(feed)} />
+        ))}
       </dl>
 
       <p className="flex items-center justify-between gap-2 text-xs text-oa-grey-600">

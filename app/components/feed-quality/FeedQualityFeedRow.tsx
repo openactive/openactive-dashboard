@@ -1,24 +1,27 @@
 import { ExternalDataLink } from "./ExternalDataLink";
 import { FeedQualityCell } from "./FeedQualityCell";
 import { FeedQualityStatusButton } from "./FeedQualityStatusButton";
+import { FeedVersionBadge } from "./FeedVersionBadge";
 import {
+  VIEW_CONFIGS,
   formatLastAssessed,
-  getActivityOrFacilityCompleteness,
-  getQualityScore,
   humaniseFeedType,
   STATUS_DOT_CLASS,
+  type FeedQualityView,
 } from "../../lib/feed-quality";
 import { formatFullNumber } from "../../lib/format";
 import type { FeedQualityRow, FeedStatus } from "../../types/feed-quality";
 
 interface FeedQualityFeedRowProps {
   feed: FeedQualityRow;
+  view: FeedQualityView;
   // Provided for single-feed datasets so the Feed column carries the
   // publisher name and worst-status dot inline (no group header above).
   dataset?: { name: string; worstStatus: FeedStatus };
 }
 
-export function FeedQualityFeedRow({ feed, dataset }: FeedQualityFeedRowProps) {
+export function FeedQualityFeedRow({ feed, view, dataset }: FeedQualityFeedRowProps) {
+  const config = VIEW_CONFIGS[view];
   const { relative, absolute } = formatLastAssessed(feed.last_assessed);
   const typeLabel = humaniseFeedType(feed.feed_type);
 
@@ -45,25 +48,32 @@ export function FeedQualityFeedRow({ feed, dataset }: FeedQualityFeedRowProps) {
                 label={dataset.name}
                 className="text-sm font-semibold text-oa-navy"
               />
-              <ExternalDataLink
-                href={feed.feed_url}
-                label={typeLabel}
-                className="text-xs text-oa-grey-600"
-              />
+              <div className="flex items-center gap-1.5">
+                <ExternalDataLink
+                  href={feed.feed_url}
+                  label={typeLabel}
+                  className="text-xs text-oa-grey-600"
+                />
+                <FeedVersionBadge version={feed.feed_version} />
+              </div>
             </div>
           </div>
         ) : (
-          <ExternalDataLink
-            href={feed.feed_url}
-            label={typeLabel}
-            className="text-sm text-oa-grey-800"
-          />
+          <div className="flex items-center gap-1.5">
+            <ExternalDataLink
+              href={feed.feed_url}
+              label={typeLabel}
+              className="text-sm text-oa-grey-800"
+            />
+            <FeedVersionBadge version={feed.feed_version} />
+          </div>
         )}
       </td>
 
-      <FeedQualityCell value={getQualityScore(feed)} />
-      <FeedQualityCell value={feed.location_completeness} />
-      <FeedQualityCell value={getActivityOrFacilityCompleteness(feed)} />
+      <FeedQualityCell value={config.getScore(feed)} />
+      {config.completenessColumns.map((col) => (
+        <FeedQualityCell key={col.key} value={col.get(feed)} />
+      ))}
 
       <td className="px-3 py-2.5 text-right align-middle text-sm tabular-nums text-oa-grey-700">
         {formatFullNumber(feed.num_future_opportunity_items)}
