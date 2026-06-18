@@ -56,14 +56,14 @@ export function getCompletenessBand(value: number | null): CompletenessBand {
 }
 
 // Feeds are either activity-based or facility-based, never both.
-export function getActivityOrFacilityCompleteness(
+function getActivityOrFacilityCompleteness(
   row: FeedQualityRow
 ): number | null {
   return row.activities_completeness ?? row.facilities_completeness;
 }
 
 // Average of the four fields the table colours in. Null when no field has a value.
-export function getQualityScore(row: FeedQualityRow): number | null {
+function getQualityScore(row: FeedQualityRow): number | null {
   const values = [
     row.start_date_completeness,
     row.end_date_completeness,
@@ -76,7 +76,7 @@ export function getQualityScore(row: FeedQualityRow): number | null {
 
 // Returns -1 when no feed in the group can be scored, so those groups
 // always sink to the bottom of a sort.
-export function getGroupQualityScore(group: FeedQualityGroup): number {
+function getGroupQualityScore(group: FeedQualityGroup): number {
   const scores = group.feeds
     .map(getQualityScore)
     .filter((v): v is number => v !== null);
@@ -86,7 +86,7 @@ export function getGroupQualityScore(group: FeedQualityGroup): number {
 
 // Average of the four optional content fields the content-quality view
 // colours in. Null when no field has a value.
-export function getContentScore(row: FeedQualityRow): number | null {
+function getContentScore(row: FeedQualityRow): number | null {
   const values = [
     row.age_range_completeness,
     row.level_completeness,
@@ -97,7 +97,7 @@ export function getContentScore(row: FeedQualityRow): number | null {
   return values.reduce((sum, v) => sum + v, 0) / values.length;
 }
 
-export function getGroupContentScore(group: FeedQualityGroup): number {
+function getGroupContentScore(group: FeedQualityGroup): number {
   const scores = group.feeds
     .map(getContentScore)
     .filter((v): v is number => v !== null);
@@ -216,7 +216,7 @@ export function formatLastAssessed(iso: string): {
 
 export type FeedQualityView = "data" | "content";
 
-export interface CompletenessColumn {
+interface CompletenessColumn {
   key: string;
   label: string;
   hint: string;
