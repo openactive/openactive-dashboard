@@ -1,6 +1,7 @@
 import { ExternalDataLink } from "./ExternalDataLink";
 import { FeedQualityCell } from "./FeedQualityCell";
 import { FeedQualityStatusButton } from "./FeedQualityStatusButton";
+import { FeedVersionBadge } from "./FeedVersionBadge";
 import {
   VIEW_CONFIGS,
   formatLastAssessed,
@@ -47,19 +48,25 @@ export function FeedQualityFeedRow({ feed, view, dataset }: FeedQualityFeedRowPr
                 label={dataset.name}
                 className="text-sm font-semibold text-oa-navy"
               />
-              <ExternalDataLink
-                href={feed.feed_url}
-                label={typeLabel}
-                className="text-xs text-oa-grey-600"
-              />
+              <div className="flex items-center gap-1.5">
+                <ExternalDataLink
+                  href={feed.feed_url}
+                  label={typeLabel}
+                  className="text-xs text-oa-grey-600"
+                />
+                <FeedVersionBadge version={feed.feed_version} />
+              </div>
             </div>
           </div>
         ) : (
-          <ExternalDataLink
-            href={feed.feed_url}
-            label={typeLabel}
-            className="text-sm text-oa-grey-800"
-          />
+          <div className="flex items-center gap-1.5">
+            <ExternalDataLink
+              href={feed.feed_url}
+              label={typeLabel}
+              className="text-sm text-oa-grey-800"
+            />
+            <FeedVersionBadge version={feed.feed_version} />
+          </div>
         )}
       </td>
 

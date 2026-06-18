@@ -150,12 +150,12 @@ export function FeedQualityTable({ groups, view }: FeedQualityTableProps) {
     }
   }, [filteredGroups, sortKey, getGroupScore]);
 
-  // Reset paging whenever any filter or sort changes so users always see
+  // Reset paging whenever any filter, sort, or view changes so users always see
   // matches from the top of the new view.
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
     scrollRef.current?.scrollTo({ top: 0 });
-  }, [query, statusFilter, sortKey]);
+  }, [query, statusFilter, sortKey, view]);
 
   const visibleGroups = sortedGroups.slice(0, visibleCount);
   const hasMore = visibleCount < sortedGroups.length;

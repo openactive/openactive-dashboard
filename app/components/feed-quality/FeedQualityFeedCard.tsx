@@ -1,5 +1,6 @@
 import { ExternalDataLink } from "./ExternalDataLink";
 import { FeedQualityStatusButton } from "./FeedQualityStatusButton";
+import { FeedVersionBadge } from "./FeedVersionBadge";
 import {
   COMPLETENESS_BANDS,
   VIEW_CONFIGS,
@@ -52,6 +53,7 @@ export function FeedQualityFeedCard({ feed, view, dataset }: FeedQualityFeedCard
           label={typeLabel}
           className="text-sm font-medium text-oa-grey-800"
         />
+        <FeedVersionBadge version={feed.feed_version} />
       </div>
 
       <dl className="grid grid-cols-3 gap-1.5">

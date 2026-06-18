@@ -5,9 +5,12 @@ import { useFeedQuality } from "../../hooks/useFeedQuality";
 import { ErrorBanner } from "../ErrorBanner";
 import { FeedQualitySummary } from "./FeedQualitySummary";
 import { FeedQualityTable } from "./FeedQualityTable";
+import { FeedQualityViewToggle } from "./FeedQualityViewToggle";
+import type { FeedQualityView } from "../../lib/feed-quality";
 
 export function FeedQualitySection() {
   const [enabled, setEnabled] = useState(false);
+  const [view, setView] = useState<FeedQualityView>("data");
   const sectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -80,7 +83,10 @@ export function FeedQualitySection() {
           ) : (
             <>
               <FeedQualitySummary {...counts} />
-              <FeedQualityTable groups={groups} view="data" />
+              <div className="flex">
+                <FeedQualityViewToggle value={view} onChange={setView} />
+              </div>
+              <FeedQualityTable groups={groups} view={view} />
             </>
           )}
         </div>
