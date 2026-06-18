@@ -15,14 +15,16 @@ import {
 } from "./FeedQualityStatusFilter";
 import {
   STATUS_RANK,
+  VIEW_CONFIGS,
   getGroupActivityCount,
-  getGroupQualityScore,
   type FeedQualityGroup,
+  type FeedQualityView,
 } from "../../lib/feed-quality";
 import type { FeedStatus } from "../../types/feed-quality";
 
 interface FeedQualityTableProps {
   groups: FeedQualityGroup[];
+  view: FeedQualityView;
 }
 
 const PAGE_SIZE = 10;
@@ -35,27 +37,12 @@ interface Column {
   hint?: string;
 }
 
-const COLUMNS: Column[] = [
+const STATIC_LEFT_COLUMNS: Column[] = [
   { key: "status", label: "Status", srOnly: true, align: "center" },
   { key: "feed", label: "Feed", align: "left" },
-  {
-    key: "quality",
-    label: "Quality",
-    align: "center",
-    hint: "Average completeness across location, activity/facility, and start and end dates",
-  },
-  {
-    key: "location",
-    label: "Location",
-    align: "center",
-    hint: "% of future items with a geographic location",
-  },
-  {
-    key: "activity",
-    label: "Activity / Facility",
-    align: "center",
-    hint: "% of future items naming an activity or facility",
-  },
+];
+
+const STATIC_RIGHT_COLUMNS: Column[] = [
   {
     key: "items",
     label: "Future items",
@@ -70,7 +57,27 @@ const COLUMNS: Column[] = [
   },
 ];
 
-export function FeedQualityTable({ groups }: FeedQualityTableProps) {
+function buildColumns(view: FeedQualityView): Column[] {
+  const config = VIEW_CONFIGS[view];
+  return [
+    ...STATIC_LEFT_COLUMNS,
+    {
+      key: "quality",
+      label: "Quality",
+      align: "center",
+      hint: config.qualityHint,
+    },
+    ...config.completenessColumns.map((col) => ({
+      key: col.key,
+      label: col.label,
+      align: "center" as const,
+      hint: col.hint,
+    })),
+    ...STATIC_RIGHT_COLUMNS,
+  ];
+}
+
+export function FeedQualityTable({ groups, view }: FeedQualityTableProps) {
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -78,6 +85,9 @@ export function FeedQualityTable({ groups }: FeedQualityTableProps) {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const scrollRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
+
+  const columns = useMemo(() => buildColumns(view), [view]);
+  const getGroupScore = VIEW_CONFIGS[view].getGroupScore;
 
   // Counts run on the unfiltered groups so the chips always show the totals,
   // not the filtered subset (otherwise switching to "Errors" hides the others).
@@ -126,7 +136,7 @@ export function FeedQualityTable({ groups }: FeedQualityTableProps) {
         // the bottom. Tie-break alphabetically so stable visually.
         return arr.sort(
           (a, b) =>
-            getGroupQualityScore(b) - getGroupQualityScore(a) || byName(a, b)
+            getGroupScore(b) - getGroupScore(a) || byName(a, b)
         );
       case "activities-most":
         return arr.sort(
@@ -138,7 +148,7 @@ export function FeedQualityTable({ groups }: FeedQualityTableProps) {
         // keeps the function returning a value if the union ever widens.
         return arr;
     }
-  }, [filteredGroups, sortKey]);
+  }, [filteredGroups, sortKey, getGroupScore]);
 
   // Reset paging whenever any filter or sort changes so users always see
   // matches from the top of the new view.
@@ -292,7 +302,7 @@ export function FeedQualityTable({ groups }: FeedQualityTableProps) {
             </caption>
             <thead className="sticky top-0 z-10">
               <tr>
-                {COLUMNS.map((col) => (
+                {columns.map((col) => (
                   <th
                     key={col.key}
                     scope="col"
@@ -318,9 +328,10 @@ export function FeedQualityTable({ groups }: FeedQualityTableProps) {
               <FeedQualityDatasetGroup
                 key={group.datasetUrl}
                 group={group}
+                view={view}
                 collapsed={collapsed.has(group.datasetUrl)}
                 onToggle={() => toggle(group.datasetUrl)}
-                columnCount={COLUMNS.length}
+                columnCount={columns.length}
               />
             ))}
           </table>
@@ -330,6 +341,7 @@ export function FeedQualityTable({ groups }: FeedQualityTableProps) {
               <FeedQualityDatasetCard
                 key={group.datasetUrl}
                 group={group}
+                view={view}
                 collapsed={collapsed.has(group.datasetUrl)}
                 onToggle={() => toggle(group.datasetUrl)}
               />

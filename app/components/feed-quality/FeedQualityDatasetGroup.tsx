@@ -3,10 +3,15 @@
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { ExternalDataLink } from "./ExternalDataLink";
 import { FeedQualityFeedRow } from "./FeedQualityFeedRow";
-import { STATUS_DOT_CLASS, type FeedQualityGroup } from "../../lib/feed-quality";
+import {
+  STATUS_DOT_CLASS,
+  type FeedQualityGroup,
+  type FeedQualityView,
+} from "../../lib/feed-quality";
 
 interface FeedQualityDatasetGroupProps {
   group: FeedQualityGroup;
+  view: FeedQualityView;
   collapsed: boolean;
   onToggle: () => void;
   // Number of columns the table renders; used by the group header to span them.
@@ -15,6 +20,7 @@ interface FeedQualityDatasetGroupProps {
 
 export function FeedQualityDatasetGroup({
   group,
+  view,
   collapsed,
   onToggle,
   columnCount,
@@ -24,6 +30,7 @@ export function FeedQualityDatasetGroup({
       <tbody>
         <FeedQualityFeedRow
           feed={group.feeds[0]}
+          view={view}
           dataset={{ name: group.datasetName, worstStatus: group.worstStatus }}
         />
       </tbody>
@@ -72,7 +79,7 @@ export function FeedQualityDatasetGroup({
       </tr>
       {!collapsed &&
         group.feeds.map((feed) => (
-          <FeedQualityFeedRow key={feed.feed_url} feed={feed} />
+          <FeedQualityFeedRow key={feed.feed_url} feed={feed} view={view} />
         ))}
     </tbody>
   );

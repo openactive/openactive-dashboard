@@ -80,7 +80,7 @@ export function FeedQualitySection() {
           ) : (
             <>
               <FeedQualitySummary {...counts} />
-              <FeedQualityTable groups={groups} />
+              <FeedQualityTable groups={groups} view="data" />
             </>
           )}
         </div>
