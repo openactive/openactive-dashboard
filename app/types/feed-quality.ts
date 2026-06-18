@@ -17,6 +17,10 @@ export interface FeedQualityRow {
   end_date_completeness: number | null;
   activities_completeness: number | null;
   facilities_completeness: number | null;
+  age_range_completeness: number | null;
+  level_completeness: number | null;
+  accessibility_support_completeness: number | null;
+  gender_restriction_completeness: number | null;
   num_future_opportunity_items: number;
   feed_version: string;
   last_assessed: string;
