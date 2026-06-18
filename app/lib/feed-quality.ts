@@ -84,6 +84,27 @@ export function getGroupQualityScore(group: FeedQualityGroup): number {
   return scores.reduce((sum, v) => sum + v, 0) / scores.length;
 }
 
+// Average of the four optional content fields the content-quality view
+// colours in. Null when no field has a value.
+export function getContentScore(row: FeedQualityRow): number | null {
+  const values = [
+    row.age_range_completeness,
+    row.level_completeness,
+    row.accessibility_support_completeness,
+    row.gender_restriction_completeness,
+  ].filter((v): v is number => v !== null);
+  if (values.length === 0) return null;
+  return values.reduce((sum, v) => sum + v, 0) / values.length;
+}
+
+export function getGroupContentScore(group: FeedQualityGroup): number {
+  const scores = group.feeds
+    .map(getContentScore)
+    .filter((v): v is number => v !== null);
+  if (scores.length === 0) return -1;
+  return scores.reduce((sum, v) => sum + v, 0) / scores.length;
+}
+
 export function getGroupActivityCount(group: FeedQualityGroup): number {
   return group.feeds.reduce(
     (sum, f) => sum + f.num_future_opportunity_items,
@@ -192,3 +213,85 @@ export function formatLastAssessed(iso: string): {
 
   return { relative, absolute };
 }
+
+export type FeedQualityView = "data" | "content";
+
+export interface CompletenessColumn {
+  key: string;
+  label: string;
+  hint: string;
+  get: (row: FeedQualityRow) => number | null;
+}
+
+export interface FeedQualityViewConfig {
+  view: FeedQualityView;
+  label: string;
+  qualityHint: string;
+  getScore: (row: FeedQualityRow) => number | null;
+  getGroupScore: (group: FeedQualityGroup) => number;
+  completenessColumns: readonly CompletenessColumn[];
+}
+
+export const FEED_QUALITY_VIEWS: readonly FeedQualityView[] = [
+  "data",
+  "content",
+];
+
+export const VIEW_CONFIGS: Record<FeedQualityView, FeedQualityViewConfig> = {
+  data: {
+    view: "data",
+    label: "Data completeness",
+    qualityHint:
+      "Average completeness across location, activity/facility, and start and end dates",
+    getScore: getQualityScore,
+    getGroupScore: getGroupQualityScore,
+    completenessColumns: [
+      {
+        key: "location",
+        label: "Location",
+        hint: "% of future items with a geographic location",
+        get: (r) => r.location_completeness,
+      },
+      {
+        key: "activity",
+        label: "Activity / Facility",
+        hint: "% of future items naming an activity or facility",
+        get: getActivityOrFacilityCompleteness,
+      },
+    ],
+  },
+  content: {
+    view: "content",
+    label: "Content quality",
+    qualityHint:
+      "Average completeness across age range, level, accessibility support, and gender restriction",
+    getScore: getContentScore,
+    getGroupScore: getGroupContentScore,
+    completenessColumns: [
+      {
+        key: "age-range",
+        label: "Age range",
+        hint: "% of future items with an age range",
+        get: (r) => r.age_range_completeness,
+      },
+      {
+        key: "level",
+        label: "Level",
+        hint: "% of future items naming a difficulty level",
+        get: (r) => r.level_completeness,
+      },
+      {
+        key: "accessibility",
+        label: "Accessibility",
+        hint: "% of future items naming accessibility support",
+        get: (r) => r.accessibility_support_completeness,
+      },
+      {
+        key: "gender",
+        label: "Gender restriction",
+        hint: "% of future items naming a gender restriction",
+        get: (r) => r.gender_restriction_completeness,
+      },
+    ],
+  },
+};
