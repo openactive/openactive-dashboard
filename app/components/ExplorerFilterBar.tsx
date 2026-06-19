@@ -125,12 +125,13 @@ export function ExplorerFilterBar({
         </div>
         <div className={isOverlay || isSheet ? "" : "border-b border-oa-grey-200 p-4 md:border-b-0"}>
           <FilterDropdown
-            id="explorer-publisher"
-            label="Publisher"
+            id="explorer-activity"
+            label="Activity"
             layout={isSheet ? "sheet" : isOverlay ? "glass" : "field"}
-            options={publisherOptions}
-            value={filters.publisher}
-            onChange={onPublisherChange}
+            options={activityOptions}
+            mode="multi"
+            value={filters.activity}
+            onChange={onActivityChange}
             searchable
           />
         </div>
@@ -147,13 +148,12 @@ export function ExplorerFilterBar({
         </div>
         <div className={isOverlay || isSheet ? "" : "p-4"}>
           <FilterDropdown
-            id="explorer-activity"
-            label="Activity"
+            id="explorer-publisher"
+            label="Publisher"
             layout={isSheet ? "sheet" : isOverlay ? "glass" : "field"}
-            options={activityOptions}
-            mode="multi"
-            value={filters.activity}
-            onChange={onActivityChange}
+            options={publisherOptions}
+            value={filters.publisher}
+            onChange={onPublisherChange}
             searchable
           />
         </div>
