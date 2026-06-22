@@ -9,20 +9,12 @@ import { useFocusTrap } from "../hooks/useFocusTrap";
 import { getFocusableElements } from "../lib/focusable";
 
 const navLinks = [
-  { href: "/", label: "Dashboard" },
   { href: "/#data", label: "Explore Data" },
+  { href: "/#feed-quality", label: "Feed Quality" },
   {
     href: "https://www.openactive.io/about/",
     label: "About",
     external: true,
-  },
-];
-
-const utilityLinks = [
-  { href: "https://www.openactive.io/developers/", label: "For developers" },
-  {
-    href: "https://www.openactive.io/find-an-openactive-partner/",
-    label: "Find an OpenActive Partner",
   },
 ];
 
@@ -50,7 +42,7 @@ export function Header() {
 
   return (
     <header className="relative bg-white border-b border-oa-grey-200" role="banner">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[89rem] px-4 sm:px-6 lg:px-8">
         {/* Desktop layout */}
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -67,53 +59,33 @@ export function Header() {
             />
           </Link>
 
-          {/* Desktop navigation */}
-          <div className="hidden md:flex md:flex-col md:items-end md:gap-2">
-            {/* Utility links */}
-            <ul className="flex gap-6" aria-label="Utility links">
-              {utilityLinks.map((link) => (
+          {/* Main nav */}
+          <nav aria-label="Main navigation links" className="hidden md:block">
+            <ul className="flex gap-1">
+              {navLinks.map((link) => (
                 <li key={link.href}>
-                  <a
-                    href={link.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm font-light text-oa-blue hover:text-oa-purple transition-colors"
-                  >
-                    {link.label}
-                    <span className="sr-only"> (opens in new tab)</span>
-                  </a>
+                  {link.external ? (
+                    <a
+                      href={link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="relative px-4 py-2 text-sm font-medium text-oa-indigo hover:text-oa-purple transition-colors after:absolute after:bottom-0 after:left-4 after:right-4 after:h-0.5 after:bg-oa-purple after:scale-x-0 after:origin-center after:transition-transform hover:after:scale-x-100"
+                    >
+                      {link.label}
+                      <span className="sr-only"> (opens in new tab)</span>
+                    </a>
+                  ) : (
+                    <Link
+                      href={link.href}
+                      className="relative px-4 py-2 text-sm font-medium text-oa-indigo hover:text-oa-purple transition-colors after:absolute after:bottom-0 after:left-4 after:right-4 after:h-0.5 after:bg-oa-purple after:scale-x-0 after:origin-center after:transition-transform hover:after:scale-x-100"
+                    >
+                      {link.label}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>
-
-            {/* Main nav */}
-            <nav aria-label="Main navigation">
-              <ul className="flex gap-1">
-                {navLinks.map((link) => (
-                  <li key={link.href}>
-                    {link.external ? (
-                      <a
-                        href={link.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="relative px-4 py-2 text-sm font-medium text-oa-indigo hover:text-oa-purple transition-colors after:absolute after:bottom-0 after:left-4 after:right-4 after:h-0.5 after:bg-oa-purple after:scale-x-0 after:origin-center after:transition-transform hover:after:scale-x-100"
-                      >
-                        {link.label}
-                        <span className="sr-only"> (opens in new tab)</span>
-                      </a>
-                    ) : (
-                      <Link
-                        href={link.href}
-                        className="relative px-4 py-2 text-sm font-medium text-oa-indigo hover:text-oa-purple transition-colors after:absolute after:bottom-0 after:left-4 after:right-4 after:h-0.5 after:bg-oa-purple after:scale-x-0 after:origin-center after:transition-transform hover:after:scale-x-100"
-                      >
-                        {link.label}
-                      </Link>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          </div>
+          </nav>
 
           {/* Mobile menu button */}
           <button
@@ -164,21 +136,6 @@ export function Header() {
                       {link.label}
                     </Link>
                   )}
-                </li>
-              ))}
-            </ul>
-            <ul className="mt-4 pt-4 border-t border-oa-grey-100 space-y-2 px-4" aria-label="Utility links">
-              {utilityLinks.map((link) => (
-                <li key={link.href}>
-                  <a
-                    href={link.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block px-3 py-2 text-sm text-oa-blue hover:bg-oa-grey-50 rounded-md focus:outline-none focus:ring-2 focus:ring-oa-indigo"
-                  >
-                    {link.label}
-                    <span className="sr-only"> (opens in new tab)</span>
-                  </a>
                 </li>
               ))}
             </ul>
