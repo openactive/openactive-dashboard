@@ -289,7 +289,7 @@ export function FeedQualityTable({ groups, view }: FeedQualityTableProps) {
       ) : (
         <div
           ref={scrollRef}
-          className="max-h-[40rem] overflow-auto rounded-sm bg-oa-grey-50 p-2 lg:bg-white lg:p-0 lg:ring-1 lg:ring-oa-grey-200"
+          className="relative max-h-[40rem] overflow-auto overscroll-contain rounded-sm bg-oa-grey-50 p-2 lg:bg-white lg:p-0 lg:ring-1 lg:ring-oa-grey-200"
         >
           <table
             id="feed-quality-table"
