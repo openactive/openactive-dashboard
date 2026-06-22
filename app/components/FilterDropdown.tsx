@@ -8,6 +8,7 @@ import {
   FILTER_EMPTY_VALUE,
   FILTER_LOADING_VALUE,
 } from "../lib/explore-filters";
+import { isCoarsePointer } from "../lib/pointer";
 import {
   EXPLORER_GLASS_BACKDROP_BLUR_MD,
   EXPLORER_LABEL_BASE,
@@ -263,6 +264,8 @@ export function FilterDropdown(props: FilterDropdownProps) {
       return;
     }
     if (!searchable) return;
+    
+    if (isCoarsePointer()) return;
     requestAnimationFrame(() => searchInputRef.current?.focus());
   }, [open, searchable]);
 
