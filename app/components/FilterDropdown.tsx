@@ -23,6 +23,8 @@ import {
 export type FilterOption = ListboxOption;
 
 const MULTI_DEBOUNCE_MS = 300;
+
+const SHEET_PANEL_MAX_HEIGHT = 300;
 const MAX_VISIBLE_PILLS = 2;
 
 function isMessageOption(option: FilterOption): boolean {
@@ -296,11 +298,12 @@ export function FilterDropdown(props: FilterDropdownProps) {
       if (!el) return;
       const r = el.getBoundingClientRect();
       const margin = 8;
+      const available = window.innerHeight - r.bottom - margin;
       setSheetCoords({
         top: r.bottom + 4,
         left: r.left,
         width: r.width,
-        maxHeight: window.innerHeight - r.bottom - margin,
+        maxHeight: Math.min(available, SHEET_PANEL_MAX_HEIGHT),
       });
     };
     compute();
