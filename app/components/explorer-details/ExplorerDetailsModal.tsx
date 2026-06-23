@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { ArrowRightIcon, XMarkIcon } from "@heroicons/react/20/solid";
 import { useEscapeClose } from "../../hooks/useEscapeClose";
 import { formatFullNumber, formatNumber } from "../../lib/format";
@@ -46,10 +47,11 @@ export function ExplorerDetailsModal({
   }, [open]);
 
   if (!open) return null;
+  if (typeof document === "undefined") return null;
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-oa-navy/60 p-0 backdrop-blur-sm sm:items-center sm:p-6"
+      className="fixed inset-x-0 top-0 z-50 flex h-[100dvh] items-center justify-center bg-oa-navy/60 p-4 backdrop-blur-sm sm:p-6"
       onClick={onClose}
       role="presentation"
     >
@@ -57,7 +59,7 @@ export function ExplorerDetailsModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby={TITLE_ID}
-        className="relative flex max-h-[92dvh] w-full max-w-3xl flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:rounded-2xl"
+        className="relative flex max-h-full w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
         onClick={(event) => event.stopPropagation()}
       >
         <header className="flex items-start justify-between gap-4 border-b-4 border-oa-cyan bg-oa-navy px-6 py-5">
@@ -84,7 +86,7 @@ export function ExplorerDetailsModal({
           </button>
         </header>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto overscroll-contain">
           <div className="grid gap-x-8 gap-y-6 px-6 py-6 sm:grid-cols-2">
             <section aria-labelledby="details-headline">
               <h3
@@ -203,6 +205,7 @@ export function ExplorerDetailsModal({
           </div>
         </aside>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
