@@ -7,6 +7,7 @@ import { useDisclosureTriggerKeyDown } from "../../hooks/useDisclosureTriggerKey
 import { useEscapeClose } from "../../hooks/useEscapeClose";
 import { useFocusLeaveClose } from "../../hooks/useFocusLeaveClose";
 import { useTabExitClose } from "../../hooks/useTabExitClose";
+import { isCoarsePointer } from "../../lib/pointer";
 import type { ExplorerFilters } from "../../lib/explore-filters";
 import type { GeoHierarchy } from "../../lib/geo-hierarchy";
 import { getAreaSelectionLabel } from "../../lib/geo-hierarchy";
@@ -78,6 +79,10 @@ export function AreaHierarchyPicker({
   const handleTabExit = useTabExitClose(containerRef, open, closePicker);
 
   const focusPanelEntry = useCallback(() => {
+    // On touch, moving focus into the panel (especially the search input)
+    // pops the soft keyboard and reflows the layout, which cancels the next
+    // tap meant to close the picker. Leave focus on the trigger instead.
+    if (isCoarsePointer()) return;
     requestAnimationFrame(() => {
       const input = document.getElementById(
         `${listboxId}-search`

@@ -6,7 +6,8 @@ import { useCallback, type RefObject } from "react";
 export function useFocusLeaveClose(
   containerRef: RefObject<HTMLElement | null>,
   enabled: boolean,
-  onClose: () => void
+  onClose: () => void,
+  secondaryRef?: RefObject<HTMLElement | null>
 ) {
   return useCallback(
     (event: React.FocusEvent) => {
@@ -15,8 +16,9 @@ export function useFocusLeaveClose(
 
       if (!next) return;
       if (containerRef.current?.contains(next)) return;
+      if (secondaryRef?.current?.contains(next)) return;
       onClose();
     },
-    [containerRef, enabled, onClose]
+    [containerRef, enabled, onClose, secondaryRef]
   );
 }

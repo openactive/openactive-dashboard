@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type RefObject,
+} from "react";
 import { useClickOutside } from "./useClickOutside";
 import { useDisclosureTriggerKeyDown } from "./useDisclosureTriggerKeyDown";
 import { useEscapeClose } from "./useEscapeClose";
@@ -17,6 +24,8 @@ type UseListboxParams = {
   idPrefix?: string;
   focusOptionOnOpen?: boolean;
   typeahead?: boolean;
+  /** A region outside the root that also counts as inside (e.g. a portal). */
+  outsideRef?: RefObject<HTMLElement | null>;
 };
 
 /** Listbox where Tab moves between option buttons (matches the area picker). */
@@ -27,6 +36,7 @@ export function useListbox({
   idPrefix,
   focusOptionOnOpen = true,
   typeahead = true,
+  outsideRef,
 }: UseListboxParams) {
   const autoId = useId();
   const baseId = idPrefix ?? `listbox-${autoId}`;
@@ -147,7 +157,7 @@ export function useListbox({
   );
 
   const closeOnClickOutside = useCallback(() => setOpen(false), []);
-  useClickOutside(rootRef, open, closeOnClickOutside);
+  useClickOutside(rootRef, open, closeOnClickOutside, outsideRef);
   useEscapeClose(open, closeListbox);
 
   const handleTriggerKeyDown = useDisclosureTriggerKeyDown({
@@ -156,7 +166,12 @@ export function useListbox({
     onClose: closeListbox,
   });
 
-  const handleFocusLeave = useFocusLeaveClose(rootRef, open, closeOnClickOutside);
+  const handleFocusLeave = useFocusLeaveClose(
+    rootRef,
+    open,
+    closeOnClickOutside,
+    outsideRef
+  );
   const handleTabExit = useTabExitClose(rootRef, open, closeOnClickOutside);
 
   const handleRootKeyDown = useCallback(
