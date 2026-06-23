@@ -109,9 +109,6 @@ export function FilterDropdown(props: FilterDropdownProps) {
   const isField = layout === "field" || isGlass || isSheet;
   const searchId = useId();
   const searchInputRef = useRef<HTMLInputElement>(null);
-  // The sheet dropdown is portaled out of the explorer's overflow-hidden frame
-  // so it can open downward over the content below. This ref marks that
-  // portaled panel as "inside" for the close-on-outside / focus-leave logic.
   const portalRef = useRef<HTMLDivElement>(null);
   const [sheetCoords, setSheetCoords] = useState<{
     top: number;
@@ -285,9 +282,7 @@ export function FilterDropdown(props: FilterDropdownProps) {
 
   // Sheet layout: the options panel is portaled to the body so it escapes the
   // explorer's overflow-hidden frame and opens downward over the content
-  // below. Anchor it to the trigger and let it use the space down to the
-  // viewport bottom. Touch scroll is locked while the sheet is open, but
-  // recompute on resize/scroll so it stays put if the layout shifts.
+  // below. 
   useEffect(() => {
     if (!isSheet || !open) {
       setSheetCoords(null);
