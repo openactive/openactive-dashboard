@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { CheckIcon, ChevronDownIcon, XMarkIcon } from "@heroicons/react/20/solid";
 import { useListbox, type ListboxOption } from "../hooks/useListbox";
 import {
@@ -106,6 +107,16 @@ export function FilterDropdown(props: FilterDropdownProps) {
   const isField = layout === "field" || isGlass || isSheet;
   const searchId = useId();
   const searchInputRef = useRef<HTMLInputElement>(null);
+  // The sheet dropdown is portaled out of the explorer's overflow-hidden frame
+  // so it can open downward over the content below. This ref marks that
+  // portaled panel as "inside" for the close-on-outside / focus-leave logic.
+  const portalRef = useRef<HTMLDivElement>(null);
+  const [sheetCoords, setSheetCoords] = useState<{
+    top: number;
+    left: number;
+    width: number;
+    maxHeight: number;
+  } | null>(null);
   const [query, setQuery] = useState("");
 
   // Multi-select draft. Local Set for fast has/add/delete; synced from
@@ -240,6 +251,7 @@ export function FilterDropdown(props: FilterDropdownProps) {
     idPrefix: id,
     focusOptionOnOpen: !searchable && selectableOptions.length > 0,
     typeahead: !searchable,
+    outsideRef: portalRef,
   });
 
   // Multi mode: snapshot the parent value into the draft on open (handles
@@ -264,10 +276,41 @@ export function FilterDropdown(props: FilterDropdownProps) {
       return;
     }
     if (!searchable) return;
-    
+
     if (isCoarsePointer()) return;
     requestAnimationFrame(() => searchInputRef.current?.focus());
   }, [open, searchable]);
+
+  // Sheet layout: the options panel is portaled to the body so it escapes the
+  // explorer's overflow-hidden frame and opens downward over the content
+  // below. Anchor it to the trigger and let it use the space down to the
+  // viewport bottom. Touch scroll is locked while the sheet is open, but
+  // recompute on resize/scroll so it stays put if the layout shifts.
+  useEffect(() => {
+    if (!isSheet || !open) {
+      setSheetCoords(null);
+      return;
+    }
+    const compute = () => {
+      const el = triggerRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const margin = 8;
+      setSheetCoords({
+        top: r.bottom + 4,
+        left: r.left,
+        width: r.width,
+        maxHeight: window.innerHeight - r.bottom - margin,
+      });
+    };
+    compute();
+    window.addEventListener("resize", compute);
+    window.addEventListener("scroll", compute, true);
+    return () => {
+      window.removeEventListener("resize", compute);
+      window.removeEventListener("scroll", compute, true);
+    };
+  }, [isSheet, open, triggerRef]);
 
   const triggerClass = isGlass
     ? `flex w-full cursor-pointer items-center justify-between gap-2 ${EXPLORER_TRIGGER_GLASS_TAILWIND} font-medium`
@@ -277,9 +320,7 @@ export function FilterDropdown(props: FilterDropdownProps) {
 
   const listClass = isGlass
     ? `absolute left-0 right-0 z-50 mt-1 max-h-60 w-full max-w-full min-w-0 overflow-auto rounded-lg border border-white/90 bg-white/95 py-1 ${EXPLORER_SHADOW_LG} ${EXPLORER_GLASS_BACKDROP_BLUR_MD}`
-    : isSheet
-      ? `absolute left-0 right-0 z-50 mt-1 max-h-[min(28dvh,220px)] w-full max-w-full min-w-0 overflow-auto rounded-lg border border-oa-grey-200 bg-white py-1 ${EXPLORER_SHADOW_LG}`
-      : "absolute left-0 right-0 z-50 mt-1 max-h-60 w-full max-w-full min-w-0 overflow-auto rounded-lg border border-oa-grey-200 bg-white py-1 shadow-lg";
+    : "absolute left-0 right-0 z-50 mt-1 max-h-60 w-full max-w-full min-w-0 overflow-auto rounded-lg border border-oa-grey-200 bg-white py-1 shadow-lg";
 
   const optionList = (
     <>
@@ -421,6 +462,62 @@ export function FilterDropdown(props: FilterDropdownProps) {
     )
   ) : null;
 
+  // Sheet layout: render the same anchored card, but portal it to the body so
+  // it escapes the explorer's overflow-hidden frame and overlays the content
+  // below the trigger instead of being clipped or cramped inside the sheet.
+  const sheetPanel =
+    isSheet && open && sheetCoords && typeof document !== "undefined"
+      ? createPortal(
+          <div
+            ref={portalRef}
+            style={{
+              position: "fixed",
+              top: sheetCoords.top,
+              left: sheetCoords.left,
+              width: sheetCoords.width,
+              maxHeight: sheetCoords.maxHeight,
+            }}
+            className={`z-[60] flex flex-col overflow-hidden rounded-lg border border-oa-grey-200 bg-white ${EXPLORER_SHADOW_LG}`}
+          >
+            {searchable && hasSelectableSource && (
+              <div className="shrink-0 border-b border-oa-grey-200 bg-white px-2 py-2">
+                <label htmlFor={searchId} className="sr-only">
+                  Search {label.toLowerCase()}
+                </label>
+                <input
+                  ref={searchInputRef}
+                  id={searchId}
+                  type="search"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "ArrowDown") {
+                      e.preventDefault();
+                      listboxRef.current
+                        ?.querySelector<HTMLButtonElement>("button[role=option]")
+                        ?.focus();
+                    }
+                  }}
+                  placeholder={`Search ${label.toLowerCase()}…`}
+                  className="w-full rounded-sm border border-oa-grey-300 bg-white px-2 py-1.5 text-base text-oa-grey-800 placeholder:text-oa-grey-400 focus:border-oa-cyan focus:outline-none focus:ring-1 focus:ring-oa-cyan"
+                />
+              </div>
+            )}
+            <ul
+              ref={listboxRef}
+              id={listboxId}
+              role="listbox"
+              aria-multiselectable={isMulti || undefined}
+              aria-labelledby={labelId}
+              className="min-h-0 flex-1 overflow-y-auto overscroll-contain py-1"
+            >
+              {optionList}
+            </ul>
+          </div>,
+          document.body
+        )
+      : null;
+
   const root = (trigger: ReactNode) => (
     <div
       ref={rootRef}
@@ -429,7 +526,7 @@ export function FilterDropdown(props: FilterDropdownProps) {
       onKeyDown={handleRootKeyDown}
     >
       {trigger}
-      {listbox}
+      {isSheet ? sheetPanel : listbox}
     </div>
   );
 
