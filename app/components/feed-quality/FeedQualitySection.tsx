@@ -47,7 +47,7 @@ export function FeedQualitySection() {
       ref={sectionRef}
       id="feed-quality"
       tabIndex={-1}
-      className="scroll-mt-4 bg-white py-16 sm:py-20"
+      className="scroll-mt-4 bg-white py-5 sm:py-8"
       aria-labelledby="feed-quality-heading"
     >
       <div className="mx-auto w-full max-w-448 px-4 sm:px-6 lg:px-8 2xl:px-12">
