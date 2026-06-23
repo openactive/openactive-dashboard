@@ -55,6 +55,11 @@ export function HeroSection() {
         </div>
 
         <StatsStrip />
+
+        {/* Daily refresh note */}
+        <p className="mt-4 text-center text-sm text-white/60">
+          Figures refresh every day to reflect the latest open data.
+        </p>
       </div>
     </section>
   );
