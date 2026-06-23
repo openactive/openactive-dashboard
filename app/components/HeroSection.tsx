@@ -4,7 +4,7 @@ import { StatsStrip } from "./StatsStrip";
 export function HeroSection() {
   return (
     <section
-      className="relative min-h-[90vh] flex items-center overflow-hidden bg-oa-navy"
+      className="relative min-h-[90svh] flex items-center overflow-hidden bg-oa-navy"
       aria-labelledby="hero-heading"
     >
       <div className="mx-auto w-full max-w-448 px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-16 2xl:px-12">
