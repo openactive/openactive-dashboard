@@ -28,7 +28,7 @@ export function FeedQualityStatusFilter({
     <div
       role="group"
       aria-label="Filter publishers by status"
-      className="no-scrollbar -mx-1 flex items-center gap-1.5 overflow-x-auto px-1 pb-1"
+      className="no-scrollbar relative -mx-1 flex items-center gap-1.5 overflow-x-auto px-1 pb-1"
     >
       <Chip
         label="All"
