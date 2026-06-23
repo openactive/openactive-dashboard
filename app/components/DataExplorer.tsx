@@ -266,7 +266,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
 
       {/* Mobile / tablet: map fills the frame, chrome docks at the bottom. */}
       <div
-        className={`relative mt-4 min-h-[min(88vh,780px)] overflow-hidden rounded-xl shadow-[0_12px_48px_rgba(34,53,130,0.12)] ring-1 ring-oa-grey-300/60 lg:hidden ${
+        className={`relative mt-4 min-h-[min(88svh,780px)] overflow-hidden rounded-xl shadow-[0_12px_48px_rgba(34,53,130,0.12)] ring-1 ring-oa-grey-300/60 lg:hidden ${
           mobilePanel !== "none" ? "max-lg:touch-none" : ""
         }`}
       >

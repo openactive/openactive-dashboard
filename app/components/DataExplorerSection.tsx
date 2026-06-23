@@ -13,7 +13,7 @@ export function DataExplorerSection() {
     <section
       id="data"
       tabIndex={-1}
-      className="scroll-mt-4 bg-oa-grey-50 py-16 sm:py-20"
+      className="scroll-mt-4 bg-oa-grey-50 py-5 sm:py-8"
       aria-labelledby="explorer-heading"
     >
       <div className="mx-auto w-full max-w-448 px-4 sm:px-6 lg:px-8 2xl:px-12">

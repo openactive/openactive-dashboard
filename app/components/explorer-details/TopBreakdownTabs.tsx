@@ -71,7 +71,7 @@ export function TopBreakdownTabs({ tabs }: TopBreakdownTabsProps) {
         role="tablist"
         aria-label="Top breakdowns"
         aria-orientation="horizontal"
-        className="-mx-1 flex gap-1 overflow-x-auto border-b border-oa-grey-200 px-1 [scrollbar-width:thin]"
+        className="relative -mx-1 flex gap-1 overflow-x-auto overflow-y-hidden border-b border-oa-grey-200 px-1 [scrollbar-width:thin]"
       >
         {tabs.map((tab, index) => {
           const selected = tab.key === active;

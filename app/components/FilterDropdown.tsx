@@ -248,7 +248,8 @@ export function FilterDropdown(props: FilterDropdownProps) {
       ? () => {}
       : (props as FilterDropdownSingleProps).onChange,
     idPrefix: id,
-    focusOptionOnOpen: !searchable && selectableOptions.length > 0,
+    focusOptionOnOpen:
+      !searchable && selectableOptions.length > 0 && !isCoarsePointer(),
     typeahead: !searchable,
     outsideRef: portalRef,
   });
