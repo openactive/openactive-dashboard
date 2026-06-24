@@ -1,14 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ALL_FILTER } from "../lib/explore-filters";
 import { transformAreasToHierarchy } from "../lib/areas-to-hierarchy";
 import type { GeoHierarchy } from "../lib/geo-hierarchy";
 import { getAllAreas } from "../services/areas";
 
 interface Params {
   publisher: string[];
-  organization: string;
+  organization: string[];
   activity: string[];
   fallback: GeoHierarchy;
 }
@@ -30,7 +29,7 @@ export function useReactiveAreaHierarchy({
 
   useEffect(() => {
     const hasPublisher = publisher.length > 0;
-    const hasOrganization = organization && organization !== ALL_FILTER;
+    const hasOrganization = organization.length > 0;
     const hasActivity = activity.length > 0;
 
     if (!hasPublisher && !hasOrganization && !hasActivity) {

@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
-  ALL_FILTER,
   EXPLORER_TOP_LIMIT,
   type DistrictCount,
   type ExplorerFilters,
@@ -153,7 +152,7 @@ export function useReactiveOpportunities({
   const query: OpportunitiesQuery = {
     ...locationQuery,
     ...(filters.publisher.length > 0 ? { publisher: filters.publisher } : {}),
-    ...(filters.organization !== ALL_FILTER ? { organization: filters.organization } : {}),
+    ...(filters.organization.length > 0 ? { organization: filters.organization } : {}),
     ...(filters.activity.length > 0 ? { activity: filters.activity } : {}),
   };
   const cacheKey = JSON.stringify(query);

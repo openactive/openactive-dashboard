@@ -31,13 +31,13 @@ type UseLocationScopedFilterOptionsParams = {
   fetchNames: (
     query: LocationQuery & {
       publisher?: string[];
-      organization?: string;
+      organization?: string[];
       activity?: string[];
     }
   ) => Promise<string[]>;
   onFetched?: (names: string[]) => void;
   publisher?: string[];
-  organization?: string;
+  organization?: string[];
   activity?: string[];
 };
 
@@ -71,7 +71,7 @@ export function useLocationScopedFilterOptions({
     const query = {
       ...buildLocationFilterQuery(filters, maps),
       ...(publisher && publisher.length > 0 ? { publisher } : {}),
-      ...(organization && organization !== ALL_FILTER ? { organization } : {}),
+      ...(organization && organization.length > 0 ? { organization } : {}),
       ...(activity && activity.length > 0 ? { activity } : {}),
     };
     const cacheKey = JSON.stringify({ query, item });

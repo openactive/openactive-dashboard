@@ -14,7 +14,7 @@ export async function getAllAreas(
   const params = new URLSearchParams();
 
   if (query.publisher?.length) params.set("publisher", query.publisher.join(","));
-  if (query.organization) params.set("organization", query.organization);
+  if (query.organization?.length) params.set("organization", query.organization.join(","));
   if (query.activity?.length) params.set("activity", query.activity.join(","));
 
   const path = params.size > 0 ? `/areas?${params.toString()}` : "/areas";

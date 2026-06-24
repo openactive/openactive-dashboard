@@ -4,6 +4,6 @@ export type PublishersQuery = {
   district?: string;
   region?: string;
   country?: string;
-  organization?: string;
+  organization?: string[];
   activity?: string[];
 };

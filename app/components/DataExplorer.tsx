@@ -50,13 +50,6 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     fallback: hierarchy,
   });
 
-  const updateFilter = useCallback(
-    (key: keyof ExplorerFilters, value: string) => {
-      setFilters((current) => ({ ...current, [key]: value }));
-    },
-    []
-  );
-
   const onPublisherChange = useCallback(
     (values: string[]) =>
       setFilters((current) => ({ ...current, publisher: values })),
@@ -64,8 +57,9 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
   );
 
   const onOrganizationChange = useCallback(
-    (value: string) => updateFilter("organization", value),
-    [updateFilter]
+    (values: string[]) =>
+      setFilters((current) => ({ ...current, organization: values })),
+    []
   );
 
   const onActivityChange = useCallback(
@@ -110,14 +104,12 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
 
   const onOrganizationsFetched = useCallback((names: string[]) => {
     setFilters((current) => {
-      if (
-        names.length === 0 ||
-        (current.organization !== ALL_FILTER &&
-          !names.includes(current.organization))
-      ) {
-        return { ...current, organization: ALL_FILTER };
-      }
-      return current;
+      if (current.organization.length === 0) return current;
+      if (names.length === 0) return { ...current, organization: [] };
+      const allowed = new Set(names);
+      const next = current.organization.filter((o) => allowed.has(o));
+      if (next.length === current.organization.length) return current;
+      return { ...current, organization: next };
     });
   }, []);
 
