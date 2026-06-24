@@ -1,17 +1,17 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ALL_FILTER } from "../lib/explore-filters";
+import type { ExplorerFilters } from "../lib/explore-filters";
 import { transformAreasToHierarchy } from "../lib/areas-to-hierarchy";
 import type { GeoHierarchy } from "../lib/geo-hierarchy";
 import { getAllAreas } from "../services/areas";
 
-interface Params {
-  publisher: string;
-  organization: string;
-  activity: string[];
+type Params = Pick<
+  ExplorerFilters,
+  "publisher" | "organization" | "activity"
+> & {
   fallback: GeoHierarchy;
-}
+};
 
 /**
  * Hierarchy narrowed to the countries/regions/districts that contain
@@ -29,8 +29,8 @@ export function useReactiveAreaHierarchy({
   const cacheRef = useRef<Map<string, Promise<GeoHierarchy>>>(new Map());
 
   useEffect(() => {
-    const hasPublisher = publisher && publisher !== ALL_FILTER;
-    const hasOrganization = organization && organization !== ALL_FILTER;
+    const hasPublisher = publisher.length > 0;
+    const hasOrganization = organization.length > 0;
     const hasActivity = activity.length > 0;
 
     if (!hasPublisher && !hasOrganization && !hasActivity) {

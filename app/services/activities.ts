@@ -1,6 +1,7 @@
 "use server";
 
 import { apiFetch } from "./api-client";
+import { buildFilterParams } from "./filter-params";
 import type { ActivitiesQuery, ActivitiesResponse } from "../types/activities";
 
 /**
@@ -9,13 +10,7 @@ import type { ActivitiesQuery, ActivitiesResponse } from "../types/activities";
 export async function getActivities(
   query: ActivitiesQuery = {}
 ): Promise<ActivitiesResponse> {
-  const params = new URLSearchParams();
-
-  if (query.district) params.set("district", query.district);
-  if (query.region) params.set("region", query.region);
-  if (query.country) params.set("country", query.country);
-  if (query.publisher) params.set("publisher", query.publisher);
-  if (query.organization) params.set("organization", query.organization);
+  const params = buildFilterParams(query);
 
   const path = params.size > 0 ? `/activities?${params.toString()}` : "/activities";
   return apiFetch<ActivitiesResponse>(path, { revalidate: 300 });

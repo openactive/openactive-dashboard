@@ -2,24 +2,14 @@
 
 import { FilterDropdown } from "./FilterDropdown";
 import { AreaHierarchyPicker } from "./AreaHierarchyPicker";
-import type { GeoHierarchy } from "../lib/geo-hierarchy";
 import {
   ALL_FILTER,
   DEFAULT_EXPLORER_FILTERS,
-  type ExplorerFilterOption,
   type ExplorerFilters,
 } from "../lib/explore-filters";
+import type { ExplorerFilterControlProps } from "../lib/explorer-types";
 
-interface ExplorerFilterBarProps {
-  hierarchy: GeoHierarchy;
-  filters: ExplorerFilters;
-  publisherOptions: ExplorerFilterOption[];
-  organizationOptions: ExplorerFilterOption[];
-  activityOptions: ExplorerFilterOption[];
-  onFiltersChange: (filters: ExplorerFilters) => void;
-  onPublisherChange: (value: string) => void;
-  onOrganizationChange: (value: string) => void;
-  onActivityChange: (values: string[]) => void;
+interface ExplorerFilterBarProps extends ExplorerFilterControlProps {
   layout?: "stacked" | "overlay" | "sheet";
 }
 
@@ -27,8 +17,8 @@ function hasActiveFilters(filters: ExplorerFilters): boolean {
   return (
     filters.district !== ALL_FILTER ||
     filters.areaScope !== ALL_FILTER ||
-    filters.publisher !== ALL_FILTER ||
-    filters.organization !== ALL_FILTER ||
+    filters.publisher.length > 0 ||
+    filters.organization.length > 0 ||
     filters.activity.length > 0
   );
 }
@@ -141,6 +131,7 @@ export function ExplorerFilterBar({
             label="Activity/Facility Providers"
             layout={isSheet ? "sheet" : isOverlay ? "glass" : "field"}
             options={organizationOptions}
+            mode="multi"
             value={filters.organization}
             onChange={onOrganizationChange}
             searchable
@@ -152,6 +143,7 @@ export function ExplorerFilterBar({
             label="Publisher"
             layout={isSheet ? "sheet" : isOverlay ? "glass" : "field"}
             options={publisherOptions}
+            mode="multi"
             value={filters.publisher}
             onChange={onPublisherChange}
             searchable

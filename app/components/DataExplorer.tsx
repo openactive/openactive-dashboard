@@ -50,21 +50,16 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     fallback: hierarchy,
   });
 
-  const updateFilter = useCallback(
-    (key: keyof ExplorerFilters, value: string) => {
-      setFilters((current) => ({ ...current, [key]: value }));
-    },
+  const onPublisherChange = useCallback(
+    (values: string[]) =>
+      setFilters((current) => ({ ...current, publisher: values })),
     []
   );
 
-  const onPublisherChange = useCallback(
-    (value: string) => updateFilter("publisher", value),
-    [updateFilter]
-  );
-
   const onOrganizationChange = useCallback(
-    (value: string) => updateFilter("organization", value),
-    [updateFilter]
+    (values: string[]) =>
+      setFilters((current) => ({ ...current, organization: values })),
+    []
   );
 
   const onActivityChange = useCallback(
@@ -98,27 +93,23 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
 
   const onPublishersFetched = useCallback((names: string[]) => {
     setFilters((current) => {
-      if (
-        names.length === 0 ||
-        (current.publisher !== ALL_FILTER &&
-          !names.includes(current.publisher))
-      ) {
-        return { ...current, publisher: ALL_FILTER };
-      }
-      return current;
+      if (current.publisher.length === 0) return current;
+      if (names.length === 0) return { ...current, publisher: [] };
+      const allowed = new Set(names);
+      const next = current.publisher.filter((p) => allowed.has(p));
+      if (next.length === current.publisher.length) return current;
+      return { ...current, publisher: next };
     });
   }, []);
 
   const onOrganizationsFetched = useCallback((names: string[]) => {
     setFilters((current) => {
-      if (
-        names.length === 0 ||
-        (current.organization !== ALL_FILTER &&
-          !names.includes(current.organization))
-      ) {
-        return { ...current, organization: ALL_FILTER };
-      }
-      return current;
+      if (current.organization.length === 0) return current;
+      if (names.length === 0) return { ...current, organization: [] };
+      const allowed = new Set(names);
+      const next = current.organization.filter((o) => allowed.has(o));
+      if (next.length === current.organization.length) return current;
+      return { ...current, organization: next };
     });
   }, []);
 
