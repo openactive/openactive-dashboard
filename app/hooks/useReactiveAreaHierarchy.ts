@@ -7,7 +7,7 @@ import type { GeoHierarchy } from "../lib/geo-hierarchy";
 import { getAllAreas } from "../services/areas";
 
 interface Params {
-  publisher: string;
+  publisher: string[];
   organization: string;
   activity: string[];
   fallback: GeoHierarchy;
@@ -29,7 +29,7 @@ export function useReactiveAreaHierarchy({
   const cacheRef = useRef<Map<string, Promise<GeoHierarchy>>>(new Map());
 
   useEffect(() => {
-    const hasPublisher = publisher && publisher !== ALL_FILTER;
+    const hasPublisher = publisher.length > 0;
     const hasOrganization = organization && organization !== ALL_FILTER;
     const hasActivity = activity.length > 0;
 

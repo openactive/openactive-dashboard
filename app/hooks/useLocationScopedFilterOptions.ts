@@ -30,13 +30,13 @@ type UseLocationScopedFilterOptionsParams = {
   maps: CodeMaps;
   fetchNames: (
     query: LocationQuery & {
-      publisher?: string;
+      publisher?: string[];
       organization?: string;
       activity?: string[];
     }
   ) => Promise<string[]>;
   onFetched?: (names: string[]) => void;
-  publisher?: string;
+  publisher?: string[];
   organization?: string;
   activity?: string[];
 };
@@ -70,7 +70,7 @@ export function useLocationScopedFilterOptions({
   useEffect(() => {
     const query = {
       ...buildLocationFilterQuery(filters, maps),
-      ...(publisher && publisher !== ALL_FILTER ? { publisher } : {}),
+      ...(publisher && publisher.length > 0 ? { publisher } : {}),
       ...(organization && organization !== ALL_FILTER ? { organization } : {}),
       ...(activity && activity.length > 0 ? { activity } : {}),
     };

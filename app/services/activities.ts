@@ -14,7 +14,7 @@ export async function getActivities(
   if (query.district) params.set("district", query.district);
   if (query.region) params.set("region", query.region);
   if (query.country) params.set("country", query.country);
-  if (query.publisher) params.set("publisher", query.publisher);
+  if (query.publisher?.length) params.set("publisher", query.publisher.join(","));
   if (query.organization) params.set("organization", query.organization);
 
   const path = params.size > 0 ? `/activities?${params.toString()}` : "/activities";

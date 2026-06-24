@@ -14,7 +14,7 @@ interface ExplorerFilterControlProps {
   organizationOptions: ExplorerFilterOption[];
   activityOptions: ExplorerFilterOption[];
   onFiltersChange: (filters: ExplorerFilters) => void;
-  onPublisherChange: (value: string) => void;
+  onPublisherChange: (values: string[]) => void;
   onOrganizationChange: (value: string) => void;
   onActivityChange: (values: string[]) => void;
 }

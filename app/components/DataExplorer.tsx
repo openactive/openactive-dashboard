@@ -58,8 +58,9 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
   );
 
   const onPublisherChange = useCallback(
-    (value: string) => updateFilter("publisher", value),
-    [updateFilter]
+    (values: string[]) =>
+      setFilters((current) => ({ ...current, publisher: values })),
+    []
   );
 
   const onOrganizationChange = useCallback(
@@ -98,14 +99,12 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
 
   const onPublishersFetched = useCallback((names: string[]) => {
     setFilters((current) => {
-      if (
-        names.length === 0 ||
-        (current.publisher !== ALL_FILTER &&
-          !names.includes(current.publisher))
-      ) {
-        return { ...current, publisher: ALL_FILTER };
-      }
-      return current;
+      if (current.publisher.length === 0) return current;
+      if (names.length === 0) return { ...current, publisher: [] };
+      const allowed = new Set(names);
+      const next = current.publisher.filter((p) => allowed.has(p));
+      if (next.length === current.publisher.length) return current;
+      return { ...current, publisher: next };
     });
   }, []);
 

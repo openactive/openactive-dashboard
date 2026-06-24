@@ -13,7 +13,7 @@ export async function getAllAreas(
 ): Promise<AreasResponse> {
   const params = new URLSearchParams();
 
-  if (query.publisher) params.set("publisher", query.publisher);
+  if (query.publisher?.length) params.set("publisher", query.publisher.join(","));
   if (query.organization) params.set("organization", query.organization);
   if (query.activity?.length) params.set("activity", query.activity.join(","));
 

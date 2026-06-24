@@ -152,7 +152,7 @@ export function useReactiveOpportunities({
   const locationQuery = buildLocationFilterQuery(filters, maps);
   const query: OpportunitiesQuery = {
     ...locationQuery,
-    ...(filters.publisher !== ALL_FILTER ? { publisher: filters.publisher } : {}),
+    ...(filters.publisher.length > 0 ? { publisher: filters.publisher } : {}),
     ...(filters.organization !== ALL_FILTER ? { organization: filters.organization } : {}),
     ...(filters.activity.length > 0 ? { activity: filters.activity } : {}),
   };

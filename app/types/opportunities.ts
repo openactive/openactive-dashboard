@@ -27,7 +27,7 @@ export interface Opportunity {
 export type OpportunitiesResponse = Opportunity[];
 
 export type OpportunitiesQuery = {
-  publisher?: string;
+  publisher?: string[];
   organization?: string;
   district?: string;
   region?: string;

@@ -17,7 +17,7 @@ interface ExplorerFilterBarProps {
   organizationOptions: ExplorerFilterOption[];
   activityOptions: ExplorerFilterOption[];
   onFiltersChange: (filters: ExplorerFilters) => void;
-  onPublisherChange: (value: string) => void;
+  onPublisherChange: (values: string[]) => void;
   onOrganizationChange: (value: string) => void;
   onActivityChange: (values: string[]) => void;
   layout?: "stacked" | "overlay" | "sheet";
@@ -27,7 +27,7 @@ function hasActiveFilters(filters: ExplorerFilters): boolean {
   return (
     filters.district !== ALL_FILTER ||
     filters.areaScope !== ALL_FILTER ||
-    filters.publisher !== ALL_FILTER ||
+    filters.publisher.length > 0 ||
     filters.organization !== ALL_FILTER ||
     filters.activity.length > 0
   );
@@ -152,6 +152,7 @@ export function ExplorerFilterBar({
             label="Publisher"
             layout={isSheet ? "sheet" : isOverlay ? "glass" : "field"}
             options={publisherOptions}
+            mode="multi"
             value={filters.publisher}
             onChange={onPublisherChange}
             searchable
