@@ -20,7 +20,9 @@ import {
   type FeedQualityGroup,
   type FeedQualityView,
 } from "../../lib/feed-quality";
+import { COLUMN_GLOSSARY } from "../../lib/feed-quality-glossary";
 import type { FeedStatus } from "../../types/feed-quality";
+import { ColumnGlossaryIcon } from "./feed-quality-glossary-ui";
 
 interface FeedQualityTableProps {
   groups: FeedQualityGroup[];
@@ -47,13 +49,13 @@ const STATIC_RIGHT_COLUMNS: Column[] = [
     key: "items",
     label: "Future items",
     align: "right",
-    hint: "Items in this feed scheduled for the future",
+    hint: COLUMN_GLOSSARY.items.definition,
   },
   {
     key: "updated",
     label: "Last assessed",
     align: "left",
-    hint: "When OpenActive last ran a quality check on this feed",
+    hint: COLUMN_GLOSSARY.updated.definition,
   },
 ];
 
@@ -305,7 +307,6 @@ export function FeedQualityTable({ groups, view }: FeedQualityTableProps) {
                   <th
                     key={col.key}
                     scope="col"
-                    title={col.hint}
                     className={`bg-oa-navy px-3 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-white ${
                       col.align === "center"
                         ? "text-center"
@@ -317,7 +318,10 @@ export function FeedQualityTable({ groups, view }: FeedQualityTableProps) {
                     {col.srOnly ? (
                       <span className="sr-only">{col.label}</span>
                     ) : (
-                      col.label
+                      <span className="inline-flex items-center gap-1 align-middle">
+                        {col.label}
+                        <ColumnGlossaryIcon colKey={col.key} dark />
+                      </span>
                     )}
                   </th>
                 ))}
