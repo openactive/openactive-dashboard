@@ -2,6 +2,10 @@ import { ExternalDataLink } from "./ExternalDataLink";
 import { FeedQualityStatusButton } from "./FeedQualityStatusButton";
 import { FeedVersionBadge } from "./FeedVersionBadge";
 import {
+  ColumnGlossaryIcon,
+  FeedTypeGlossaryIcon,
+} from "./feed-quality-glossary-ui";
+import {
   COMPLETENESS_BANDS,
   VIEW_CONFIGS,
   formatLastAssessed,
@@ -54,12 +58,18 @@ export function FeedQualityFeedCard({ feed, view, dataset }: FeedQualityFeedCard
           className="text-sm font-medium text-oa-grey-800"
         />
         <FeedVersionBadge version={feed.feed_version} />
+        <FeedTypeGlossaryIcon feedType={feed.feed_type} />
       </div>
 
       <dl className="grid grid-cols-3 gap-1.5">
-        <Stat label="Quality" value={config.getScore(feed)} />
+        <Stat label="Quality" colKey="quality" value={config.getScore(feed)} />
         {config.completenessColumns.map((col) => (
-          <Stat key={col.key} label={col.label} value={col.get(feed)} />
+          <Stat
+            key={col.key}
+            label={col.label}
+            colKey={col.key}
+            value={col.get(feed)}
+          />
         ))}
       </dl>
 
@@ -78,13 +88,22 @@ export function FeedQualityFeedCard({ feed, view, dataset }: FeedQualityFeedCard
   );
 }
 
-function Stat({ label, value }: { label: string; value: number | null }) {
+function Stat({
+  label,
+  colKey,
+  value,
+}: {
+  label: string;
+  colKey: string;
+  value: number | null;
+}) {
   const band = getCompletenessBand(value);
   const { cellClass, label: bandLabel } = COMPLETENESS_BANDS[band];
   return (
     <div className="flex flex-col items-stretch gap-1 text-center">
-      <dt className="text-[10px] font-semibold uppercase tracking-[0.1em] text-oa-grey-500">
+      <dt className="flex items-center justify-center gap-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-oa-grey-500">
         {label}
+        <ColumnGlossaryIcon colKey={colKey} />
       </dt>
       <dd
         className={`flex h-8 items-center justify-center rounded-sm text-sm font-semibold tabular-nums ${cellClass}`}

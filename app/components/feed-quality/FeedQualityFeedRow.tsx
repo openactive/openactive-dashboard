@@ -2,6 +2,7 @@ import { ExternalDataLink } from "./ExternalDataLink";
 import { FeedQualityCell } from "./FeedQualityCell";
 import { FeedQualityStatusButton } from "./FeedQualityStatusButton";
 import { FeedVersionBadge } from "./FeedVersionBadge";
+import { FeedTypeGlossaryIcon } from "./feed-quality-glossary-ui";
 import {
   VIEW_CONFIGS,
   formatLastAssessed,
@@ -55,6 +56,7 @@ export function FeedQualityFeedRow({ feed, view, dataset }: FeedQualityFeedRowPr
                   className="text-xs text-oa-grey-600"
                 />
                 <FeedVersionBadge version={feed.feed_version} />
+                <FeedTypeGlossaryIcon feedType={feed.feed_type} />
               </div>
             </div>
           </div>
@@ -66,6 +68,7 @@ export function FeedQualityFeedRow({ feed, view, dataset }: FeedQualityFeedRowPr
               className="text-sm text-oa-grey-800"
             />
             <FeedVersionBadge version={feed.feed_version} />
+            <FeedTypeGlossaryIcon feedType={feed.feed_type} />
           </div>
         )}
       </td>

@@ -1,4 +1,5 @@
 import type { FeedQualityRow, FeedStatus } from "../types/feed-quality";
+import { COLUMN_GLOSSARY } from "./feed-quality-glossary";
 
 export const STATUS_LABELS: Record<FeedStatus, string> = {
   OK: "Healthy",
@@ -249,13 +250,13 @@ export const VIEW_CONFIGS: Record<FeedQualityView, FeedQualityViewConfig> = {
       {
         key: "location",
         label: "Location",
-        hint: "% of future items with a geographic location",
+        hint: COLUMN_GLOSSARY.location.definition,
         get: (r) => r.location_completeness,
       },
       {
         key: "activity",
         label: "Activity / Facility",
-        hint: "% of future items naming an activity or facility",
+        hint: COLUMN_GLOSSARY.activity.definition,
         get: getActivityOrFacilityCompleteness,
       },
     ],
@@ -271,25 +272,25 @@ export const VIEW_CONFIGS: Record<FeedQualityView, FeedQualityViewConfig> = {
       {
         key: "age-range",
         label: "Age range",
-        hint: "% of future items with an age range",
+        hint: COLUMN_GLOSSARY["age-range"].definition,
         get: (r) => r.age_range_completeness,
       },
       {
         key: "level",
         label: "Level",
-        hint: "% of future items naming a difficulty level",
+        hint: COLUMN_GLOSSARY.level.definition,
         get: (r) => r.level_completeness,
       },
       {
         key: "accessibility",
         label: "Accessibility",
-        hint: "% of future items naming accessibility support",
+        hint: COLUMN_GLOSSARY.accessibility.definition,
         get: (r) => r.accessibility_support_completeness,
       },
       {
         key: "gender",
         label: "Gender restriction",
-        hint: "% of future items naming a gender restriction",
+        hint: COLUMN_GLOSSARY.gender.definition,
         get: (r) => r.gender_restriction_completeness,
       },
     ],
