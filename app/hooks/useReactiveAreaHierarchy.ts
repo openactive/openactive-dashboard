@@ -1,16 +1,17 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { ExplorerFilters } from "../lib/explore-filters";
 import { transformAreasToHierarchy } from "../lib/areas-to-hierarchy";
 import type { GeoHierarchy } from "../lib/geo-hierarchy";
 import { getAllAreas } from "../services/areas";
 
-interface Params {
-  publisher: string[];
-  organization: string[];
-  activity: string[];
+type Params = Pick<
+  ExplorerFilters,
+  "publisher" | "organization" | "activity"
+> & {
   fallback: GeoHierarchy;
-}
+};
 
 /**
  * Hierarchy narrowed to the countries/regions/districts that contain

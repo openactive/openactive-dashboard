@@ -2,24 +2,14 @@
 
 import { FilterDropdown } from "./FilterDropdown";
 import { AreaHierarchyPicker } from "./AreaHierarchyPicker";
-import type { GeoHierarchy } from "../lib/geo-hierarchy";
 import {
   ALL_FILTER,
   DEFAULT_EXPLORER_FILTERS,
-  type ExplorerFilterOption,
   type ExplorerFilters,
 } from "../lib/explore-filters";
+import type { ExplorerFilterControlProps } from "../lib/explorer-types";
 
-interface ExplorerFilterBarProps {
-  hierarchy: GeoHierarchy;
-  filters: ExplorerFilters;
-  publisherOptions: ExplorerFilterOption[];
-  organizationOptions: ExplorerFilterOption[];
-  activityOptions: ExplorerFilterOption[];
-  onFiltersChange: (filters: ExplorerFilters) => void;
-  onPublisherChange: (values: string[]) => void;
-  onOrganizationChange: (values: string[]) => void;
-  onActivityChange: (values: string[]) => void;
+interface ExplorerFilterBarProps extends ExplorerFilterControlProps {
   layout?: "stacked" | "overlay" | "sheet";
 }
 
