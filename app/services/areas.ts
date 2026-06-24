@@ -1,6 +1,7 @@
 "use server";
 
 import { apiFetch } from "./api-client";
+import { buildFilterParams } from "./filter-params";
 import type { AreasQuery, AreasResponse } from "../types/areas";
 
 /**
@@ -11,11 +12,7 @@ import type { AreasQuery, AreasResponse } from "../types/areas";
 export async function getAllAreas(
   query: AreasQuery = {}
 ): Promise<AreasResponse> {
-  const params = new URLSearchParams();
-
-  if (query.publisher?.length) params.set("publisher", query.publisher.join(","));
-  if (query.organization?.length) params.set("organization", query.organization.join(","));
-  if (query.activity?.length) params.set("activity", query.activity.join(","));
+  const params = buildFilterParams(query);
 
   const path = params.size > 0 ? `/areas?${params.toString()}` : "/areas";
   return apiFetch<AreasResponse>(path, { revalidate: 1800 });

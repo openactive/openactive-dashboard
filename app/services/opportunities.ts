@@ -1,6 +1,7 @@
 "use server";
 
 import { apiFetch } from "./api-client";
+import { buildFilterParams } from "./filter-params";
 import type {
   OpportunitiesQuery,
   OpportunitiesResponse,
@@ -13,14 +14,7 @@ import type {
 export async function getOpportunities(
   query: OpportunitiesQuery = {}
 ): Promise<OpportunitiesResponse> {
-  const params = new URLSearchParams();
-
-  if (query.publisher?.length) params.set("publisher", query.publisher.join(","));
-  if (query.organization?.length) params.set("organization", query.organization.join(","));
-  if (query.district) params.set("district", query.district);
-  if (query.region) params.set("region", query.region);
-  if (query.country) params.set("country", query.country);
-  if (query.activity?.length) params.set("activity", query.activity.join(","));
+  const params = buildFilterParams(query);
 
   const path =
     params.size > 0 ? `/opportunities?${params.toString()}` : "/opportunities";
