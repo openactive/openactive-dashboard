@@ -1,8 +1,8 @@
 /** Filter values shared by the monitor API list endpoints. */
 export type FilterQuery = {
-  district?: string;
-  region?: string;
-  country?: string;
+  district?: string[];
+  region?: string[];
+  country?: string[];
   publisher?: string[];
   organization?: string[];
   activity?: string[];
@@ -14,9 +14,9 @@ export type FilterQuery = {
 export function buildFilterParams(query: FilterQuery): URLSearchParams {
   const params = new URLSearchParams();
 
-  if (query.district) params.set("district", query.district);
-  if (query.region) params.set("region", query.region);
-  if (query.country) params.set("country", query.country);
+  if (query.district?.length) params.set("district", query.district.join(","));
+  if (query.region?.length) params.set("region", query.region.join(","));
+  if (query.country?.length) params.set("country", query.country.join(","));
   if (query.publisher?.length) params.set("publisher", query.publisher.join(","));
   if (query.organization?.length) params.set("organization", query.organization.join(","));
   if (query.activity?.length) params.set("activity", query.activity.join(","));

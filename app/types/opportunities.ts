@@ -29,8 +29,8 @@ export type OpportunitiesResponse = Opportunity[];
 export type OpportunitiesQuery = {
   publisher?: string[];
   organization?: string[];
-  district?: string;
-  region?: string;
-  country?: string;
+  district?: string[];
+  region?: string[];
+  country?: string[];
   activity?: string[];
 };

@@ -13,12 +13,6 @@ import {
 } from "../lib/explorer-location-query";
 import type { GeoHierarchy } from "../lib/geo-hierarchy";
 
-type CodeMaps = {
-  districtCodeByName: Map<string, string>;
-  countryCodeById: Map<string, string>;
-  regionCodeByScope: Map<string, string>;
-};
-
 type LocationQuery = ReturnType<typeof buildLocationFilterQuery>;
 
 type UseLocationScopedFilterOptionsParams = {
@@ -26,8 +20,7 @@ type UseLocationScopedFilterOptionsParams = {
   allLabel: string;
   loadingLabel: string;
   hierarchy: GeoHierarchy;
-  filters: Pick<ExplorerFilters, "district" | "areaScope">;
-  maps: CodeMaps;
+  filters: Pick<ExplorerFilters, "areas">;
   fetchNames: (
     query: LocationQuery & {
       publisher?: string[];
@@ -52,7 +45,6 @@ export function useLocationScopedFilterOptions({
   loadingLabel,
   hierarchy,
   filters,
-  maps,
   fetchNames,
   onFetched,
   publisher,
@@ -69,7 +61,7 @@ export function useLocationScopedFilterOptions({
 
   useEffect(() => {
     const query = {
-      ...buildLocationFilterQuery(filters, maps),
+      ...buildLocationFilterQuery(filters, hierarchy),
       ...(publisher && publisher.length > 0 ? { publisher } : {}),
       ...(organization && organization.length > 0 ? { organization } : {}),
       ...(activity && activity.length > 0 ? { activity } : {}),
@@ -138,11 +130,9 @@ export function useLocationScopedFilterOptions({
       cancelled = true;
     };
   }, [
-    filters.district,
-    filters.areaScope,
+    filters.areas,
     hierarchy,
     item,
-    maps,
     allLabel,
     loadingLabel,
     fetchNames,
