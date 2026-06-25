@@ -1,9 +1,12 @@
-import { ALL_FILTER, type ExplorerFilters } from "../../lib/explore-filters";
 import {
-  parseAreaScope,
-  type GeoCountry,
-  type GeoHierarchy,
-  type GeoRegion,
+  getCountryCheckState,
+  getRegionCheckState,
+  isDistrictSelected,
+} from "../../lib/area-selection";
+import type {
+  GeoCountry,
+  GeoHierarchy,
+  GeoRegion,
 } from "../../lib/geo-hierarchy";
 import type { AreaSearchHit } from "../../lib/area-search";
 import { scoreAreaMatch } from "../../lib/area-search";
@@ -14,49 +17,40 @@ interface AreaPickerListProps {
   drill: DrillLevel;
   hierarchy: GeoHierarchy;
   query: string;
-  filters: ExplorerFilters;
+  covered: Set<string>;
   searchResults: AreaSearchHit[] | null;
-  onSelectScope: (scope: string) => void;
-  onSelectArea: (name: string) => void;
+  onToggleCountry: (country: GeoCountry, selected: boolean) => void;
+  onToggleRegion: (
+    country: GeoCountry,
+    region: GeoRegion,
+    selected: boolean
+  ) => void;
+  onToggleDistrict: (name: string, selected: boolean) => void;
   onDrillCountry: (country: GeoCountry) => void;
   onDrillRegion: (country: GeoCountry, region: GeoRegion) => void;
 }
 
-/** Country/region IDs the current selection lives under, for ancestor highlighting. */
-function getSelectionAncestors(
-  hierarchy: GeoHierarchy,
-  filters: ExplorerFilters
-): { countryId?: string; regionId?: string } {
-  if (filters.district !== ALL_FILTER) {
-    for (const country of hierarchy.countries) {
-      for (const region of country.regions) {
-        if (region.areas.some((a) => a.name === filters.district)) {
-          return { countryId: country.id, regionId: region.id };
-        }
-      }
-    }
-    return {};
+/** "3 regions" / "12 areas" — single-region countries list districts directly. */
+function countrySubLabel(country: GeoCountry): string {
+  if (country.regions.length === 1) {
+    const n = country.regions[0]?.areas.length ?? 0;
+    return `${n} ${n === 1 ? "area" : "areas"}`;
   }
-
-  const parsed = parseAreaScope(filters.areaScope);
-  return { countryId: parsed.countryId, regionId: parsed.regionId };
+  return `${country.regions.length} regions`;
 }
 
 export function AreaPickerList({
   drill,
   hierarchy,
   query,
-  filters,
+  covered,
   searchResults,
-  onSelectScope,
-  onSelectArea,
+  onToggleCountry,
+  onToggleRegion,
+  onToggleDistrict,
   onDrillCountry,
   onDrillRegion,
 }: AreaPickerListProps) {
-  const { countryId, regionId } = getSelectionAncestors(hierarchy, filters);
-  const isAllSelected =
-    filters.district === ALL_FILTER && filters.areaScope === ALL_FILTER;
-
   if (searchResults) {
     if (searchResults.length === 0) {
       return (
@@ -67,15 +61,18 @@ export function AreaPickerList({
     }
     return (
       <>
-        {searchResults.map((hit) => (
-          <AreaPickerRow
-            key={`${hit.countryId}:${hit.regionId}:${hit.geoCode}`}
-            label={hit.name}
-            subLabel={`${hit.countryLabel} › ${hit.regionLabel}`}
-            selected={hit.name === filters.district}
-            onSelect={() => onSelectArea(hit.name)}
-          />
-        ))}
+        {searchResults.map((hit) => {
+          const checked = isDistrictSelected(covered, hit.name);
+          return (
+            <AreaPickerRow
+              key={`${hit.countryId}:${hit.regionId}:${hit.geoCode}`}
+              label={hit.name}
+              subLabel={`${hit.countryLabel} › ${hit.regionLabel}`}
+              checkState={checked ? "checked" : "unchecked"}
+              onToggle={() => onToggleDistrict(hit.name, !checked)}
+            />
+          );
+        })}
       </>
     );
   }
@@ -83,22 +80,20 @@ export function AreaPickerList({
   if (drill.type === "root") {
     return (
       <>
-        <AreaPickerRow
-          label="All areas"
-          subLabel="United Kingdom & Ireland"
-          selected={isAllSelected}
-          onSelect={() => onSelectScope(ALL_FILTER)}
-        />
-        {hierarchy.countries.map((country) => (
-          <AreaPickerRow
-            key={country.id}
-            label={country.label}
-            subLabel={`${country.regions.length} regions`}
-            hasChildren
-            selected={country.id === countryId}
-            onSelect={() => onDrillCountry(country)}
-          />
-        ))}
+        {hierarchy.countries.map((country) => {
+          const state = getCountryCheckState(covered, hierarchy, country.id);
+          return (
+            <AreaPickerRow
+              key={country.id}
+              label={country.label}
+              subLabel={countrySubLabel(country)}
+              checkState={state}
+              hasChildren
+              onToggle={() => onToggleCountry(country, state !== "checked")}
+              onDrill={() => onDrillCountry(country)}
+            />
+          );
+        })}
       </>
     );
   }
@@ -106,18 +101,27 @@ export function AreaPickerList({
   if (drill.type === "country") {
     return (
       <>
-        {drill.country.regions.map((region) => (
-          <AreaPickerRow
-            key={region.id}
-            label={region.label}
-            subLabel={`${region.areas.length} areas`}
-            hasChildren
-            selected={
-              drill.country.id === countryId && region.id === regionId
-            }
-            onSelect={() => onDrillRegion(drill.country, region)}
-          />
-        ))}
+        {drill.country.regions.map((region) => {
+          const state = getRegionCheckState(
+            covered,
+            hierarchy,
+            drill.country.id,
+            region.id
+          );
+          return (
+            <AreaPickerRow
+              key={region.id}
+              label={region.label}
+              subLabel={`${region.areas.length} areas`}
+              checkState={state}
+              hasChildren
+              onToggle={() =>
+                onToggleRegion(drill.country, region, state !== "checked")
+              }
+              onDrill={() => onDrillRegion(drill.country, region)}
+            />
+          );
+        })}
       </>
     );
   }
@@ -136,14 +140,17 @@ export function AreaPickerList({
 
   return (
     <>
-      {areas.map((area) => (
-        <AreaPickerRow
-          key={area.geoCode}
-          label={area.name}
-          selected={area.name === filters.district}
-          onSelect={() => onSelectArea(area.name)}
-        />
-      ))}
+      {areas.map((area) => {
+        const checked = isDistrictSelected(covered, area.name);
+        return (
+          <AreaPickerRow
+            key={area.geoCode}
+            label={area.name}
+            checkState={checked ? "checked" : "unchecked"}
+            onToggle={() => onToggleDistrict(area.name, !checked)}
+          />
+        );
+      })}
       {areas.length === 0 && (
         <li className="px-4 py-6 text-center text-sm text-oa-grey-500">
           No areas match your search.

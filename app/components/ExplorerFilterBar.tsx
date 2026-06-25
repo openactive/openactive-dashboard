@@ -3,7 +3,6 @@
 import { FilterDropdown } from "./FilterDropdown";
 import { AreaHierarchyPicker } from "./AreaHierarchyPicker";
 import {
-  ALL_FILTER,
   DEFAULT_EXPLORER_FILTERS,
   type ExplorerFilters,
 } from "../lib/explore-filters";
@@ -15,8 +14,7 @@ interface ExplorerFilterBarProps extends ExplorerFilterControlProps {
 
 function hasActiveFilters(filters: ExplorerFilters): boolean {
   return (
-    filters.district !== ALL_FILTER ||
-    filters.areaScope !== ALL_FILTER ||
+    filters.areas.length > 0 ||
     filters.publisher.length > 0 ||
     filters.organization.length > 0 ||
     filters.activity.length > 0
