@@ -20,6 +20,7 @@ import {
   DEFAULT_EXPLORER_FILTERS,
   type ExplorerFilters,
 } from "../lib/explore-filters";
+import type { LocationScopedItem } from "../lib/explorer-location-query";
 import { getActivities } from "../services/activities";
 import { getOrganizations } from "../services/organizations";
 import { getPublishers } from "../services/publishers";
@@ -42,6 +43,24 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
   useEffect(() => {
     if (isDesktop) setMobilePanel("none");
   }, [isDesktop]);
+
+  // Tracks which location-scoped dropdowns are open so their option lists are
+  // fetched only while open, instead of eagerly on every filter change.
+  const [openFilters, setOpenFilters] = useState<Set<LocationScopedItem>>(
+    () => new Set()
+  );
+  const onFilterOpenChange = useCallback(
+    (item: LocationScopedItem, open: boolean) => {
+      setOpenFilters((current) => {
+        if (current.has(item) === open) return current;
+        const next = new Set(current);
+        if (open) next.add(item);
+        else next.delete(item);
+        return next;
+      });
+    },
+    []
+  );
 
   const onPublisherChange = useCallback(
     (values: string[]) =>
@@ -113,6 +132,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     loadingLabel: "Loading publishers…",
     hierarchy,
     filters: areaFilters,
+    enabled: openFilters.has("publishers"),
     fetchNames: getPublishers,
     onFetched: onPublishersFetched,
     organization: filters.organization,
@@ -125,6 +145,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     loadingLabel: "Loading providers…",
     hierarchy,
     filters: areaFilters,
+    enabled: openFilters.has("organizations"),
     fetchNames: getOrganizations,
     onFetched: onOrganizationsFetched,
     publisher: filters.publisher,
@@ -137,6 +158,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     loadingLabel: "Loading activities…",
     hierarchy,
     filters: areaFilters,
+    enabled: openFilters.has("activities"),
     fetchNames: getActivities,
     onFetched: onActivitiesFetched,
     publisher: filters.publisher,
@@ -173,6 +195,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
       onPublisherChange,
       onOrganizationChange,
       onActivityChange,
+      onFilterOpenChange,
     }),
     [
       hierarchy,
@@ -183,6 +206,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
       onPublisherChange,
       onOrganizationChange,
       onActivityChange,
+      onFilterOpenChange,
     ]
   );
 

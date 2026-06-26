@@ -21,6 +21,7 @@ type UseLocationScopedFilterOptionsParams = {
   loadingLabel: string;
   hierarchy: GeoHierarchy;
   filters: Pick<ExplorerFilters, "areas">;
+  enabled?: boolean;
   fetchNames: (
     query: LocationQuery & {
       publisher?: string[];
@@ -45,6 +46,7 @@ export function useLocationScopedFilterOptions({
   loadingLabel,
   hierarchy,
   filters,
+  enabled = true,
   fetchNames,
   onFetched,
   publisher,
@@ -60,6 +62,8 @@ export function useLocationScopedFilterOptions({
   onFetchedRef.current = onFetched;
 
   useEffect(() => {
+    if (!enabled) return;
+
     const query = {
       ...buildLocationFilterQuery(filters, hierarchy),
       ...(publisher && publisher.length > 0 ? { publisher } : {}),
@@ -133,6 +137,7 @@ export function useLocationScopedFilterOptions({
       cancelled = true;
     };
   }, [
+    enabled,
     filters.areas,
     hierarchy,
     item,
