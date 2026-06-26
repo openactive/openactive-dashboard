@@ -10,7 +10,7 @@ import { useTabExitClose } from "../../hooks/useTabExitClose";
 import { isCoarsePointer } from "../../lib/pointer";
 import type { ExplorerFilters } from "../../lib/explore-filters";
 import type { GeoHierarchy } from "../../lib/geo-hierarchy";
-import { getAreaSelectionLabel } from "../../lib/geo-hierarchy";
+import { getAreaSelectionLabel } from "../../lib/area-selection";
 import {
   EXPLORER_LABEL_BASE,
   EXPLORER_LABEL_DEFAULT_TEXT,
@@ -53,19 +53,21 @@ export function AreaHierarchyPicker({
     drill,
     query,
     setQuery,
+    covered,
+    draftAreas,
+    toggleCountry,
+    toggleRegion,
+    toggleDistrict,
     goBack,
-    applyScope,
-    applyArea,
     drillToCountry,
     drillToRegion,
     panelTitle,
     backLabel,
-  } = useAreaPickerDrill(hierarchy, filters, onChange, open, closePicker);
+  } = useAreaPickerDrill(hierarchy, filters, onChange, open);
 
   const triggerLabel = getAreaSelectionLabel(
-    hierarchy,
-    filters.district,
-    filters.areaScope
+    open ? draftAreas : filters.areas,
+    hierarchy
   );
 
   useClickOutside(containerRef, open, closePicker);
@@ -95,7 +97,9 @@ export function AreaHierarchyPicker({
         backRef.current.focus();
         return;
       }
-      listRef.current?.querySelector<HTMLButtonElement>("button")?.focus();
+      listRef.current
+        ?.querySelector<HTMLButtonElement>("button[data-picker-option]")
+        ?.focus();
     });
   }, [listboxId]);
 
@@ -215,13 +219,14 @@ export function AreaHierarchyPicker({
           panelTitle={panelTitle}
           backLabel={backLabel}
           hierarchy={hierarchy}
-          filters={filters}
+          covered={covered}
           listRef={listRef}
           backRef={backRef}
           onQueryChange={setQuery}
           onGoBack={goBack}
-          onSelectScope={applyScope}
-          onSelectArea={applyArea}
+          onToggleCountry={toggleCountry}
+          onToggleRegion={toggleRegion}
+          onToggleDistrict={toggleDistrict}
           onDrillCountry={drillToCountry}
           onDrillRegion={drillToRegion}
         />

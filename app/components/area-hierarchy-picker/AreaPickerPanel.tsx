@@ -4,7 +4,6 @@ import {
   EXPLORER_GLASS_BACKDROP_BLUR_MD,
   EXPLORER_SHADOW_LG,
 } from "../../lib/explorer-ui-styles";
-import type { ExplorerFilters } from "../../lib/explore-filters";
 import {
   searchAreasGlobal,
   searchAreasInCountry,
@@ -23,13 +22,18 @@ interface AreaPickerPanelProps {
   panelTitle: string;
   backLabel: string;
   hierarchy: GeoHierarchy;
-  filters: ExplorerFilters;
+  covered: Set<string>;
   listRef: RefObject<HTMLUListElement | null>;
   backRef: RefObject<HTMLButtonElement | null>;
   onQueryChange: (value: string) => void;
   onGoBack: () => void;
-  onSelectScope: (scope: string) => void;
-  onSelectArea: (name: string) => void;
+  onToggleCountry: (country: GeoCountry, selected: boolean) => void;
+  onToggleRegion: (
+    country: GeoCountry,
+    region: GeoRegion,
+    selected: boolean
+  ) => void;
+  onToggleDistrict: (name: string, selected: boolean) => void;
   onDrillCountry: (country: GeoCountry) => void;
   onDrillRegion: (country: GeoCountry, region: GeoRegion) => void;
 }
@@ -66,13 +70,14 @@ export function AreaPickerPanel({
   panelTitle,
   backLabel,
   hierarchy,
-  filters,
+  covered,
   listRef,
   backRef,
   onQueryChange,
   onGoBack,
-  onSelectScope,
-  onSelectArea,
+  onToggleCountry,
+  onToggleRegion,
+  onToggleDistrict,
   onDrillCountry,
   onDrillRegion,
 }: AreaPickerPanelProps) {
@@ -143,9 +148,10 @@ export function AreaPickerPanel({
       </div>
 
       <p className="sr-only">
-        Tab through options to choose a scope. Leaving the list with Tab closes
-        this picker. Use the back button or press left arrow on an option to
-        return to the previous level.
+        Use each checkbox to select or clear an area; choosing a country or
+        region includes all of its districts. Use the chevron or press right
+        arrow to browse into a country or region, and the back button or left
+        arrow to return. Your selection applies when you close the picker.
       </p>
 
       {showSearch && (
@@ -182,10 +188,11 @@ export function AreaPickerPanel({
           drill={drill}
           hierarchy={hierarchy}
           query={query}
-          filters={filters}
+          covered={covered}
           searchResults={searchResults}
-          onSelectScope={onSelectScope}
-          onSelectArea={onSelectArea}
+          onToggleCountry={onToggleCountry}
+          onToggleRegion={onToggleRegion}
+          onToggleDistrict={onToggleDistrict}
           onDrillCountry={onDrillCountry}
           onDrillRegion={onDrillRegion}
         />

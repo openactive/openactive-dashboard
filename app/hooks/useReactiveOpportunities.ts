@@ -9,21 +9,16 @@ import {
   type RankedItem,
 } from "../lib/explore-filters";
 import { buildLocationFilterQuery } from "../lib/explorer-location-query";
+import type { GeoHierarchy } from "../lib/geo-hierarchy";
 import { getOpportunities } from "../services/opportunities";
 import type {
   Opportunity,
   OpportunitiesQuery,
 } from "../types/opportunities";
 
-type CodeMaps = {
-  districtCodeByName: Map<string, string>;
-  countryCodeById: Map<string, string>;
-  regionCodeByScope: Map<string, string>;
-};
-
 type Params = {
   filters: ExplorerFilters;
-  maps: CodeMaps;
+  hierarchy: GeoHierarchy;
 };
 
 type Result = {
@@ -136,7 +131,7 @@ function reduce(rows: Opportunity[]): {
  */
 export function useReactiveOpportunities({
   filters,
-  maps,
+  hierarchy,
 }: Params): Result {
   const [data, setData] = useState<Omit<Result, "isLoading">>({
     summary: EMPTY_SUMMARY,
@@ -148,7 +143,7 @@ export function useReactiveOpportunities({
     new Map()
   );
 
-  const locationQuery = buildLocationFilterQuery(filters, maps);
+  const locationQuery = buildLocationFilterQuery(filters, hierarchy);
   const query: OpportunitiesQuery = {
     ...locationQuery,
     ...(filters.publisher.length > 0 ? { publisher: filters.publisher } : {}),

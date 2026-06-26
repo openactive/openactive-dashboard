@@ -6,10 +6,8 @@ export const FILTER_LOADING_VALUE = "__loading__" as const;
 export const FILTER_EMPTY_VALUE = "__empty__" as const;
 
 export type ExplorerFilters = {
-  /** Specific local area (district name, matched against geojson) */
-  district: string;
-  /** Geographic scope when no specific area: all | country:{id} | region:{country}:{region} */
-  areaScope: string;
+  /** Selected area refs (country/region/district). Empty = all areas. */
+  areas: string[];
   publisher: string[];
   organization: string[];
   /** Selected activity names. Empty array = no activity filter. */
@@ -17,8 +15,7 @@ export type ExplorerFilters = {
 };
 
 export const DEFAULT_EXPLORER_FILTERS: ExplorerFilters = {
-  district: ALL_FILTER,
-  areaScope: ALL_FILTER,
+  areas: [],
   publisher: [],
   organization: [],
   activity: [],
@@ -87,25 +84,3 @@ export type DistrictCount = {
   district: string;
   count: number;
 };
-
-export function selectArea(
-  filters: ExplorerFilters,
-  areaName: string
-): ExplorerFilters {
-  return {
-    ...filters,
-    district: areaName,
-    areaScope: ALL_FILTER,
-  };
-}
-
-export function selectAreaScope(
-  filters: ExplorerFilters,
-  scope: string
-): ExplorerFilters {
-  return {
-    ...filters,
-    district: ALL_FILTER,
-    areaScope: scope === ALL_FILTER ? ALL_FILTER : scope,
-  };
-}
