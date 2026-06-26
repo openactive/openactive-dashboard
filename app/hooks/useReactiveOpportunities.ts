@@ -156,6 +156,9 @@ export function useReactiveOpportunities({
     let promise = cacheRef.current.get(cacheKey);
     if (!promise) {
       setIsLoading(true);
+      // DEV-ONLY perf baseline (remove after): counts real /opportunities fetches.
+      if (process.env.NODE_ENV !== "production")
+        console.count("[fetch] opportunities");
       promise = getOpportunities(query)
         .then((rows) =>
           rows.length === 0

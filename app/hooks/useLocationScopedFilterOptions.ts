@@ -72,6 +72,9 @@ export function useLocationScopedFilterOptions({
     const wasCached = promise !== undefined;
 
     if (!promise) {
+      // DEV-ONLY perf baseline (remove after): counts real option-list fetches.
+      if (process.env.NODE_ENV !== "production")
+        console.count(`[fetch] ${item}`);
       setOptions((prev) => {
         const withoutMessages = prev.filter(
           (o) =>

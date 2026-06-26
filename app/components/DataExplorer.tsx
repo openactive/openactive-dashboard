@@ -215,6 +215,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
             districtCounts={districtCounts}
             scopeAreaNames={mapScopeNames}
             selectedDistrict={selectedDistrict}
+            isLoading={isOpportunitiesLoading}
             onReset={onMapReset}
           />
         </div>
@@ -246,6 +247,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
             districtCounts={districtCounts}
             scopeAreaNames={mapScopeNames}
             selectedDistrict={selectedDistrict}
+            isLoading={isOpportunitiesLoading}
             onReset={onMapReset}
           />
         </div>

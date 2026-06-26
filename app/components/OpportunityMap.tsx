@@ -25,6 +25,7 @@ interface OpportunityMapProps {
   districtCounts: DistrictCount[];
   scopeAreaNames: string[] | null;
   selectedDistrict: string | null;
+  isLoading?: boolean;
   onReset?: () => void;
 }
 
@@ -32,6 +33,7 @@ export function OpportunityMap({
   districtCounts,
   scopeAreaNames,
   selectedDistrict,
+  isLoading = false,
   onReset,
 }: OpportunityMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -264,6 +266,23 @@ export function OpportunityMap({
           <p className="absolute inset-0 flex items-center justify-center px-6 text-center text-sm text-oa-scarlet" role="alert">
             Unable to load map boundaries.
           </p>
+        )}
+
+        {/* Non-blocking refetch hint: the map stays pannable while new data loads. */}
+        {status === "ready" && isLoading && (
+          <div
+            className="pointer-events-none absolute left-1/2 top-3 z-20 -translate-x-1/2"
+            role="status"
+            aria-live="polite"
+          >
+            <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold text-oa-navy shadow-sm oa-glass">
+              <span
+                className="h-3 w-3 animate-spin rounded-full border-2 border-oa-grey-300 border-t-oa-cyan"
+                aria-hidden="true"
+              />
+              Updating…
+            </span>
+          </div>
         )}
 
         <svg
