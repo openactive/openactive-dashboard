@@ -198,19 +198,32 @@ export function FilterDropdown(props: FilterDropdownProps) {
     []
   );
 
+  // A location-scoped list injects a Loading row while it refetches. Detect it
+  // from the raw options (not the search-filtered list) so it holds even while
+  // the user is typing in the search box.
+  const isLoading = useMemo(
+    () => options.some((o) => o.value === FILTER_LOADING_VALUE),
+    [options]
+  );
+
   const displayOptions = useMemo(
     () => (searchable ? filterOptions(options, query) : options),
     [options, query, searchable]
   );
 
+  // While loading, suppress every selectable row (including All) so stale
+  // results don't look choosable; only the Loading indicator shows.
   const selectableOptions = useMemo(
-    () => displayOptions.filter((o) => !isMessageOption(o)),
-    [displayOptions]
+    () => (isLoading ? [] : displayOptions.filter((o) => !isMessageOption(o))),
+    [displayOptions, isLoading]
   );
 
   const messageOptions = useMemo(
-    () => displayOptions.filter(isMessageOption),
-    [displayOptions]
+    () =>
+      isLoading
+        ? options.filter((o) => o.value === FILTER_LOADING_VALUE)
+        : displayOptions.filter(isMessageOption),
+    [displayOptions, isLoading, options]
   );
 
   const triggerLabel = isMulti
