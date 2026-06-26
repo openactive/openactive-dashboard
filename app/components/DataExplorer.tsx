@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import { useLocationScopedFilterOptions } from "../hooks/useLocationScopedFilterOptions";
-import { useReactiveAreaHierarchy } from "../hooks/useReactiveAreaHierarchy";
 import { useReactiveOpportunities } from "../hooks/useReactiveOpportunities";
 import { ExplorerFilterBar } from "./ExplorerFilterBar";
 import { ExplorerSummary } from "./ExplorerSummary";
@@ -13,10 +12,11 @@ import {
 } from "./ExplorerMobileChrome";
 import { OpportunityMap } from "./OpportunityMap";
 import type { GeoHierarchy } from "../lib/geo-hierarchy";
-import { getAreaSelectionLabel } from "../lib/geo-hierarchy";
-import { getAreaNamesInScope } from "../lib/geo-hierarchy";
 import {
-  ALL_FILTER,
+  getAreaSelectionLabel,
+  getSelectedDistrictNames,
+} from "../lib/area-selection";
+import {
   DEFAULT_EXPLORER_FILTERS,
   type ExplorerFilters,
 } from "../lib/explore-filters";
@@ -43,13 +43,6 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     if (isDesktop) setMobilePanel("none");
   }, [isDesktop]);
 
-  const pickerHierarchy = useReactiveAreaHierarchy({
-    publisher: filters.publisher,
-    organization: filters.organization,
-    activity: filters.activity,
-    fallback: hierarchy,
-  });
-
   const onPublisherChange = useCallback(
     (values: string[]) =>
       setFilters((current) => ({ ...current, publisher: values })),
@@ -72,24 +65,6 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     () => setFilters(DEFAULT_EXPLORER_FILTERS),
     []
   );
-
-  const codeMaps = useMemo(() => {
-    const districtCodeByName = new Map<string, string>();
-    const countryCodeById = new Map<string, string>();
-    const regionCodeByScope = new Map<string, string>();
-
-    for (const country of hierarchy.countries) {
-      countryCodeById.set(country.id, country.code);
-      for (const region of country.regions) {
-        regionCodeByScope.set(`${country.id}:${region.id}`, region.code);
-        for (const area of region.areas) {
-          districtCodeByName.set(area.name, area.geoCode);
-        }
-      }
-    }
-
-    return { districtCodeByName, countryCodeById, regionCodeByScope };
-  }, [hierarchy]);
 
   const onPublishersFetched = useCallback((names: string[]) => {
     setFilters((current) => {
@@ -128,11 +103,8 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
   }, []);
 
   const areaFilters = useMemo(
-    () => ({
-      district: filters.district,
-      areaScope: filters.areaScope,
-    }),
-    [filters.district, filters.areaScope]
+    () => ({ areas: filters.areas }),
+    [filters.areas]
   );
 
   const publisherOptions = useLocationScopedFilterOptions({
@@ -141,7 +113,6 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     loadingLabel: "Loading publishers…",
     hierarchy,
     filters: areaFilters,
-    maps: codeMaps,
     fetchNames: getPublishers,
     onFetched: onPublishersFetched,
     organization: filters.organization,
@@ -154,7 +125,6 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     loadingLabel: "Loading providers…",
     hierarchy,
     filters: areaFilters,
-    maps: codeMaps,
     fetchNames: getOrganizations,
     onFetched: onOrganizationsFetched,
     publisher: filters.publisher,
@@ -167,7 +137,6 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     loadingLabel: "Loading activities…",
     hierarchy,
     filters: areaFilters,
-    maps: codeMaps,
     fetchNames: getActivities,
     onFetched: onActivitiesFetched,
     publisher: filters.publisher,
@@ -178,26 +147,24 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
   const { summary, districtCounts, isLoading: isOpportunitiesLoading } =
     useReactiveOpportunities({
       filters,
-      maps: codeMaps,
+      hierarchy,
     });
 
-  const selectionLabel = getAreaSelectionLabel(
-    hierarchy,
-    filters.district,
-    filters.areaScope
-  );
+  const selectionLabel = getAreaSelectionLabel(filters.areas, hierarchy);
 
   const mapScopeNames = useMemo(() => {
-    if (filters.district !== ALL_FILTER) return [filters.district];
-    if (filters.areaScope !== ALL_FILTER) {
-      return getAreaNamesInScope(hierarchy, filters.areaScope);
-    }
-    return null;
-  }, [filters, hierarchy]);
+    const names = getSelectedDistrictNames(filters.areas, hierarchy);
+    return names.length > 0 ? names : null;
+  }, [filters.areas, hierarchy]);
+
+  // A single chosen district still gets the strong "selected" emphasis on the
+  // map; broader multi-area selections rely on the scope highlight instead.
+  const selectedDistrict =
+    mapScopeNames?.length === 1 ? mapScopeNames[0] : null;
 
   const filterControlProps = useMemo(
     () => ({
-      hierarchy: pickerHierarchy,
+      hierarchy,
       filters,
       publisherOptions,
       organizationOptions,
@@ -208,7 +175,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
       onActivityChange,
     }),
     [
-      pickerHierarchy,
+      hierarchy,
       filters,
       publisherOptions,
       organizationOptions,
@@ -247,9 +214,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
           <OpportunityMap
             districtCounts={districtCounts}
             scopeAreaNames={mapScopeNames}
-            selectedDistrict={
-              filters.district !== ALL_FILTER ? filters.district : null
-            }
+            selectedDistrict={selectedDistrict}
             onReset={onMapReset}
           />
         </div>
@@ -280,9 +245,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
           <OpportunityMap
             districtCounts={districtCounts}
             scopeAreaNames={mapScopeNames}
-            selectedDistrict={
-              filters.district !== ALL_FILTER ? filters.district : null
-            }
+            selectedDistrict={selectedDistrict}
             onReset={onMapReset}
           />
         </div>
