@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import { useLocationScopedFilterOptions } from "../hooks/useLocationScopedFilterOptions";
 import { useReactiveOpportunities } from "../hooks/useReactiveOpportunities";
@@ -21,7 +21,6 @@ import {
   DEFAULT_EXPLORER_FILTERS,
   type ExplorerFilters,
 } from "../lib/explore-filters";
-import type { LocationScopedItem } from "../lib/explorer-location-query";
 import { getActivities } from "../services/activities";
 import { getOrganizations } from "../services/organizations";
 import { getPublishers } from "../services/publishers";
@@ -38,6 +37,9 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
   const [filters, setFilters] = useState<ExplorerFilters>(
     DEFAULT_EXPLORER_FILTERS
   );
+  // Option lists read a deferred copy of the filters so the map and summary
+  // commit first and the lists refresh after, so it never blocks the map.
+  const deferredFilters = useDeferredValue(filters);
   const [mobilePanel, setMobilePanel] = useState<MobilePanel>("none");
   const isDesktop = useMediaQuery("(min-width: 1024px)");
 
@@ -45,23 +47,9 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     if (isDesktop) setMobilePanel("none");
   }, [isDesktop]);
 
-  // Tracks which location-scoped dropdowns are open so their option lists are
-  // fetched only while open, instead of eagerly on every filter change.
-  const [openFilters, setOpenFilters] = useState<Set<LocationScopedItem>>(
-    () => new Set()
-  );
-  const onFilterOpenChange = useCallback(
-    (item: LocationScopedItem, open: boolean) => {
-      setOpenFilters((current) => {
-        if (current.has(item) === open) return current;
-        const next = new Set(current);
-        if (open) next.add(item);
-        else next.delete(item);
-        return next;
-      });
-    },
-    []
-  );
+  // Gate so the initial load fetches opportunities before warming the three
+  // option lists, instead of firing all four requests in parallel on mount.
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
 
   const onPublisherChange = useCallback(
     (values: string[]) =>
@@ -86,9 +74,10 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     []
   );
 
-  // Option lists are fetched lazily (only when a dropdown opens), so a
-  // selection can outlive the data it filters.
+  // Opportunities is the source of truth for valid selections: drop any chosen
+  // publisher, provider or activity it didn't return for the current filters.
   const onOpportunitiesResolved = useCallback((present: PresentNames) => {
+    setHasLoadedOnce(true);
     setFilters((current) => {
       const publisher = current.publisher.filter((p) =>
         present.publishers.has(p)
@@ -111,8 +100,8 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
   }, []);
 
   const areaFilters = useMemo(
-    () => ({ areas: filters.areas }),
-    [filters.areas]
+    () => ({ areas: deferredFilters.areas }),
+    [deferredFilters.areas]
   );
 
   const publisherOptions = useLocationScopedFilterOptions({
@@ -121,10 +110,10 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     loadingLabel: "Loading publishers…",
     hierarchy,
     filters: areaFilters,
-    enabled: openFilters.has("publishers"),
+    enabled: hasLoadedOnce,
     fetchNames: getPublishers,
-    organization: filters.organization,
-    activity: filters.activity,
+    organization: deferredFilters.organization,
+    activity: deferredFilters.activity,
   });
 
   const organizationOptions = useLocationScopedFilterOptions({
@@ -133,10 +122,10 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     loadingLabel: "Loading providers…",
     hierarchy,
     filters: areaFilters,
-    enabled: openFilters.has("organizations"),
+    enabled: hasLoadedOnce,
     fetchNames: getOrganizations,
-    publisher: filters.publisher,
-    activity: filters.activity,
+    publisher: deferredFilters.publisher,
+    activity: deferredFilters.activity,
   });
 
   const activityOptions = useLocationScopedFilterOptions({
@@ -145,13 +134,12 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     loadingLabel: "Loading activities…",
     hierarchy,
     filters: areaFilters,
-    enabled: openFilters.has("activities"),
+    enabled: hasLoadedOnce,
     fetchNames: getActivities,
-    publisher: filters.publisher,
-    organization: filters.organization,
+    publisher: deferredFilters.publisher,
+    organization: deferredFilters.organization,
   });
 
-  // Summary card + map choropleth are both driven by /opportunities.
   const { summary, districtCounts, isLoading: isOpportunitiesLoading } =
     useReactiveOpportunities({
       filters,
@@ -182,7 +170,6 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
       onPublisherChange,
       onOrganizationChange,
       onActivityChange,
-      onFilterOpenChange,
     }),
     [
       hierarchy,
@@ -193,7 +180,6 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
       onPublisherChange,
       onOrganizationChange,
       onActivityChange,
-      onFilterOpenChange,
     ]
   );
 

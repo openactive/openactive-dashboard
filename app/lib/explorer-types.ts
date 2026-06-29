@@ -4,7 +4,6 @@ import type {
   ExplorerSummary,
 } from "./explore-filters";
 import type { GeoHierarchy } from "./geo-hierarchy";
-import type { LocationScopedItem } from "./explorer-location-query";
 
 export type MobilePanel = "none" | "filters" | "stats";
 
@@ -18,7 +17,6 @@ export interface ExplorerFilterControlProps {
   onPublisherChange: (values: string[]) => void;
   onOrganizationChange: (values: string[]) => void;
   onActivityChange: (values: string[]) => void;
-  onFilterOpenChange?: (item: LocationScopedItem, open: boolean) => void;
 }
 
 export interface ExplorerMobileChromeProps {

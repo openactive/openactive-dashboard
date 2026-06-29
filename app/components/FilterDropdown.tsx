@@ -99,11 +99,10 @@ type FilterDropdownProps = (
   id?: string;
   layout?: "inline" | "field" | "glass" | "sheet";
   searchable?: boolean;
-  onOpenChange?: (open: boolean) => void;
 };
 
 export function FilterDropdown(props: FilterDropdownProps) {
-  const { label, options, id, layout = "inline", searchable = false, onOpenChange } = props;
+  const { label, options, id, layout = "inline", searchable = false } = props;
   const isMulti = props.mode === "multi";
   const isGlass = layout === "glass";
   const isSheet = layout === "sheet";
@@ -294,16 +293,6 @@ export function FilterDropdown(props: FilterDropdownProps) {
     if (isCoarsePointer()) return;
     requestAnimationFrame(() => searchInputRef.current?.focus());
   }, [open, searchable]);
-
-  // Report open/close to the parent (kept in a ref so the effect fires only on
-  // an actual open change, not whenever the callback identity changes).
-  const onOpenChangeRef = useRef(onOpenChange);
-  useEffect(() => {
-    onOpenChangeRef.current = onOpenChange;
-  }, [onOpenChange]);
-  useEffect(() => {
-    onOpenChangeRef.current?.(open);
-  }, [open]);
 
   // Sheet layout: the options panel is portaled to the body so it escapes the
   // explorer's overflow-hidden frame and opens downward over the content

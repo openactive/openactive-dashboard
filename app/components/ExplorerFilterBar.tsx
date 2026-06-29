@@ -31,7 +31,6 @@ export function ExplorerFilterBar({
   onPublisherChange,
   onOrganizationChange,
   onActivityChange,
-  onFilterOpenChange,
   layout = "stacked",
 }: ExplorerFilterBarProps) {
   const isOverlay = layout === "overlay";
@@ -121,7 +120,6 @@ export function ExplorerFilterBar({
             mode="multi"
             value={filters.activity}
             onChange={onActivityChange}
-            onOpenChange={(open) => onFilterOpenChange?.("activities", open)}
             searchable
           />
         </div>
@@ -134,7 +132,6 @@ export function ExplorerFilterBar({
             mode="multi"
             value={filters.organization}
             onChange={onOrganizationChange}
-            onOpenChange={(open) => onFilterOpenChange?.("organizations", open)}
             searchable
           />
         </div>
@@ -147,7 +144,6 @@ export function ExplorerFilterBar({
             mode="multi"
             value={filters.publisher}
             onChange={onPublisherChange}
-            onOpenChange={(open) => onFilterOpenChange?.("publishers", open)}
             searchable
           />
         </div>
