@@ -70,9 +70,6 @@ export function useLocationScopedFilterOptions({
     let promise = cacheRef.current.get(cacheKey);
 
     if (!promise) {
-      // DEV-ONLY perf baseline (remove after): counts real option-list fetches.
-      if (process.env.NODE_ENV !== "production")
-        console.count(`[fetch] ${item}`);
       setOptions((prev) => {
         const withoutMessages = prev.filter(
           (o) =>
