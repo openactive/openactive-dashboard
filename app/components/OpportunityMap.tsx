@@ -25,6 +25,7 @@ interface OpportunityMapProps {
   districtCounts: DistrictCount[];
   scopeAreaNames: string[] | null;
   selectedDistrict: string | null;
+  isLoading?: boolean;
   onReset?: () => void;
 }
 
@@ -32,6 +33,7 @@ export function OpportunityMap({
   districtCounts,
   scopeAreaNames,
   selectedDistrict,
+  isLoading = false,
   onReset,
 }: OpportunityMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -55,6 +57,16 @@ export function OpportunityMap({
     () => scopeKey(new Map(districtCounts.map((d) => [d.district, d.count]))),
     [districtCounts],
   );
+
+  // Keep the latest selection in refs so the d3 handlers below always read current values.
+  const scopeSetRef = useRef<Set<string> | null>(null);
+  const selectedDistrictRef = useRef<string | null>(null);
+  const dataFitKeyRef = useRef("all");
+  useEffect(() => {
+    scopeSetRef.current = scopeAreaNames ? new Set(scopeAreaNames) : null;
+    selectedDistrictRef.current = selectedDistrict;
+    dataFitKeyRef.current = dataFitKey;
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -97,47 +109,100 @@ export function OpportunityMap({
 
   useEffect(() => { applyFills(); }, [applyFills]);
 
+  /**
+   * Recompute the projection for the current data, redraw path geometry in
+   * place and recolour. Reused on first build, on data changes and on resize,
+   * so the SVG is never torn down once it exists.
+   */
+  const renderData = useCallback(
+    (resetZoom: boolean) => {
+      const svgEl = svgRef.current;
+      const container = containerRef.current;
+      if (!svgEl || !container || !geojson) return;
+
+      const svg = d3.select(svgEl);
+      const counts = countByDistrict.current;
+      const color = buildColorScale(counts);
+      const scopeSet = scopeSetRef.current;
+      const selected = selectedDistrictRef.current;
+      const isFocused =
+        Boolean(selected) ||
+        (scopeSet !== null && scopeSet.size > 0 && scopeSet.size <= 8);
+
+      const allFeatures = geojson.features;
+      const fitTargets = getFitFeatures(allFeatures, counts);
+      const fitCollection = {
+        type: "FeatureCollection" as const,
+        features: fitTargets,
+      };
+      const isFitToSubset = fitTargets.length < allFeatures.length;
+
+      const { width, height } = container.getBoundingClientRect();
+      const pad = isFitToSubset ? 40 : 12;
+      const projection = d3.geoMercator().fitExtent(
+        [[pad, pad], [Math.max(width - pad, 100), Math.max(height - pad, 200)]],
+        fitCollection as d3.GeoPermissibleObjects
+      );
+      const path = d3.geoPath().projection(projection);
+      const drawPath = (d: LadFeature) =>
+        path(d as d3.GeoPermissibleObjects) ?? "";
+
+      svg
+        .attr("viewBox", `0 0 ${width} ${height}`)
+        .attr("width", width)
+        .attr("height", height);
+
+      svg
+        .select("g.land-layer")
+        .selectAll<SVGPathElement, LadFeature>("path")
+        .attr("d", drawPath);
+
+      svg
+        .select("g.data-layer")
+        .selectAll<SVGPathElement, LadFeature>("path")
+        .attr("d", drawPath)
+        .attr("fill", (d) =>
+          fillForFeature(d, counts, color, scopeSet, selected, isFocused)
+        )
+        .attr("stroke", (d) => strokeForFeature(d, scopeSet, selected))
+        .attr("stroke-width", (d) =>
+          strokeWidthForFeature(d, scopeSet, selected)
+        );
+
+      const zoom = zoomBehaviorRef.current;
+      if (zoom) {
+        zoom.translateExtent(
+          computeTranslateExtent(path, fitCollection, width, height)
+        );
+        if (resetZoom) svg.call(zoom.transform, d3.zoomIdentity);
+      }
+    },
+    [geojson]
+  );
+
+  // Build the SVG structure once per map load: bind the land + data paths,
+  // hover and zoom. The handlers read selection from the refs above so they
+  // always use current values, and renderData does all the geometry and
+  // colour, so this effect does not re-run when the data changes (which would
+  // rebuild the map from scratch and lose the user's zoom).
   useEffect(() => {
-    if (status !== "ready" || !geojson || !containerRef.current || !svgRef.current) return;
+    if (status !== "ready" || !geojson || !containerRef.current || !svgRef.current)
+      return;
 
     const container = containerRef.current;
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
     mapReadyRef.current = false;
 
-    const counts = countByDistrict.current;
-    const color = buildColorScale(counts);
-    const scopeSet = scopeAreaNames ? new Set(scopeAreaNames) : null;
-    const isFocused =
-      Boolean(selectedDistrict) ||
-      (scopeSet !== null && scopeSet.size > 0 && scopeSet.size <= 8);
-
     const allFeatures = geojson.features;
-    const fitTargets = getFitFeatures(allFeatures, counts);
-    const fitCollection = { type: "FeatureCollection" as const, features: fitTargets };
-
-    const currentScopeKey = dataFitKey;
-    const shouldResetZoom = lastScopeKeyRef.current !== currentScopeKey;
-    lastScopeKeyRef.current = currentScopeKey;
-
-    const { width, height } = container.getBoundingClientRect();
-    const isFitToSubset = fitTargets.length < allFeatures.length;
-    const pad = isFitToSubset ? 40 : 12;
-    const projection = d3.geoMercator().fitExtent(
-      [[pad, pad], [Math.max(width - pad, 100), Math.max(height - pad, 200)]],
-      fitCollection as d3.GeoPermissibleObjects
-    );
-    const path = d3.geoPath().projection(projection);
-
-    svg.attr("viewBox", `0 0 ${width} ${height}`).attr("width", width).attr("height", height);
-
     const zoomRoot = svg.append("g").attr("class", "zoom-root");
 
-    zoomRoot.append("g").attr("class", "land-layer")
+    zoomRoot
+      .append("g")
+      .attr("class", "land-layer")
       .selectAll<SVGPathElement, LadFeature>("path")
       .data(allFeatures)
       .join("path")
-      .attr("d", (d) => path(d as d3.GeoPermissibleObjects) ?? "")
       .attr("fill", LAND_FILL)
       .attr("stroke", LAND_STROKE)
       .attr("stroke-width", 0.6)
@@ -153,54 +218,37 @@ export function OpportunityMap({
       .selectAll<SVGPathElement, LadFeature>("path")
       .data(allFeatures)
       .join("path")
-      .attr("d", (d) => path(d as d3.GeoPermissibleObjects) ?? "")
-      .attr("fill", (d) => fillForFeature(d, counts, color, scopeSet, selectedDistrict, isFocused))
-      .attr("stroke", (d) => strokeForFeature(d, scopeSet, selectedDistrict))
-      .attr("stroke-width", (d) => strokeWidthForFeature(d, scopeSet, selectedDistrict))
       .style("cursor", "pointer")
       .attr("tabindex", -1)
       .attr("aria-hidden", "true")
       .on("mouseenter", function (_, d) {
         const name = d.properties?.geo_name ?? null;
         setFocusedDistrict(name);
-        if (name !== selectedDistrict) {
+        if (name !== selectedDistrictRef.current) {
           d3.select(this).attr("stroke", FOCUS_STROKE).attr("stroke-width", 2);
         }
       })
       .on("mouseleave", function (_, d) {
         setFocusedDistrict(null);
         d3.select(this)
-          .attr("stroke", strokeForFeature(d, scopeSet, selectedDistrict))
-          .attr("stroke-width", strokeWidthForFeature(d, scopeSet, selectedDistrict));
+          .attr("stroke", strokeForFeature(d, scopeSetRef.current, selectedDistrictRef.current))
+          .attr("stroke-width", strokeWidthForFeature(d, scopeSetRef.current, selectedDistrictRef.current));
       });
 
-    const zoom = d3.zoom<SVGSVGElement, unknown>()
+    const zoom = d3
+      .zoom<SVGSVGElement, unknown>()
       .scaleExtent([1, 14])
-      .translateExtent(computeTranslateExtent(path, fitCollection, width, height))
-      .on("zoom", (event) => { zoomRoot.attr("transform", event.transform.toString()); });
-
+      .on("zoom", (event) => {
+        zoomRoot.attr("transform", event.transform.toString());
+      });
     zoomBehaviorRef.current = zoom;
     svg.call(zoom).on("dblclick.zoom", null);
 
-    if (shouldResetZoom) {
-      svg.call(zoom.transform, d3.zoomIdentity);
-    }
-
+    renderData(true);
+    lastScopeKeyRef.current = dataFitKeyRef.current;
     mapReadyRef.current = true;
 
-    const resizeObserver = new ResizeObserver(() => {
-      const { width: w, height: h } = container.getBoundingClientRect();
-      const p = isFitToSubset ? 40 : 12;
-      projection.fitExtent(
-        [[p, p], [Math.max(w - p, 100), Math.max(h - p, 200)]],
-        fitCollection as d3.GeoPermissibleObjects
-      );
-      const updatePath = (d: LadFeature) => path(d as d3.GeoPermissibleObjects) ?? "";
-      svg.select("g.land-layer").selectAll<SVGPathElement, LadFeature>("path").attr("d", updatePath);
-      dataLayer.selectAll<SVGPathElement, LadFeature>("path").attr("d", updatePath);
-      svg.attr("viewBox", `0 0 ${w} ${h}`).attr("width", w).attr("height", h);
-      zoom.translateExtent(computeTranslateExtent(path, fitCollection, w, h));
-    });
+    const resizeObserver = new ResizeObserver(() => renderData(false));
     resizeObserver.observe(container);
 
     return () => {
@@ -208,7 +256,16 @@ export function OpportunityMap({
       mapReadyRef.current = false;
       zoomBehaviorRef.current = null;
     };
-  }, [status, geojson, dataFitKey, scopeAreaNames, selectedDistrict, tooltipId]);
+  }, [status, geojson, tooltipId, renderData]);
+
+  // Update geometry + colour in place when the data scope changes, reusing the
+  // existing SVG, zoom behaviour and hover handlers, and re-framing on the new
+  // data.
+  useEffect(() => {
+    if (!mapReadyRef.current || lastScopeKeyRef.current === dataFitKey) return;
+    lastScopeKeyRef.current = dataFitKey;
+    renderData(true);
+  }, [dataFitKey, renderData]);
 
   const zoomBy = useCallback((factor: number) => {
     const svg = svgRef.current;
@@ -264,6 +321,23 @@ export function OpportunityMap({
           <p className="absolute inset-0 flex items-center justify-center px-6 text-center text-sm text-oa-scarlet" role="alert">
             Unable to load map boundaries.
           </p>
+        )}
+
+        {/* Non-blocking refetch hint: the map stays pannable while new data loads. */}
+        {status === "ready" && isLoading && (
+          <div
+            className="pointer-events-none absolute left-1/2 top-3 z-20 -translate-x-1/2"
+            role="status"
+            aria-live="polite"
+          >
+            <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold text-oa-navy shadow-sm oa-glass">
+              <span
+                className="h-3 w-3 animate-spin rounded-full border-2 border-oa-grey-300 border-t-oa-cyan"
+                aria-hidden="true"
+              />
+              Updating…
+            </span>
+          </div>
         )}
 
         <svg

@@ -21,6 +21,7 @@ type UseLocationScopedFilterOptionsParams = {
   loadingLabel: string;
   hierarchy: GeoHierarchy;
   filters: Pick<ExplorerFilters, "areas">;
+  enabled?: boolean;
   fetchNames: (
     query: LocationQuery & {
       publisher?: string[];
@@ -28,7 +29,6 @@ type UseLocationScopedFilterOptionsParams = {
       activity?: string[];
     }
   ) => Promise<string[]>;
-  onFetched?: (names: string[]) => void;
   publisher?: string[];
   organization?: string[];
   activity?: string[];
@@ -36,7 +36,6 @@ type UseLocationScopedFilterOptionsParams = {
 
 type FetchResult = {
   options: ExplorerFilterOption[];
-  names: string[];
 };
 
 export function useLocationScopedFilterOptions({
@@ -45,8 +44,8 @@ export function useLocationScopedFilterOptions({
   loadingLabel,
   hierarchy,
   filters,
+  enabled = true,
   fetchNames,
-  onFetched,
   publisher,
   organization,
   activity,
@@ -56,10 +55,10 @@ export function useLocationScopedFilterOptions({
   ]);
   // Stores in-flight Promises. Resolved promises stay in the map for cheap re-use.
   const cacheRef = useRef<Map<string, Promise<FetchResult>>>(new Map());
-  const onFetchedRef = useRef(onFetched);
-  onFetchedRef.current = onFetched;
 
   useEffect(() => {
+    if (!enabled) return;
+
     const query = {
       ...buildLocationFilterQuery(filters, hierarchy),
       ...(publisher && publisher.length > 0 ? { publisher } : {}),
@@ -69,7 +68,6 @@ export function useLocationScopedFilterOptions({
     const cacheKey = JSON.stringify({ query, item });
 
     let promise = cacheRef.current.get(cacheKey);
-    const wasCached = promise !== undefined;
 
     if (!promise) {
       setOptions((prev) => {
@@ -104,7 +102,7 @@ export function useLocationScopedFilterOptions({
                   { value: ALL_FILTER, label: allLabel },
                   ...names.map((name) => ({ value: name, label: name })),
                 ];
-          return { options: nextOptions, names };
+          return { options: nextOptions };
         })
         .catch((err) => {
           cacheRef.current.delete(cacheKey);
@@ -118,8 +116,6 @@ export function useLocationScopedFilterOptions({
       .then((result) => {
         if (cancelled) return;
         setOptions(result.options);
-
-        if (!wasCached) onFetchedRef.current?.(result.names);
       })
       .catch(() => {
         if (cancelled) return;
@@ -130,6 +126,7 @@ export function useLocationScopedFilterOptions({
       cancelled = true;
     };
   }, [
+    enabled,
     filters.areas,
     hierarchy,
     item,

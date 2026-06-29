@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import { useLocationScopedFilterOptions } from "../hooks/useLocationScopedFilterOptions";
 import { useReactiveOpportunities } from "../hooks/useReactiveOpportunities";
+import type { PresentNames } from "../hooks/useReactiveOpportunities";
 import { ExplorerFilterBar } from "./ExplorerFilterBar";
 import { ExplorerSummary } from "./ExplorerSummary";
 import {
@@ -36,12 +37,19 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
   const [filters, setFilters] = useState<ExplorerFilters>(
     DEFAULT_EXPLORER_FILTERS
   );
+  // Option lists read a deferred copy of the filters so the map and summary
+  // commit first and the lists refresh after, so it never blocks the map.
+  const deferredFilters = useDeferredValue(filters);
   const [mobilePanel, setMobilePanel] = useState<MobilePanel>("none");
   const isDesktop = useMediaQuery("(min-width: 1024px)");
 
   useEffect(() => {
     if (isDesktop) setMobilePanel("none");
   }, [isDesktop]);
+
+  // Gate so the initial load fetches opportunities before warming the three
+  // option lists, instead of firing all four requests in parallel on mount.
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
 
   const onPublisherChange = useCallback(
     (values: string[]) =>
@@ -66,45 +74,34 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     []
   );
 
-  const onPublishersFetched = useCallback((names: string[]) => {
+  // Opportunities is the source of truth for valid selections: drop any chosen
+  // publisher, provider or activity it didn't return for the current filters.
+  const onOpportunitiesResolved = useCallback((present: PresentNames) => {
+    setHasLoadedOnce(true);
     setFilters((current) => {
-      if (current.publisher.length === 0) return current;
-      if (names.length === 0) return { ...current, publisher: [] };
-      const allowed = new Set(names);
-      const next = current.publisher.filter((p) => allowed.has(p));
-      if (next.length === current.publisher.length) return current;
-      return { ...current, publisher: next };
-    });
-  }, []);
-
-  const onOrganizationsFetched = useCallback((names: string[]) => {
-    setFilters((current) => {
-      if (current.organization.length === 0) return current;
-      if (names.length === 0) return { ...current, organization: [] };
-      const allowed = new Set(names);
-      const next = current.organization.filter((o) => allowed.has(o));
-      if (next.length === current.organization.length) return current;
-      return { ...current, organization: next };
-    });
-  }, []);
-
-  const onActivitiesFetched = useCallback((names: string[]) => {
-    setFilters((current) => {
-      if (current.activity.length === 0) return current;
-      if (names.length === 0) return { ...current, activity: [] };
-      // Drop any selected values that the new options list no longer
-      // contains (e.g. user changed location and that activity isn't
-      // there). Keep the rest so partial selections survive.
-      const allowed = new Set(names);
-      const next = current.activity.filter((a) => allowed.has(a));
-      if (next.length === current.activity.length) return current;
-      return { ...current, activity: next };
+      const publisher = current.publisher.filter((p) =>
+        present.publishers.has(p)
+      );
+      const organization = current.organization.filter((o) =>
+        present.organizations.has(o)
+      );
+      const activity = current.activity.filter((a) =>
+        present.activities.has(a)
+      );
+      if (
+        publisher.length === current.publisher.length &&
+        organization.length === current.organization.length &&
+        activity.length === current.activity.length
+      ) {
+        return current;
+      }
+      return { ...current, publisher, organization, activity };
     });
   }, []);
 
   const areaFilters = useMemo(
-    () => ({ areas: filters.areas }),
-    [filters.areas]
+    () => ({ areas: deferredFilters.areas }),
+    [deferredFilters.areas]
   );
 
   const publisherOptions = useLocationScopedFilterOptions({
@@ -113,10 +110,10 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     loadingLabel: "Loading publishers…",
     hierarchy,
     filters: areaFilters,
+    enabled: hasLoadedOnce,
     fetchNames: getPublishers,
-    onFetched: onPublishersFetched,
-    organization: filters.organization,
-    activity: filters.activity,
+    organization: deferredFilters.organization,
+    activity: deferredFilters.activity,
   });
 
   const organizationOptions = useLocationScopedFilterOptions({
@@ -125,10 +122,10 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     loadingLabel: "Loading providers…",
     hierarchy,
     filters: areaFilters,
+    enabled: hasLoadedOnce,
     fetchNames: getOrganizations,
-    onFetched: onOrganizationsFetched,
-    publisher: filters.publisher,
-    activity: filters.activity,
+    publisher: deferredFilters.publisher,
+    activity: deferredFilters.activity,
   });
 
   const activityOptions = useLocationScopedFilterOptions({
@@ -137,17 +134,17 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     loadingLabel: "Loading activities…",
     hierarchy,
     filters: areaFilters,
+    enabled: hasLoadedOnce,
     fetchNames: getActivities,
-    onFetched: onActivitiesFetched,
-    publisher: filters.publisher,
-    organization: filters.organization,
+    publisher: deferredFilters.publisher,
+    organization: deferredFilters.organization,
   });
 
-  // Summary card + map choropleth are both driven by /opportunities.
   const { summary, districtCounts, isLoading: isOpportunitiesLoading } =
     useReactiveOpportunities({
       filters,
       hierarchy,
+      onResolved: onOpportunitiesResolved,
     });
 
   const selectionLabel = getAreaSelectionLabel(filters.areas, hierarchy);
@@ -215,6 +212,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
             districtCounts={districtCounts}
             scopeAreaNames={mapScopeNames}
             selectedDistrict={selectedDistrict}
+            isLoading={isOpportunitiesLoading}
             onReset={onMapReset}
           />
         </div>
@@ -246,6 +244,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
             districtCounts={districtCounts}
             scopeAreaNames={mapScopeNames}
             selectedDistrict={selectedDistrict}
+            isLoading={isOpportunitiesLoading}
             onReset={onMapReset}
           />
         </div>
