@@ -29,7 +29,6 @@ type UseLocationScopedFilterOptionsParams = {
       activity?: string[];
     }
   ) => Promise<string[]>;
-  onFetched?: (names: string[]) => void;
   publisher?: string[];
   organization?: string[];
   activity?: string[];
@@ -37,7 +36,6 @@ type UseLocationScopedFilterOptionsParams = {
 
 type FetchResult = {
   options: ExplorerFilterOption[];
-  names: string[];
 };
 
 export function useLocationScopedFilterOptions({
@@ -48,7 +46,6 @@ export function useLocationScopedFilterOptions({
   filters,
   enabled = true,
   fetchNames,
-  onFetched,
   publisher,
   organization,
   activity,
@@ -58,8 +55,6 @@ export function useLocationScopedFilterOptions({
   ]);
   // Stores in-flight Promises. Resolved promises stay in the map for cheap re-use.
   const cacheRef = useRef<Map<string, Promise<FetchResult>>>(new Map());
-  const onFetchedRef = useRef(onFetched);
-  onFetchedRef.current = onFetched;
 
   useEffect(() => {
     if (!enabled) return;
@@ -73,7 +68,6 @@ export function useLocationScopedFilterOptions({
     const cacheKey = JSON.stringify({ query, item });
 
     let promise = cacheRef.current.get(cacheKey);
-    const wasCached = promise !== undefined;
 
     if (!promise) {
       // DEV-ONLY perf baseline (remove after): counts real option-list fetches.
@@ -111,7 +105,7 @@ export function useLocationScopedFilterOptions({
                   { value: ALL_FILTER, label: allLabel },
                   ...names.map((name) => ({ value: name, label: name })),
                 ];
-          return { options: nextOptions, names };
+          return { options: nextOptions };
         })
         .catch((err) => {
           cacheRef.current.delete(cacheKey);
@@ -125,8 +119,6 @@ export function useLocationScopedFilterOptions({
       .then((result) => {
         if (cancelled) return;
         setOptions(result.options);
-
-        if (!wasCached) onFetchedRef.current?.(result.names);
       })
       .catch(() => {
         if (cancelled) return;

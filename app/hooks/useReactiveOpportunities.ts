@@ -16,15 +16,33 @@ import type {
   OpportunitiesQuery,
 } from "../types/opportunities";
 
+export type PresentNames = {
+  publishers: Set<string>;
+  organizations: Set<string>;
+  activities: Set<string>;
+};
+
 type Params = {
   filters: ExplorerFilters;
   hierarchy: GeoHierarchy;
+  onResolved?: (presentNames: PresentNames) => void;
 };
 
 type Result = {
   summary: ExplorerSummary;
   districtCounts: DistrictCount[];
   isLoading: boolean;
+};
+
+/** Rendered data plus the present-name sets used to prune stale selections. */
+type ReducedData = Omit<Result, "isLoading"> & {
+  presentNames: PresentNames;
+};
+
+const EMPTY_PRESENT_NAMES: PresentNames = {
+  publishers: new Set<string>(),
+  organizations: new Set<string>(),
+  activities: new Set<string>(),
 };
 
 const EMPTY_SUMMARY: ExplorerSummary = {
@@ -57,10 +75,7 @@ function rankTop(map: Map<string, number>, limit: number): RankedItem[] {
  *  - per-district totals for the choropleth, keyed by district_name
  *    so it joins directly with the geojson the map already uses.
  */
-function reduce(rows: Opportunity[]): {
-  summary: ExplorerSummary;
-  districtCounts: DistrictCount[];
-} {
+function reduce(rows: Opportunity[]): ReducedData {
   const countByDistrict = new Map<string, number>();
   const countByPublisher = new Map<string, number>();
   const countByFeed = new Map<string, number>();
@@ -119,6 +134,11 @@ function reduce(rows: Opportunity[]): {
       topActivities: rankTop(countByActivity, EXPLORER_TOP_LIMIT),
     },
     districtCounts,
+    presentNames: {
+      publishers: new Set(countByPublisher.keys()),
+      organizations: new Set(countByOrganization.keys()),
+      activities: new Set(countByActivity.keys()),
+    },
   };
 }
 
@@ -132,16 +152,19 @@ function reduce(rows: Opportunity[]): {
 export function useReactiveOpportunities({
   filters,
   hierarchy,
+  onResolved,
 }: Params): Result {
   const [data, setData] = useState<Omit<Result, "isLoading">>({
     summary: EMPTY_SUMMARY,
     districtCounts: [],
   });
   const [isLoading, setIsLoading] = useState(true);
- 
-  const cacheRef = useRef<Map<string, Promise<Omit<Result, "isLoading">>>>(
-    new Map()
-  );
+
+  const cacheRef = useRef<Map<string, Promise<ReducedData>>>(new Map());
+  const onResolvedRef = useRef(onResolved);
+  useEffect(() => {
+    onResolvedRef.current = onResolved;
+  }, [onResolved]);
 
   const locationQuery = buildLocationFilterQuery(filters, hierarchy);
   const query: OpportunitiesQuery = {
@@ -162,7 +185,11 @@ export function useReactiveOpportunities({
       promise = getOpportunities(query)
         .then((rows) =>
           rows.length === 0
-            ? { summary: EMPTY_SUMMARY, districtCounts: [] }
+            ? {
+                summary: EMPTY_SUMMARY,
+                districtCounts: [],
+                presentNames: EMPTY_PRESENT_NAMES,
+              }
             : reduce(rows)
         )
         .catch((err) => {
@@ -176,8 +203,9 @@ export function useReactiveOpportunities({
     promise
       .then((next) => {
         if (cancelled) return;
-        setData(next);
+        setData({ summary: next.summary, districtCounts: next.districtCounts });
         setIsLoading(false);
+        onResolvedRef.current?.(next.presentNames);
       })
       .catch(() => {
         if (cancelled) return;

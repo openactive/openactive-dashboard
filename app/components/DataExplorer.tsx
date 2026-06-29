@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import { useLocationScopedFilterOptions } from "../hooks/useLocationScopedFilterOptions";
 import { useReactiveOpportunities } from "../hooks/useReactiveOpportunities";
+import type { PresentNames } from "../hooks/useReactiveOpportunities";
 import { ExplorerFilterBar } from "./ExplorerFilterBar";
 import { ExplorerSummary } from "./ExplorerSummary";
 import {
@@ -85,39 +86,27 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     []
   );
 
-  const onPublishersFetched = useCallback((names: string[]) => {
+  // Option lists are fetched lazily (only when a dropdown opens), so a
+  // selection can outlive the data it filters.
+  const onOpportunitiesResolved = useCallback((present: PresentNames) => {
     setFilters((current) => {
-      if (current.publisher.length === 0) return current;
-      if (names.length === 0) return { ...current, publisher: [] };
-      const allowed = new Set(names);
-      const next = current.publisher.filter((p) => allowed.has(p));
-      if (next.length === current.publisher.length) return current;
-      return { ...current, publisher: next };
-    });
-  }, []);
-
-  const onOrganizationsFetched = useCallback((names: string[]) => {
-    setFilters((current) => {
-      if (current.organization.length === 0) return current;
-      if (names.length === 0) return { ...current, organization: [] };
-      const allowed = new Set(names);
-      const next = current.organization.filter((o) => allowed.has(o));
-      if (next.length === current.organization.length) return current;
-      return { ...current, organization: next };
-    });
-  }, []);
-
-  const onActivitiesFetched = useCallback((names: string[]) => {
-    setFilters((current) => {
-      if (current.activity.length === 0) return current;
-      if (names.length === 0) return { ...current, activity: [] };
-      // Drop any selected values that the new options list no longer
-      // contains (e.g. user changed location and that activity isn't
-      // there). Keep the rest so partial selections survive.
-      const allowed = new Set(names);
-      const next = current.activity.filter((a) => allowed.has(a));
-      if (next.length === current.activity.length) return current;
-      return { ...current, activity: next };
+      const publisher = current.publisher.filter((p) =>
+        present.publishers.has(p)
+      );
+      const organization = current.organization.filter((o) =>
+        present.organizations.has(o)
+      );
+      const activity = current.activity.filter((a) =>
+        present.activities.has(a)
+      );
+      if (
+        publisher.length === current.publisher.length &&
+        organization.length === current.organization.length &&
+        activity.length === current.activity.length
+      ) {
+        return current;
+      }
+      return { ...current, publisher, organization, activity };
     });
   }, []);
 
@@ -134,7 +123,6 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     filters: areaFilters,
     enabled: openFilters.has("publishers"),
     fetchNames: getPublishers,
-    onFetched: onPublishersFetched,
     organization: filters.organization,
     activity: filters.activity,
   });
@@ -147,7 +135,6 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     filters: areaFilters,
     enabled: openFilters.has("organizations"),
     fetchNames: getOrganizations,
-    onFetched: onOrganizationsFetched,
     publisher: filters.publisher,
     activity: filters.activity,
   });
@@ -160,7 +147,6 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     filters: areaFilters,
     enabled: openFilters.has("activities"),
     fetchNames: getActivities,
-    onFetched: onActivitiesFetched,
     publisher: filters.publisher,
     organization: filters.organization,
   });
@@ -170,6 +156,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     useReactiveOpportunities({
       filters,
       hierarchy,
+      onResolved: onOpportunitiesResolved,
     });
 
   const selectionLabel = getAreaSelectionLabel(filters.areas, hierarchy);
