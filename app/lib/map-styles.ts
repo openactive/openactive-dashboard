@@ -1,6 +1,6 @@
 import * as d3 from "d3";
 
-export const GEOJSON_URL = "/api/boundaries";
+export const GEOJSON_URL = "/api/boundaries/local-authority";
 
 export const LAND_FILL = "#dce4ec";
 export const LAND_STROKE = "#a8b8c8";
