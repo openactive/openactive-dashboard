@@ -20,7 +20,7 @@ type UseLocationScopedFilterOptionsParams = {
   allLabel: string;
   loadingLabel: string;
   hierarchy: GeoHierarchy;
-  filters: Pick<ExplorerFilters, "areas">;
+  filters: Pick<ExplorerFilters, "areas" | "boundaryType" | "nhsTrusts">;
   enabled?: boolean;
   fetchNames: (
     query: LocationQuery & {

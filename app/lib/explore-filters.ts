@@ -5,9 +5,16 @@ export const ALL_FILTER = "all" as const;
 export const FILTER_LOADING_VALUE = "__loading__" as const;
 export const FILTER_EMPTY_VALUE = "__empty__" as const;
 
+/** Which boundary set the area filter and map operate on. */
+export type BoundaryType = "lad" | "nhs";
+
 export type ExplorerFilters = {
-  /** Selected area refs (country/region/district). Empty = all areas. */
+  /** Whether the area filter and map use Local Authority districts or NHS Trusts. */
+  boundaryType: BoundaryType;
+  /** Selected area refs (country/region/district). Empty = all areas. Used in "lad" mode. */
   areas: string[];
+  /** Selected NHS Trust codes (e.g. "R0A"). Empty = all trusts. Used in "nhs" mode. */
+  nhsTrusts: string[];
   publisher: string[];
   organization: string[];
   /** Selected activity names. Empty array = no activity filter. */
@@ -15,7 +22,9 @@ export type ExplorerFilters = {
 };
 
 export const DEFAULT_EXPLORER_FILTERS: ExplorerFilters = {
+  boundaryType: "lad",
   areas: [],
+  nhsTrusts: [],
   publisher: [],
   organization: [],
   activity: [],

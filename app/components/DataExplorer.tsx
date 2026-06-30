@@ -99,9 +99,17 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     });
   }, []);
 
-  const areaFilters = useMemo(
-    () => ({ areas: deferredFilters.areas }),
-    [deferredFilters.areas]
+  const locationFilters = useMemo(
+    () => ({
+      boundaryType: deferredFilters.boundaryType,
+      areas: deferredFilters.areas,
+      nhsTrusts: deferredFilters.nhsTrusts,
+    }),
+    [
+      deferredFilters.boundaryType,
+      deferredFilters.areas,
+      deferredFilters.nhsTrusts,
+    ]
   );
 
   const publisherOptions = useLocationScopedFilterOptions({
@@ -109,7 +117,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     allLabel: "All publishers",
     loadingLabel: "Loading publishers…",
     hierarchy,
-    filters: areaFilters,
+    filters: locationFilters,
     enabled: hasLoadedOnce,
     fetchNames: getPublishers,
     organization: deferredFilters.organization,
@@ -121,7 +129,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     allLabel: "All providers",
     loadingLabel: "Loading providers…",
     hierarchy,
-    filters: areaFilters,
+    filters: locationFilters,
     enabled: hasLoadedOnce,
     fetchNames: getOrganizations,
     publisher: deferredFilters.publisher,
@@ -133,7 +141,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     allLabel: "All activities and facilities",
     loadingLabel: "Loading activities…",
     hierarchy,
-    filters: areaFilters,
+    filters: locationFilters,
     enabled: hasLoadedOnce,
     fetchNames: getActivities,
     publisher: deferredFilters.publisher,
