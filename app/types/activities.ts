@@ -6,4 +6,5 @@ export type ActivitiesQuery = {
   country?: string[];
   publisher?: string[];
   organization?: string[];
+  nhs_trust?: string[];
 };

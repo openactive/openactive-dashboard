@@ -34,4 +34,5 @@ export type AreasQuery = {
   publisher?: string[];
   organization?: string[];
   activity?: string[];
+  nhs_trust?: string[];
 };

@@ -6,6 +6,7 @@ export type FilterQuery = {
   publisher?: string[];
   organization?: string[];
   activity?: string[];
+  nhs_trust?: string[];
 };
 
 /**
@@ -20,6 +21,7 @@ export function buildFilterParams(query: FilterQuery): URLSearchParams {
   if (query.publisher?.length) params.set("publisher", query.publisher.join(","));
   if (query.organization?.length) params.set("organization", query.organization.join(","));
   if (query.activity?.length) params.set("activity", query.activity.join(","));
+  if (query.nhs_trust?.length) params.set("nhs_trust", query.nhs_trust.join(","));
 
   return params;
 }
