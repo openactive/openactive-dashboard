@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import * as d3 from "d3";
-import type { DistrictCount } from "../lib/explore-filters";
+import type { BoundaryType, DistrictCount } from "../lib/explore-filters";
 import {
   GEOJSON_URL,
   LAND_FILL,
@@ -15,9 +15,11 @@ import {
   strokeWidthForFeature,
   getFitFeatures,
   scopeKey,
+  type FeatureJoinKey,
   type LadFeature,
   type LadCollection,
 } from "../lib/map-styles";
+import { loadNhsBasemap } from "../lib/nhs-basemap";
 import { MapZoomControls } from "./MapZoomControls";
 import { MapLegend } from "./MapLegend";
 
@@ -25,6 +27,7 @@ interface OpportunityMapProps {
   districtCounts: DistrictCount[];
   scopeAreaNames: string[] | null;
   selectedDistrict: string | null;
+  boundaryType?: BoundaryType;
   isLoading?: boolean;
   onReset?: () => void;
 }
@@ -33,6 +36,7 @@ export function OpportunityMap({
   districtCounts,
   scopeAreaNames,
   selectedDistrict,
+  boundaryType = "lad",
   isLoading = false,
   onReset,
 }: OpportunityMapProps) {
@@ -46,6 +50,13 @@ export function OpportunityMap({
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [geojson, setGeojson] = useState<LadCollection | null>(null);
   const [focusedDistrict, setFocusedDistrict] = useState<string | null>(null);
+  // Which boundary type the loaded shapes belong to.
+  const [loadedBoundaryType, setLoadedBoundaryType] =
+    useState<BoundaryType>("lad");
+
+  // Local Authority features join the data by name; NHS Trusts join by code.
+  const joinKey: FeatureJoinKey =
+    loadedBoundaryType === "nhs" ? "geo_code" : "geo_name";
 
   const countByDistrict = useRef(new Map<string, number>());
   countByDistrict.current = new Map(
@@ -62,21 +73,31 @@ export function OpportunityMap({
   const scopeSetRef = useRef<Set<string> | null>(null);
   const selectedDistrictRef = useRef<string | null>(null);
   const dataFitKeyRef = useRef("all");
+  const joinKeyRef = useRef<FeatureJoinKey>("geo_name");
   useEffect(() => {
     scopeSetRef.current = scopeAreaNames ? new Set(scopeAreaNames) : null;
     selectedDistrictRef.current = selectedDistrict;
     dataFitKeyRef.current = dataFitKey;
+    joinKeyRef.current = joinKey;
   });
 
+  // Load the boundary shapes for the current mode, reloading when it changes.
+  // NHS uses the shared cached basemap so the map and picker share one download.
   useEffect(() => {
     let cancelled = false;
     async function load() {
       try {
-        const res = await fetch(GEOJSON_URL);
-        if (!res.ok) throw new Error(`Failed to load map (${res.status})`);
-        const data = (await res.json()) as LadCollection;
+        let data: LadCollection;
+        if (boundaryType === "nhs") {
+          data = (await loadNhsBasemap()).collection;
+        } else {
+          const res = await fetch(GEOJSON_URL);
+          if (!res.ok) throw new Error(`Failed to load map (${res.status})`);
+          data = (await res.json()) as LadCollection;
+        }
         if (!cancelled) {
           setGeojson(data);
+          setLoadedBoundaryType(boundaryType);
           setStatus("ready");
         }
       } catch {
@@ -85,7 +106,7 @@ export function OpportunityMap({
     }
     load();
     return () => { cancelled = true; };
-  }, []);
+  }, [boundaryType]);
 
   const applyFills = useCallback(() => {
     if (!svgRef.current || !mapReadyRef.current) return;
@@ -102,10 +123,10 @@ export function OpportunityMap({
 
     dataLayer
       .selectAll<SVGPathElement, LadFeature>("path")
-      .attr("fill", (d) => fillForFeature(d, counts, color, scopeSet, selectedDistrict, isFocused))
-      .attr("stroke", (d) => strokeForFeature(d, scopeSet, selectedDistrict))
-      .attr("stroke-width", (d) => strokeWidthForFeature(d, scopeSet, selectedDistrict));
-  }, [districtCounts, scopeAreaNames, selectedDistrict]);
+      .attr("fill", (d) => fillForFeature(d, counts, color, scopeSet, selectedDistrict, isFocused, joinKey))
+      .attr("stroke", (d) => strokeForFeature(d, scopeSet, selectedDistrict, joinKey))
+      .attr("stroke-width", (d) => strokeWidthForFeature(d, scopeSet, selectedDistrict, joinKey));
+  }, [districtCounts, scopeAreaNames, selectedDistrict, joinKey]);
 
   useEffect(() => { applyFills(); }, [applyFills]);
 
@@ -130,7 +151,7 @@ export function OpportunityMap({
         (scopeSet !== null && scopeSet.size > 0 && scopeSet.size <= 8);
 
       const allFeatures = geojson.features;
-      const fitTargets = getFitFeatures(allFeatures, counts);
+      const fitTargets = getFitFeatures(allFeatures, counts, joinKey);
       const fitCollection = {
         type: "FeatureCollection" as const,
         features: fitTargets,
@@ -162,11 +183,11 @@ export function OpportunityMap({
         .selectAll<SVGPathElement, LadFeature>("path")
         .attr("d", drawPath)
         .attr("fill", (d) =>
-          fillForFeature(d, counts, color, scopeSet, selected, isFocused)
+          fillForFeature(d, counts, color, scopeSet, selected, isFocused, joinKey)
         )
-        .attr("stroke", (d) => strokeForFeature(d, scopeSet, selected))
+        .attr("stroke", (d) => strokeForFeature(d, scopeSet, selected, joinKey))
         .attr("stroke-width", (d) =>
-          strokeWidthForFeature(d, scopeSet, selected)
+          strokeWidthForFeature(d, scopeSet, selected, joinKey)
         );
 
       const zoom = zoomBehaviorRef.current;
@@ -177,7 +198,7 @@ export function OpportunityMap({
         if (resetZoom) svg.call(zoom.transform, d3.zoomIdentity);
       }
     },
-    [geojson]
+    [geojson, joinKey]
   );
 
   // Build the SVG structure once per map load: bind the land + data paths,
@@ -224,15 +245,16 @@ export function OpportunityMap({
       .on("mouseenter", function (_, d) {
         const name = d.properties?.geo_name ?? null;
         setFocusedDistrict(name);
-        if (name !== selectedDistrictRef.current) {
+        const key = d.properties?.[joinKeyRef.current] ?? null;
+        if (key !== selectedDistrictRef.current) {
           d3.select(this).attr("stroke", FOCUS_STROKE).attr("stroke-width", 2);
         }
       })
       .on("mouseleave", function (_, d) {
         setFocusedDistrict(null);
         d3.select(this)
-          .attr("stroke", strokeForFeature(d, scopeSetRef.current, selectedDistrictRef.current))
-          .attr("stroke-width", strokeWidthForFeature(d, scopeSetRef.current, selectedDistrictRef.current));
+          .attr("stroke", strokeForFeature(d, scopeSetRef.current, selectedDistrictRef.current, joinKeyRef.current))
+          .attr("stroke-width", strokeWidthForFeature(d, scopeSetRef.current, selectedDistrictRef.current, joinKeyRef.current));
       });
 
     const zoom = d3

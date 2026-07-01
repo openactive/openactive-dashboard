@@ -136,6 +136,7 @@ export function getFitFeatures(
       .filter(([, c]) => c > 0)
       .map(([key]) => key),
   );
+  
   if (dataKeys.size > 0 && dataKeys.size < features.length) {
     const matched = features.filter((f) =>
       dataKeys.has(featureKey(f, joinKey)),
