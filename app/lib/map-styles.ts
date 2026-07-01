@@ -30,15 +30,25 @@ export interface LadCollection {
   features: LadFeature[];
 }
 
+// Local Authority features join the opportunity data by name; NHS Trust
+// features join by code. The colour/outline helpers take which key to read,
+// defaulting to name so Local Authority callers stay unchanged.
+export type FeatureJoinKey = "geo_name" | "geo_code";
+
+function featureKey(d: LadFeature, joinKey: FeatureJoinKey): string {
+  return d.properties?.[joinKey] ?? "";
+}
+
 function resolveFeatureState(
   d: LadFeature,
   scopeSet: Set<string> | null,
-  selectedDistrict: string | null
+  selectedKey: string | null,
+  joinKey: FeatureJoinKey
 ) {
-  const name = d.properties?.geo_name ?? "";
-  const isSelected = name === selectedDistrict;
-  const inScope = !scopeSet || scopeSet.has(name);
-  return { name, isSelected, inScope };
+  const key = featureKey(d, joinKey);
+  const isSelected = key === selectedKey;
+  const inScope = !scopeSet || scopeSet.has(key);
+  return { key, isSelected, inScope };
 }
 
 export const LEGEND_FROM = "#F6EDE0";
@@ -58,26 +68,28 @@ export function fillForFeature(
   counts: Map<string, number>,
   color: d3.ScaleSequential<string, never>,
   scopeSet: Set<string> | null,
-  selectedDistrict: string | null,
-  isFocused: boolean
+  selectedKey: string | null,
+  isFocused: boolean,
+  joinKey: FeatureJoinKey = "geo_name"
 ): string {
-  const { name, isSelected, inScope } = resolveFeatureState(
+  const { key, isSelected, inScope } = resolveFeatureState(
     d,
     scopeSet,
-    selectedDistrict
+    selectedKey,
+    joinKey
   );
 
   if (!inScope) return OUT_OF_SCOPE_FILL;
   if (isSelected) {
-    const count = counts.get(name) ?? 0;
+    const count = counts.get(key) ?? 0;
     return count > 0 ? color(count) : SELECTED_FILL_FALLBACK;
   }
   if (isFocused && inScope) {
-    const count = counts.get(name) ?? 0;
+    const count = counts.get(key) ?? 0;
     if (count > 0) return color(count);
     return NO_DATA_FILL;
   }
-  const count = counts.get(name) ?? 0;
+  const count = counts.get(key) ?? 0;
   if (count > 0) return color(count);
   return NO_DATA_FILL;
 }
@@ -85,12 +97,14 @@ export function fillForFeature(
 export function strokeForFeature(
   d: LadFeature,
   scopeSet: Set<string> | null,
-  selectedDistrict: string | null
+  selectedKey: string | null,
+  joinKey: FeatureJoinKey = "geo_name"
 ): string {
   const { isSelected, inScope } = resolveFeatureState(
     d,
     scopeSet,
-    selectedDistrict
+    selectedKey,
+    joinKey
   );
   if (isSelected) return SELECTED_STROKE;
   return inScope ? BASE_STROKE : OUT_OF_SCOPE_STROKE;
@@ -99,12 +113,14 @@ export function strokeForFeature(
 export function strokeWidthForFeature(
   d: LadFeature,
   scopeSet: Set<string> | null,
-  selectedDistrict: string | null
+  selectedKey: string | null,
+  joinKey: FeatureJoinKey = "geo_name"
 ): number {
   const { isSelected, inScope } = resolveFeatureState(
     d,
     scopeSet,
-    selectedDistrict
+    selectedKey,
+    joinKey
   );
   if (isSelected) return 3;
   return inScope ? 0.85 : 0.5;
@@ -113,15 +129,16 @@ export function strokeWidthForFeature(
 export function getFitFeatures(
   features: LadFeature[],
   counts: Map<string, number>,
+  joinKey: FeatureJoinKey = "geo_name",
 ): LadFeature[] {
-  const dataNames = new Set(
+  const dataKeys = new Set(
     [...counts.entries()]
       .filter(([, c]) => c > 0)
-      .map(([name]) => name),
+      .map(([key]) => key),
   );
-  if (dataNames.size > 0 && dataNames.size < features.length) {
-    const matched = features.filter(
-      (f) => dataNames.has(f.properties?.geo_name ?? ""),
+  if (dataKeys.size > 0 && dataKeys.size < features.length) {
+    const matched = features.filter((f) =>
+      dataKeys.has(featureKey(f, joinKey)),
     );
     if (matched.length > 0) return matched;
   }
