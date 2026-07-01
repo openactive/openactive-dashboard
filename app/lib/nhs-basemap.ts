@@ -1,14 +1,11 @@
 import type { LadCollection } from "./map-styles";
 
-/** Route serving the WGS84 NHS Trust boundaries */
 export const NHS_GEOJSON_URL = "/api/boundaries/nhs";
 
 export interface NhsBasemap {
-  /** The raw GeoJSON, reused by the map (single fetch, shared). */
+  // The same GeoJSON the map draws, so the file is fetched only once.
   collection: LadCollection;
-  /** Trust name → trust code, e.g. "Manchester University NHS Foundation Trust" → "R0A". */
   nameToCode: Map<string, string>;
-  /** Trust code → trust name. */
   codeToName: Map<string, string>;
 }
 
@@ -34,13 +31,9 @@ async function fetchNhsBasemap(): Promise<NhsBasemap> {
   return { collection, nameToCode, codeToName };
 }
 
-/**
- * Fetch the NHS Trust basemap once and cache the result for the session.
- *
- * Both the area picker (name ↔ code lookup) and the map (geometry) call this,
- * so the GeoJSON file is downloaded a single time. A failed load clears the
- * cache so the next call can retry.
- */
+// Fetch the NHS basemap once and reuse it for the session; the picker (name ↔
+// code) and the map (geometry) share this single download. A failed load
+// clears the cache so the next call retries.
 export function loadNhsBasemap(): Promise<NhsBasemap> {
   if (!cache) {
     cache = fetchNhsBasemap().catch((err) => {
