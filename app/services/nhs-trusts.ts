@@ -5,8 +5,8 @@ import { buildFilterParams } from "./filter-params";
 import type { NHSTrustsQuery, NHSTrustsResponse } from "../types/nhs-trusts";
 
 /**
- * Server Action: fetch the list of distinct NHS Trust names, optionally
- * narrowed by location codes, publisher, organization, or activity.
+ * Server Action: fetch the list of NHS Trusts (name + code), optionally
+ * narrowed by location, publisher, organization, or activity.
  * Revalidates every 30 minutes.
  */
 export async function getAllNHSTrusts(

@@ -1,14 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { getAllNHSTrusts } from "../services/nhs-trusts";
-import { loadNhsBasemap } from "../lib/nhs-basemap";
 import type { ExplorerFilterOption } from "../lib/explore-filters";
 
 export type NhsTrustOptionsStatus = "idle" | "loading" | "ready" | "error";
 
 // Builds the picker's NHS Trust list, loaded lazily the first time the NHS
-// screen opens so users who only use Local Authority boundaries never download
-// the NHS data. Names from /nhs-trusts get their codes from the shared basemap,
-// so each option stores a code but shows a name.
+// screen opens so Local-Authority-only users never fetch it. Each option stores
+// the trust code but shows its name.
 export function useNhsTrustOptions(enabled: boolean): {
   options: ExplorerFilterOption[];
   status: NhsTrustOptionsStatus;
@@ -24,16 +22,12 @@ export function useNhsTrustOptions(enabled: boolean): {
     let cancelled = false;
     setStatus("loading");
 
-    Promise.all([getAllNHSTrusts(), loadNhsBasemap()])
-      .then(([names, basemap]) => {
+    getAllNHSTrusts()
+      .then((trusts) => {
         if (cancelled) return;
-        const resolved = names
-          .map((name) => {
-            const code = basemap.nameToCode.get(name);
-            return code ? { value: code, label: name } : null;
-          })
-          .filter((opt): opt is ExplorerFilterOption => opt !== null);
-        setOptions(resolved);
+        setOptions(
+          trusts.map((t) => ({ value: t.nhstrust_code, label: t.nhstrust_name }))
+        );
         setStatus("ready");
       })
       .catch(() => {
