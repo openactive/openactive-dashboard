@@ -74,6 +74,7 @@ export function OpportunityMap({
   const selectedDistrictRef = useRef<string | null>(null);
   const dataFitKeyRef = useRef("all");
   const joinKeyRef = useRef<FeatureJoinKey>("geo_name");
+  
   useEffect(() => {
     scopeSetRef.current = scopeAreaNames ? new Set(scopeAreaNames) : null;
     selectedDistrictRef.current = selectedDistrict;
