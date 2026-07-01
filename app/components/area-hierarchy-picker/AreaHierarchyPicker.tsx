@@ -8,7 +8,10 @@ import { useEscapeClose } from "../../hooks/useEscapeClose";
 import { useFocusLeaveClose } from "../../hooks/useFocusLeaveClose";
 import { useTabExitClose } from "../../hooks/useTabExitClose";
 import { isCoarsePointer } from "../../lib/pointer";
-import type { ExplorerFilters } from "../../lib/explore-filters";
+import type {
+  ExplorerFilterOption,
+  ExplorerFilters,
+} from "../../lib/explore-filters";
 import type { GeoHierarchy } from "../../lib/geo-hierarchy";
 import { getAreaSelectionLabel } from "../../lib/area-selection";
 import {
@@ -18,6 +21,7 @@ import {
   EXPLORER_TRIGGER_FIELD_TAILWIND,
   EXPLORER_TRIGGER_GLASS_TAILWIND,
 } from "../../lib/explorer-ui-styles";
+import { useNhsTrustOptions } from "../../hooks/useNhsTrustOptions";
 import { AreaPickerPanel } from "./AreaPickerPanel";
 import type { AreaPickerVariant } from "./types";
 import { useAreaPickerDrill } from "./use-area-picker-drill";
@@ -29,9 +33,21 @@ interface AreaHierarchyPickerProps {
   variant?: AreaPickerVariant;
 }
 
-/**
- * Drill-down area picker: country → region → local area.
- */
+// Trigger summary for the NHS Trust selection.
+function getNhsTrustLabel(
+  codes: string[],
+  options: ExplorerFilterOption[]
+): string {
+  if (codes.length === 0) return "All NHS Trusts";
+  if (codes.length === 1) {
+    const opt = options.find((o) => o.value === codes[0]);
+    return opt?.label ?? "1 Trust";
+  }
+  return `${codes.length} Trusts`;
+}
+
+// The dropdown opens on a boundary-type choice; choosing one swaps the panel to
+// that boundary's options (the LAD drill-down or the NHS Trust list).
 export function AreaHierarchyPicker({
   hierarchy,
   filters,
@@ -55,9 +71,13 @@ export function AreaHierarchyPicker({
     setQuery,
     covered,
     draftAreas,
+    draftBoundaryType,
+    draftNhsTrusts,
     toggleCountry,
     toggleRegion,
     toggleDistrict,
+    chooseBoundary,
+    toggleNhsTrust,
     goBack,
     drillToCountry,
     drillToRegion,
@@ -65,10 +85,24 @@ export function AreaHierarchyPicker({
     backLabel,
   } = useAreaPickerDrill(hierarchy, filters, onChange, open);
 
-  const triggerLabel = getAreaSelectionLabel(
-    open ? draftAreas : filters.areas,
-    hierarchy
-  );
+  // Load NHS trust options lazily: only once the user is (or was) in NHS mode,
+  // so Local-Authority-only users never download the NHS basemap.
+  const nhsEnabled =
+    (open && draftBoundaryType === "nhs") || filters.boundaryType === "nhs";
+  const { options: nhsOptions, status: nhsStatus } =
+    useNhsTrustOptions(nhsEnabled);
+
+  const activeBoundaryType = open ? draftBoundaryType : filters.boundaryType;
+  const activeAreas = open ? draftAreas : filters.areas;
+  const activeNhsTrusts = open ? draftNhsTrusts : filters.nhsTrusts;
+  // The trigger doubles as the call to action: until a concrete selection is
+  // made.
+  const triggerLabel =
+    activeBoundaryType === "nhs"
+      ? getNhsTrustLabel(activeNhsTrusts, nhsOptions)
+      : activeAreas.length > 0
+        ? getAreaSelectionLabel(activeAreas, hierarchy)
+        : "Select boundary type";
 
   useClickOutside(containerRef, open, closePicker);
   useEscapeClose(open, closePicker);
@@ -166,7 +200,7 @@ export function AreaHierarchyPicker({
     } else if (
       e.key === "ArrowLeft" &&
       isOption &&
-      drill.type !== "root"
+      drill.type !== "boundary-choice"
     ) {
       e.preventDefault();
       goBack();
@@ -186,7 +220,7 @@ export function AreaHierarchyPicker({
           isGlass ? EXPLORER_LABEL_GLASS_TEXT : EXPLORER_LABEL_DEFAULT_TEXT
         }`}
       >
-        Area
+        Location
       </label>
       <button
         id={`${listboxId}-trigger`}
@@ -229,6 +263,12 @@ export function AreaHierarchyPicker({
           onToggleDistrict={toggleDistrict}
           onDrillCountry={drillToCountry}
           onDrillRegion={drillToRegion}
+          boundaryType={draftBoundaryType}
+          onChooseBoundary={chooseBoundary}
+          nhsOptions={nhsOptions}
+          nhsStatus={nhsStatus}
+          selectedNhsTrusts={draftNhsTrusts}
+          onToggleNhsTrust={toggleNhsTrust}
         />
       )}
     </div>

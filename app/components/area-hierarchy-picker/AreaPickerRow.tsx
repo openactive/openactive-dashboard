@@ -1,9 +1,6 @@
-import {
-  CheckIcon,
-  ChevronRightIcon,
-  MinusIcon,
-} from "@heroicons/react/20/solid";
+import { ChevronRightIcon } from "@heroicons/react/20/solid";
 import type { AreaCheckState } from "../../lib/area-selection";
+import { CheckBox } from "./CheckBox";
 
 interface AreaPickerRowProps {
   label: string;
@@ -14,28 +11,8 @@ interface AreaPickerRowProps {
   onDrill?: () => void;
 }
 
-function CheckBox({ state }: { state: AreaCheckState }) {
-  const filled = state !== "unchecked";
-  return (
-    <span
-      aria-hidden="true"
-      className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border transition-colors ${
-        filled
-          ? "border-oa-cyan bg-oa-cyan text-white"
-          : "border-oa-grey-400 bg-white"
-      }`}
-    >
-      {state === "checked" && <CheckIcon className="h-3 w-3" />}
-      {state === "indeterminate" && <MinusIcon className="h-3 w-3" />}
-    </span>
-  );
-}
-
-/**
- * One area row: a tri-state checkbox that toggles the node (cascading to its
- * children), and a body that drills into children when present or toggles a
- * leaf district when not.
- */
+// A tri-state checkbox that toggles the node (cascading to its children), plus a
+// body that drills into children when present or toggles a leaf district.
 export function AreaPickerRow({
   label,
   subLabel,
@@ -76,7 +53,7 @@ export function AreaPickerRow({
         data-picker-option
         onClick={hasChildren ? onDrill : onToggle}
         aria-label={hasChildren ? `Browse ${label}` : undefined}
-        className="flex min-w-0 flex-1 items-center gap-2 py-2.5 pr-3 text-left text-sm focus:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-oa-cyan"
+        className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 py-2.5 pr-3 text-left text-sm focus:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-oa-cyan"
       >
         <span className="min-w-0 flex-1">
           <span
