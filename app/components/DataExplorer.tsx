@@ -157,13 +157,18 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
 
   const selectionLabel = getAreaSelectionLabel(filters.areas, hierarchy);
 
+  // What the map treats as "in scope". Local Authority mode scopes by district
+  // name; NHS mode scopes by the selected trust codes (the map joins by code).
   const mapScopeNames = useMemo(() => {
+    if (filters.boundaryType === "nhs") {
+      return filters.nhsTrusts.length > 0 ? filters.nhsTrusts : null;
+    }
     const names = getSelectedDistrictNames(filters.areas, hierarchy);
     return names.length > 0 ? names : null;
-  }, [filters.areas, hierarchy]);
+  }, [filters.boundaryType, filters.nhsTrusts, filters.areas, hierarchy]);
 
-  // A single chosen district still gets the strong "selected" emphasis on the
-  // map; broader multi-area selections rely on the scope highlight instead.
+  // A single chosen area/trust still gets the strong "selected" emphasis on the
+  // map; broader multi-selections rely on the scope highlight instead.
   const selectedDistrict =
     mapScopeNames?.length === 1 ? mapScopeNames[0] : null;
 
@@ -220,6 +225,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
             districtCounts={districtCounts}
             scopeAreaNames={mapScopeNames}
             selectedDistrict={selectedDistrict}
+            boundaryType={filters.boundaryType}
             isLoading={isOpportunitiesLoading}
             onReset={onMapReset}
           />
@@ -252,6 +258,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
             districtCounts={districtCounts}
             scopeAreaNames={mapScopeNames}
             selectedDistrict={selectedDistrict}
+            boundaryType={filters.boundaryType}
             isLoading={isOpportunitiesLoading}
             onReset={onMapReset}
           />
