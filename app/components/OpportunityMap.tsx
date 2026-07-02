@@ -44,12 +44,15 @@ export function OpportunityMap({
   const svgRef = useRef<SVGSVGElement>(null);
   const zoomBehaviorRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
   const mapReadyRef = useRef(false);
-  const lastScopeKeyRef = useRef<string>("");
+  // Signature of the last frame we drew: "<joinKey>|<dataFitKey>". Including
+  // the join key means a basemap swap re-frames even if the data keys match.
+  const lastFrameSigRef = useRef<string>("");
   const tooltipId = useId();
 
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [geojson, setGeojson] = useState<LadCollection | null>(null);
   const [focusedDistrict, setFocusedDistrict] = useState<string | null>(null);
+  const [focusedCount, setFocusedCount] = useState<number | undefined>(undefined);
   // Which boundary type the loaded shapes belong to.
   const [loadedBoundaryType, setLoadedBoundaryType] =
     useState<BoundaryType>("lad");
@@ -74,7 +77,7 @@ export function OpportunityMap({
   const selectedDistrictRef = useRef<string | null>(null);
   const dataFitKeyRef = useRef("all");
   const joinKeyRef = useRef<FeatureJoinKey>("geo_name");
-  
+
   useEffect(() => {
     scopeSetRef.current = scopeAreaNames ? new Set(scopeAreaNames) : null;
     selectedDistrictRef.current = selectedDistrict;
@@ -110,7 +113,7 @@ export function OpportunityMap({
   }, [boundaryType]);
 
   const applyFills = useCallback(() => {
-    if (!svgRef.current || !mapReadyRef.current) return;
+    if (!svgRef.current) return;
 
     const counts = countByDistrict.current;
     const color = buildColorScale(counts);
@@ -119,6 +122,7 @@ export function OpportunityMap({
       Boolean(selectedDistrict) ||
       (scopeSet !== null && scopeSet.size > 0 && scopeSet.size <= 8);
 
+    // The paths only exist once the SVG has been built; skip until then.
     const dataLayer = d3.select(svgRef.current).select<SVGGElement>("g.data-layer");
     if (dataLayer.empty()) return;
 
@@ -202,6 +206,12 @@ export function OpportunityMap({
     [geojson, joinKey]
   );
 
+  // Let the build effect call the latest renderData without depending on its
+  // identity — otherwise a joinKey change would tear down and rebuild the SVG.
+  const renderDataRef = useRef(renderData);
+  useEffect(() => {
+    renderDataRef.current = renderData;
+  }, [renderData]);
   // Build the SVG structure once per map load: bind the land + data paths,
   // hover and zoom. The handlers read selection from the refs above so they
   // always use current values, and renderData does all the geometry and
@@ -245,14 +255,16 @@ export function OpportunityMap({
       .attr("aria-hidden", "true")
       .on("mouseenter", function (_, d) {
         const name = d.properties?.geo_name ?? null;
-        setFocusedDistrict(name);
         const key = d.properties?.[joinKeyRef.current] ?? null;
+        setFocusedDistrict(name);
+        setFocusedCount(key ? countByDistrict.current.get(key) : undefined);
         if (key !== selectedDistrictRef.current) {
           d3.select(this).attr("stroke", FOCUS_STROKE).attr("stroke-width", 2);
         }
       })
       .on("mouseleave", function (_, d) {
         setFocusedDistrict(null);
+        setFocusedCount(undefined);
         d3.select(this)
           .attr("stroke", strokeForFeature(d, scopeSetRef.current, selectedDistrictRef.current, joinKeyRef.current))
           .attr("stroke-width", strokeWidthForFeature(d, scopeSetRef.current, selectedDistrictRef.current, joinKeyRef.current));
@@ -267,11 +279,11 @@ export function OpportunityMap({
     zoomBehaviorRef.current = zoom;
     svg.call(zoom).on("dblclick.zoom", null);
 
-    renderData(true);
-    lastScopeKeyRef.current = dataFitKeyRef.current;
+    renderDataRef.current(true);
+    lastFrameSigRef.current = `${joinKeyRef.current}|${dataFitKeyRef.current}`;
     mapReadyRef.current = true;
 
-    const resizeObserver = new ResizeObserver(() => renderData(false));
+    const resizeObserver = new ResizeObserver(() => renderDataRef.current(false));
     resizeObserver.observe(container);
 
     return () => {
@@ -279,16 +291,24 @@ export function OpportunityMap({
       mapReadyRef.current = false;
       zoomBehaviorRef.current = null;
     };
-  }, [status, geojson, tooltipId, renderData]);
+    // Rebuild only when the shapes change; renderData is called via its ref so
+    // a joinKey change recolours in place instead of tearing down the SVG.
+  }, [status, geojson, tooltipId]);
 
   // Update geometry + colour in place when the data scope changes, reusing the
   // existing SVG, zoom behaviour and hover handlers, and re-framing on the new
   // data.
+  // Re-frame and recolour whenever the data (dataFitKey) or the basemap
+  // (joinKey) changes, so a trust always zooms to its shape even if the shapes
+  // and the numbers arrive in separate renders. renderData runs via its ref so
+  // it's always bound to the current shapes.
   useEffect(() => {
-    if (!mapReadyRef.current || lastScopeKeyRef.current === dataFitKey) return;
-    lastScopeKeyRef.current = dataFitKey;
-    renderData(true);
-  }, [dataFitKey, renderData]);
+    if (!mapReadyRef.current) return;
+    const frameSig = `${joinKey}|${dataFitKey}`;
+    if (lastFrameSigRef.current === frameSig) return;
+    lastFrameSigRef.current = frameSig;
+    renderDataRef.current(true);
+  }, [dataFitKey, joinKey]);
 
   const zoomBy = useCallback((factor: number) => {
     const svg = svgRef.current;
@@ -305,10 +325,6 @@ export function OpportunityMap({
     }
     onReset?.();
   }, [onReset]);
-
-  const focusedCount = focusedDistrict
-    ? countByDistrict.current.get(focusedDistrict)
-    : undefined;
 
   const isAutoFramed = dataFitKey !== "all";
 

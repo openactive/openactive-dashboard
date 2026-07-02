@@ -198,7 +198,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
 
   return (
     <div className="mt-10" aria-label="Interactive map explorer">
-      {/* Desktop filter bar — sits above the map for a calmer composition */}
+      {/* Desktop filter bar — sits above the map */}
       <div id="explorer-filters" className="hidden lg:block">
         <ExplorerFilterBar layout="stacked" {...filterControlProps} />
       </div>
