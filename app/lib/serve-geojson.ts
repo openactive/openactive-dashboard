@@ -19,7 +19,6 @@ export function serveGeojson(filename: string, label: string) {
     return new NextResponse(body, {
       headers: {
         "Content-Type": "application/geo+json",
-     
         "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
       },
     });
