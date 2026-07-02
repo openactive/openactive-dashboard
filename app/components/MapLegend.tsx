@@ -1,6 +1,7 @@
 "use client";
 
 import * as d3 from "d3";
+import { boundaryNoun, type BoundaryType } from "../lib/explore-filters";
 import { formatFullNumber } from "../lib/format";
 import { LEGEND_FROM, LEGEND_TO } from "../lib/map-styles";
 
@@ -9,7 +10,8 @@ interface MapLegendProps {
   className: string;
   focusedDistrict: string | null;
   focusedCount: number | undefined;
-  selectedDistrict: string | null;
+  selectedLabel: string | null;
+  boundaryType: BoundaryType;
 }
 
 const LEGEND_STOPS = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1];
@@ -19,7 +21,8 @@ export function MapLegend({
   className,
   focusedDistrict,
   focusedCount,
-  selectedDistrict,
+  selectedLabel,
+  boundaryType,
 }: MapLegendProps) {
   return (
     <div id={id} className={className} aria-live="polite" aria-atomic="true">
@@ -32,14 +35,15 @@ export function MapLegend({
               ? `${formatFullNumber(focusedCount)} opportunities`
               : "No opportunities in current selection"}
           </>
-        ) : selectedDistrict ? (
+        ) : selectedLabel ? (
           <>
-            Viewing <span className="font-semibold text-oa-navy">{selectedDistrict}</span>
+            Viewing <span className="font-semibold text-oa-navy">{selectedLabel}</span>
             . Drag to pan · scroll to zoom.
           </>
         ) : (
           <span className="text-oa-grey-600">
-            Drag to pan · scroll or pinch to zoom. Use the area filter to explore local authorities.
+            Drag to pan · scroll or pinch to zoom. Use the area filter to explore{" "}
+            {boundaryNoun(boundaryType, true)}.
           </span>
         )}
       </p>

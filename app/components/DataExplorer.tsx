@@ -15,12 +15,14 @@ import { OpportunityMap } from "./OpportunityMap";
 import type { GeoHierarchy } from "../lib/geo-hierarchy";
 import {
   getAreaSelectionLabel,
+  getNhsTrustLabel,
   getSelectedDistrictNames,
 } from "../lib/area-selection";
 import {
   DEFAULT_EXPLORER_FILTERS,
   type ExplorerFilters,
 } from "../lib/explore-filters";
+import { useNhsTrustOptions } from "../hooks/useNhsTrustOptions";
 import { getActivities } from "../services/activities";
 import { getOrganizations } from "../services/organizations";
 import { getPublishers } from "../services/publishers";
@@ -99,9 +101,17 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     });
   }, []);
 
-  const areaFilters = useMemo(
-    () => ({ areas: deferredFilters.areas }),
-    [deferredFilters.areas]
+  const locationFilters = useMemo(
+    () => ({
+      boundaryType: deferredFilters.boundaryType,
+      areas: deferredFilters.areas,
+      nhsTrusts: deferredFilters.nhsTrusts,
+    }),
+    [
+      deferredFilters.boundaryType,
+      deferredFilters.areas,
+      deferredFilters.nhsTrusts,
+    ]
   );
 
   const publisherOptions = useLocationScopedFilterOptions({
@@ -109,7 +119,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     allLabel: "All publishers",
     loadingLabel: "Loading publishers…",
     hierarchy,
-    filters: areaFilters,
+    filters: locationFilters,
     enabled: hasLoadedOnce,
     fetchNames: getPublishers,
     organization: deferredFilters.organization,
@@ -121,7 +131,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     allLabel: "All providers",
     loadingLabel: "Loading providers…",
     hierarchy,
-    filters: areaFilters,
+    filters: locationFilters,
     enabled: hasLoadedOnce,
     fetchNames: getOrganizations,
     publisher: deferredFilters.publisher,
@@ -133,7 +143,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
     allLabel: "All activities and facilities",
     loadingLabel: "Loading activities…",
     hierarchy,
-    filters: areaFilters,
+    filters: locationFilters,
     enabled: hasLoadedOnce,
     fetchNames: getActivities,
     publisher: deferredFilters.publisher,
@@ -147,15 +157,30 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
       onResolved: onOpportunitiesResolved,
     });
 
-  const selectionLabel = getAreaSelectionLabel(filters.areas, hierarchy);
+  // NHS Trust names for the selection label, loaded lazily only in NHS mode
+  // (the picker uses the same cached hook, so this adds no extra fetch).
+  const { options: nhsOptions } = useNhsTrustOptions(
+    filters.boundaryType === "nhs"
+  );
 
+  // The "SELECTION" heading: LAD areas by name, NHS Trusts by their picker label.
+  const selectionLabel =
+    filters.boundaryType === "nhs"
+      ? getNhsTrustLabel(filters.nhsTrusts, nhsOptions)
+      : getAreaSelectionLabel(filters.areas, hierarchy);
+
+  // What the map treats as "in scope". Local Authority mode scopes by district
+  // name; NHS mode scopes by the selected trust codes (the map joins by code).
   const mapScopeNames = useMemo(() => {
+    if (filters.boundaryType === "nhs") {
+      return filters.nhsTrusts.length > 0 ? filters.nhsTrusts : null;
+    }
     const names = getSelectedDistrictNames(filters.areas, hierarchy);
     return names.length > 0 ? names : null;
-  }, [filters.areas, hierarchy]);
+  }, [filters.boundaryType, filters.nhsTrusts, filters.areas, hierarchy]);
 
-  // A single chosen district still gets the strong "selected" emphasis on the
-  // map; broader multi-area selections rely on the scope highlight instead.
+  // A single chosen area/trust still gets the strong "selected" emphasis on the
+  // map; broader multi-selections rely on the scope highlight instead.
   const selectedDistrict =
     mapScopeNames?.length === 1 ? mapScopeNames[0] : null;
 
@@ -185,7 +210,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
 
   return (
     <div className="mt-10" aria-label="Interactive map explorer">
-      {/* Desktop filter bar — sits above the map for a calmer composition */}
+      {/* Desktop filter bar — sits above the map */}
       <div id="explorer-filters" className="hidden lg:block">
         <ExplorerFilterBar layout="stacked" {...filterControlProps} />
       </div>
@@ -212,6 +237,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
             districtCounts={districtCounts}
             scopeAreaNames={mapScopeNames}
             selectedDistrict={selectedDistrict}
+            boundaryType={filters.boundaryType}
             isLoading={isOpportunitiesLoading}
             onReset={onMapReset}
           />
@@ -244,6 +270,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
             districtCounts={districtCounts}
             scopeAreaNames={mapScopeNames}
             selectedDistrict={selectedDistrict}
+            boundaryType={filters.boundaryType}
             isLoading={isOpportunitiesLoading}
             onReset={onMapReset}
           />

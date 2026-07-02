@@ -22,6 +22,8 @@ export interface Opportunity {
   region_name: string;
   country_code: string;
   country_name: string;
+  nhstrust_name: string;
+  nhstrust_code: string;
 }
 
 export type OpportunitiesResponse = Opportunity[];
@@ -33,4 +35,5 @@ export type OpportunitiesQuery = {
   region?: string[];
   country?: string[];
   activity?: string[];
+  nhs_trust?: string[];
 };

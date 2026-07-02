@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   EXPLORER_TOP_LIMIT,
+  type BoundaryType,
   type DistrictCount,
   type ExplorerFilters,
   type ExplorerSummary,
@@ -46,6 +47,7 @@ const EMPTY_PRESENT_NAMES: PresentNames = {
 };
 
 const EMPTY_SUMMARY: ExplorerSummary = {
+  boundaryType: "lad",
   totalOpportunities: 0,
   areaCount: 0,
   publisherCount: 0,
@@ -72,11 +74,14 @@ function rankTop(map: Map<string, number>, limit: number): RankedItem[] {
 /**
  * Reduce raw /opportunities rows into:
  *  - a summary (totals + unique counts + top-N breakdowns) for the panel
- *  - per-district totals for the choropleth, keyed by district_name
- *    so it joins directly with the geojson the map already uses.
+ *  - totals for the choropleth. Local authority mode keys these by
+ *    district_name; NHS mode keys them by nhstrust_code, so each joins
+ *    directly with the map shapes it draws.
  */
-function reduce(rows: Opportunity[]): ReducedData {
+function reduce(rows: Opportunity[], boundaryType: BoundaryType): ReducedData {
   const countByDistrict = new Map<string, number>();
+  const countByTrust = new Map<string, number>();
+  const countByTrustName = new Map<string, number>();
   const countByPublisher = new Map<string, number>();
   const countByFeed = new Map<string, number>();
   const countByOrganization = new Map<string, number>();
@@ -107,27 +112,43 @@ function reduce(rows: Opportunity[]): ReducedData {
     else facilityOpportunities += n;
 
     if (row.district_name) bump(countByDistrict, row.district_name, n);
+    if (boundaryType === "nhs" && row.nhstrust_code) {
+      bump(countByTrust, row.nhstrust_code, n);
+    }
+    if (boundaryType === "nhs" && row.nhstrust_name) {
+      bump(countByTrustName, row.nhstrust_name, n);
+    }
     if (row.publisher) bump(countByPublisher, row.publisher, n);
     if (row.provider) bump(countByFeed, row.provider, n);
     if (row.organization_names) bumpFromJsonArray(countByOrganization, row.organization_names, n);
     if (row.activity_or_facility) bumpFromJsonArray(countByActivity, row.activity_or_facility, n);
   }
 
-  const districtCounts: DistrictCount[] = [...countByDistrict.entries()]
+  // The choropleth joins the map shapes it draws by different keys: district
+  // names for local authorities, trust codes for NHS.
+  const choroplethCounts =
+    boundaryType === "nhs" ? countByTrust : countByDistrict;
+  const districtCounts: DistrictCount[] = [...choroplethCounts.entries()]
     .map(([district, count]) => ({ district, count }))
     .sort((a, b) => b.count - a.count);
 
+  // The summary's "area" metric counts what the user is exploring: local
+  // authority districts, or NHS Trusts (by name, so the breakdown is readable).
+  const summaryAreaCounts =
+    boundaryType === "nhs" ? countByTrustName : countByDistrict;
+
   return {
     summary: {
+      boundaryType,
       totalOpportunities,
-      areaCount: countByDistrict.size,
+      areaCount: summaryAreaCounts.size,
       publisherCount: countByPublisher.size,
       feedCount: countByFeed.size,
       organizationCount: countByOrganization.size,
       activityCount: countByActivity.size,
       activityOpportunities,
       facilityOpportunities,
-      topAreas: rankTop(countByDistrict, EXPLORER_TOP_LIMIT),
+      topAreas: rankTop(summaryAreaCounts, EXPLORER_TOP_LIMIT),
       topPublishers: rankTop(countByPublisher, EXPLORER_TOP_LIMIT),
       topFeeds: rankTop(countByFeed, EXPLORER_TOP_LIMIT),
       topOrganizations: rankTop(countByOrganization, EXPLORER_TOP_LIMIT),
@@ -173,7 +194,9 @@ export function useReactiveOpportunities({
     ...(filters.organization.length > 0 ? { organization: filters.organization } : {}),
     ...(filters.activity.length > 0 ? { activity: filters.activity } : {}),
   };
-  const cacheKey = JSON.stringify(query);
+  // boundaryType is part of the key because NHS-with-no-trust and
+  // LAD-with-no-area produce the same query but need different choropleth keys.
+  const cacheKey = JSON.stringify({ query, boundaryType: filters.boundaryType });
 
   useEffect(() => {
     let promise = cacheRef.current.get(cacheKey);
@@ -183,11 +206,11 @@ export function useReactiveOpportunities({
         .then((rows) =>
           rows.length === 0
             ? {
-                summary: EMPTY_SUMMARY,
+                summary: { ...EMPTY_SUMMARY, boundaryType: filters.boundaryType },
                 districtCounts: [],
                 presentNames: EMPTY_PRESENT_NAMES,
               }
-            : reduce(rows)
+            : reduce(rows, filters.boundaryType)
         )
         .catch((err) => {
           cacheRef.current.delete(cacheKey);
@@ -213,7 +236,7 @@ export function useReactiveOpportunities({
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- cacheKey covers query
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- cacheKey covers query + boundaryType
   }, [cacheKey]);
 
   return { ...data, isLoading };

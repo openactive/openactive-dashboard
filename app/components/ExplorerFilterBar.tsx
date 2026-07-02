@@ -14,7 +14,9 @@ interface ExplorerFilterBarProps extends ExplorerFilterControlProps {
 
 function hasActiveFilters(filters: ExplorerFilters): boolean {
   return (
+    filters.boundaryType !== "lad" ||
     filters.areas.length > 0 ||
+    filters.nhsTrusts.length > 0 ||
     filters.publisher.length > 0 ||
     filters.organization.length > 0 ||
     filters.activity.length > 0

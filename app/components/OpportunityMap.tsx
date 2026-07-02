@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import * as d3 from "d3";
-import type { DistrictCount } from "../lib/explore-filters";
+import { boundaryNoun, type BoundaryType, type DistrictCount } from "../lib/explore-filters";
 import {
   GEOJSON_URL,
   LAND_FILL,
@@ -15,9 +15,11 @@ import {
   strokeWidthForFeature,
   getFitFeatures,
   scopeKey,
+  type FeatureJoinKey,
   type LadFeature,
   type LadCollection,
 } from "../lib/map-styles";
+import { loadNhsBasemap } from "../lib/nhs-basemap";
 import { MapZoomControls } from "./MapZoomControls";
 import { MapLegend } from "./MapLegend";
 
@@ -25,6 +27,7 @@ interface OpportunityMapProps {
   districtCounts: DistrictCount[];
   scopeAreaNames: string[] | null;
   selectedDistrict: string | null;
+  boundaryType?: BoundaryType;
   isLoading?: boolean;
   onReset?: () => void;
 }
@@ -33,6 +36,7 @@ export function OpportunityMap({
   districtCounts,
   scopeAreaNames,
   selectedDistrict,
+  boundaryType = "lad",
   isLoading = false,
   onReset,
 }: OpportunityMapProps) {
@@ -40,12 +44,32 @@ export function OpportunityMap({
   const svgRef = useRef<SVGSVGElement>(null);
   const zoomBehaviorRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
   const mapReadyRef = useRef(false);
-  const lastScopeKeyRef = useRef<string>("");
+  // Signature of the last frame we drew: "<joinKey>|<dataFitKey>". Including
+  // the join key means a basemap swap re-frames even if the data keys match.
+  const lastFrameSigRef = useRef<string>("");
   const tooltipId = useId();
 
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [geojson, setGeojson] = useState<LadCollection | null>(null);
   const [focusedDistrict, setFocusedDistrict] = useState<string | null>(null);
+  const [focusedCount, setFocusedCount] = useState<number | undefined>(undefined);
+  // Which boundary type the loaded shapes belong to.
+  const [loadedBoundaryType, setLoadedBoundaryType] =
+    useState<BoundaryType>("lad");
+
+  // Local Authority features join the data by name; NHS Trusts join by code.
+  const joinKey: FeatureJoinKey =
+    loadedBoundaryType === "nhs" ? "geo_code" : "geo_name";
+
+  // selectedDistrict is a trust code in NHS mode (the map joins by code), so
+  // resolve it to the trust name for the legend's "Viewing …" line.
+  const selectedLabel = useMemo(() => {
+    if (!selectedDistrict || loadedBoundaryType !== "nhs") return selectedDistrict;
+    const match = geojson?.features.find(
+      (f) => f.properties?.geo_code === selectedDistrict,
+    );
+    return match?.properties?.geo_name ?? selectedDistrict;
+  }, [selectedDistrict, loadedBoundaryType, geojson]);
 
   const countByDistrict = useRef(new Map<string, number>());
   countByDistrict.current = new Map(
@@ -62,21 +86,32 @@ export function OpportunityMap({
   const scopeSetRef = useRef<Set<string> | null>(null);
   const selectedDistrictRef = useRef<string | null>(null);
   const dataFitKeyRef = useRef("all");
+  const joinKeyRef = useRef<FeatureJoinKey>("geo_name");
+
   useEffect(() => {
     scopeSetRef.current = scopeAreaNames ? new Set(scopeAreaNames) : null;
     selectedDistrictRef.current = selectedDistrict;
     dataFitKeyRef.current = dataFitKey;
+    joinKeyRef.current = joinKey;
   });
 
+  // Load the boundary shapes for the current mode, reloading when it changes.
+  // NHS uses the shared cached basemap so the map and picker share one download.
   useEffect(() => {
     let cancelled = false;
     async function load() {
       try {
-        const res = await fetch(GEOJSON_URL);
-        if (!res.ok) throw new Error(`Failed to load map (${res.status})`);
-        const data = (await res.json()) as LadCollection;
+        let data: LadCollection;
+        if (boundaryType === "nhs") {
+          data = (await loadNhsBasemap()).collection;
+        } else {
+          const res = await fetch(GEOJSON_URL);
+          if (!res.ok) throw new Error(`Failed to load map (${res.status})`);
+          data = (await res.json()) as LadCollection;
+        }
         if (!cancelled) {
           setGeojson(data);
+          setLoadedBoundaryType(boundaryType);
           setStatus("ready");
         }
       } catch {
@@ -85,10 +120,10 @@ export function OpportunityMap({
     }
     load();
     return () => { cancelled = true; };
-  }, []);
+  }, [boundaryType]);
 
   const applyFills = useCallback(() => {
-    if (!svgRef.current || !mapReadyRef.current) return;
+    if (!svgRef.current) return;
 
     const counts = countByDistrict.current;
     const color = buildColorScale(counts);
@@ -97,15 +132,16 @@ export function OpportunityMap({
       Boolean(selectedDistrict) ||
       (scopeSet !== null && scopeSet.size > 0 && scopeSet.size <= 8);
 
+    // The paths only exist once the SVG has been built; skip until then.
     const dataLayer = d3.select(svgRef.current).select<SVGGElement>("g.data-layer");
     if (dataLayer.empty()) return;
 
     dataLayer
       .selectAll<SVGPathElement, LadFeature>("path")
-      .attr("fill", (d) => fillForFeature(d, counts, color, scopeSet, selectedDistrict, isFocused))
-      .attr("stroke", (d) => strokeForFeature(d, scopeSet, selectedDistrict))
-      .attr("stroke-width", (d) => strokeWidthForFeature(d, scopeSet, selectedDistrict));
-  }, [districtCounts, scopeAreaNames, selectedDistrict]);
+      .attr("fill", (d) => fillForFeature(d, counts, color, scopeSet, selectedDistrict, isFocused, joinKey))
+      .attr("stroke", (d) => strokeForFeature(d, scopeSet, selectedDistrict, joinKey))
+      .attr("stroke-width", (d) => strokeWidthForFeature(d, scopeSet, selectedDistrict, joinKey));
+  }, [districtCounts, scopeAreaNames, selectedDistrict, joinKey]);
 
   useEffect(() => { applyFills(); }, [applyFills]);
 
@@ -130,7 +166,7 @@ export function OpportunityMap({
         (scopeSet !== null && scopeSet.size > 0 && scopeSet.size <= 8);
 
       const allFeatures = geojson.features;
-      const fitTargets = getFitFeatures(allFeatures, counts);
+      const fitTargets = getFitFeatures(allFeatures, counts, joinKey);
       const fitCollection = {
         type: "FeatureCollection" as const,
         features: fitTargets,
@@ -162,11 +198,11 @@ export function OpportunityMap({
         .selectAll<SVGPathElement, LadFeature>("path")
         .attr("d", drawPath)
         .attr("fill", (d) =>
-          fillForFeature(d, counts, color, scopeSet, selected, isFocused)
+          fillForFeature(d, counts, color, scopeSet, selected, isFocused, joinKey)
         )
-        .attr("stroke", (d) => strokeForFeature(d, scopeSet, selected))
+        .attr("stroke", (d) => strokeForFeature(d, scopeSet, selected, joinKey))
         .attr("stroke-width", (d) =>
-          strokeWidthForFeature(d, scopeSet, selected)
+          strokeWidthForFeature(d, scopeSet, selected, joinKey)
         );
 
       const zoom = zoomBehaviorRef.current;
@@ -177,9 +213,15 @@ export function OpportunityMap({
         if (resetZoom) svg.call(zoom.transform, d3.zoomIdentity);
       }
     },
-    [geojson]
+    [geojson, joinKey]
   );
 
+  // Let the build effect call the latest renderData without depending on its
+  // identity — otherwise a joinKey change would tear down and rebuild the SVG.
+  const renderDataRef = useRef(renderData);
+  useEffect(() => {
+    renderDataRef.current = renderData;
+  }, [renderData]);
   // Build the SVG structure once per map load: bind the land + data paths,
   // hover and zoom. The handlers read selection from the refs above so they
   // always use current values, and renderData does all the geometry and
@@ -212,7 +254,7 @@ export function OpportunityMap({
       .append("g")
       .attr("class", "data-layer")
       .attr("role", "group")
-      .attr("aria-label", "Local authority areas");
+      .attr("aria-label", `${boundaryNoun(loadedBoundaryType)} areas`);
 
     dataLayer
       .selectAll<SVGPathElement, LadFeature>("path")
@@ -223,16 +265,19 @@ export function OpportunityMap({
       .attr("aria-hidden", "true")
       .on("mouseenter", function (_, d) {
         const name = d.properties?.geo_name ?? null;
+        const key = d.properties?.[joinKeyRef.current] ?? null;
         setFocusedDistrict(name);
-        if (name !== selectedDistrictRef.current) {
+        setFocusedCount(key ? countByDistrict.current.get(key) : undefined);
+        if (key !== selectedDistrictRef.current) {
           d3.select(this).attr("stroke", FOCUS_STROKE).attr("stroke-width", 2);
         }
       })
       .on("mouseleave", function (_, d) {
         setFocusedDistrict(null);
+        setFocusedCount(undefined);
         d3.select(this)
-          .attr("stroke", strokeForFeature(d, scopeSetRef.current, selectedDistrictRef.current))
-          .attr("stroke-width", strokeWidthForFeature(d, scopeSetRef.current, selectedDistrictRef.current));
+          .attr("stroke", strokeForFeature(d, scopeSetRef.current, selectedDistrictRef.current, joinKeyRef.current))
+          .attr("stroke-width", strokeWidthForFeature(d, scopeSetRef.current, selectedDistrictRef.current, joinKeyRef.current));
       });
 
     const zoom = d3
@@ -244,11 +289,11 @@ export function OpportunityMap({
     zoomBehaviorRef.current = zoom;
     svg.call(zoom).on("dblclick.zoom", null);
 
-    renderData(true);
-    lastScopeKeyRef.current = dataFitKeyRef.current;
+    renderDataRef.current(true);
+    lastFrameSigRef.current = `${joinKeyRef.current}|${dataFitKeyRef.current}`;
     mapReadyRef.current = true;
 
-    const resizeObserver = new ResizeObserver(() => renderData(false));
+    const resizeObserver = new ResizeObserver(() => renderDataRef.current(false));
     resizeObserver.observe(container);
 
     return () => {
@@ -256,16 +301,26 @@ export function OpportunityMap({
       mapReadyRef.current = false;
       zoomBehaviorRef.current = null;
     };
-  }, [status, geojson, tooltipId, renderData]);
+    // Rebuild only when the shapes change; renderData is called via its ref so
+    // a joinKey change recolours in place instead of tearing down the SVG.
+    // loadedBoundaryType flips together with geojson, so it adds no extra
+    // rebuilds and just keeps the layer's aria-label in step with the shapes.
+  }, [status, geojson, tooltipId, loadedBoundaryType]);
 
   // Update geometry + colour in place when the data scope changes, reusing the
   // existing SVG, zoom behaviour and hover handlers, and re-framing on the new
   // data.
+  // Re-frame and recolour whenever the data (dataFitKey) or the basemap
+  // (joinKey) changes, so a trust always zooms to its shape even if the shapes
+  // and the numbers arrive in separate renders. renderData runs via its ref so
+  // it's always bound to the current shapes.
   useEffect(() => {
-    if (!mapReadyRef.current || lastScopeKeyRef.current === dataFitKey) return;
-    lastScopeKeyRef.current = dataFitKey;
-    renderData(true);
-  }, [dataFitKey, renderData]);
+    if (!mapReadyRef.current) return;
+    const frameSig = `${joinKey}|${dataFitKey}`;
+    if (lastFrameSigRef.current === frameSig) return;
+    lastFrameSigRef.current = frameSig;
+    renderDataRef.current(true);
+  }, [dataFitKey, joinKey]);
 
   const zoomBy = useCallback((factor: number) => {
     const svg = svgRef.current;
@@ -282,10 +337,6 @@ export function OpportunityMap({
     }
     onReset?.();
   }, [onReset]);
-
-  const focusedCount = focusedDistrict
-    ? countByDistrict.current.get(focusedDistrict)
-    : undefined;
 
   const isAutoFramed = dataFitKey !== "all";
 
@@ -361,9 +412,9 @@ export function OpportunityMap({
       </div>
 
       <figcaption className="sr-only" id="map-title">
-        Choropleth map of opportunities per local authority. Use the filters to
-        choose an area. Drag to pan and scroll or pinch to zoom; zoom buttons
-        are available after the filters in the tab order.
+        Choropleth map of opportunities per {boundaryNoun(loadedBoundaryType)}.
+        Use the filters to choose an area. Drag to pan and scroll or pinch to
+        zoom; zoom buttons are available after the filters in the tab order.
       </figcaption>
 
       <MapLegend
@@ -371,7 +422,8 @@ export function OpportunityMap({
         className={legendClass}
         focusedDistrict={focusedDistrict}
         focusedCount={focusedCount}
-        selectedDistrict={selectedDistrict}
+        selectedLabel={selectedLabel}
+        boundaryType={loadedBoundaryType}
       />
     </figure>
   );

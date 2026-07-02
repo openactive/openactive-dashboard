@@ -1,4 +1,5 @@
 import type { GeoCountry, GeoHierarchy, GeoRegion } from "./geo-hierarchy";
+import type { ExplorerFilterOption } from "./explore-filters";
 
 /**
  * Area selection as a minimal set of refs: `country:{id}`,
@@ -325,4 +326,18 @@ export function getAreaSelectionLabel(
   }
 
   return `${areas.length} areas selected`;
+}
+
+// NHS analogue of getAreaSelectionLabel: "All NHS Trusts" | a single trust name
+// | "N Trusts". Codes are looked up in the picker's options for the name.
+export function getNhsTrustLabel(
+  codes: string[],
+  options: ExplorerFilterOption[]
+): string {
+  if (codes.length === 0) return "All NHS Trusts";
+  if (codes.length === 1) {
+    const opt = options.find((o) => o.value === codes[0]);
+    return opt?.label ?? "1 Trust";
+  }
+  return `${codes.length} Trusts`;
 }

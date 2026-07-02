@@ -11,10 +11,10 @@ import type {
 import type { AreaSearchHit } from "../../lib/area-search";
 import { scoreAreaMatch } from "../../lib/area-search";
 import { AreaPickerRow } from "./AreaPickerRow";
-import type { DrillLevel } from "./types";
+import type { AreaDrillLevel } from "./types";
 
 interface AreaPickerListProps {
-  drill: DrillLevel;
+  drill: AreaDrillLevel;
   hierarchy: GeoHierarchy;
   query: string;
   covered: Set<string>;
@@ -30,7 +30,7 @@ interface AreaPickerListProps {
   onDrillRegion: (country: GeoCountry, region: GeoRegion) => void;
 }
 
-/** "3 regions" / "12 areas" — single-region countries list districts directly. */
+// "3 regions" / "12 areas" — single-region countries list districts directly.
 function countrySubLabel(country: GeoCountry): string {
   if (country.regions.length === 1) {
     const n = country.regions[0]?.areas.length ?? 0;

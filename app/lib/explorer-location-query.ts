@@ -8,11 +8,20 @@ import type { ActivitiesQuery } from "../types/activities";
 
 export type LocationScopedItem = "publishers" | "activities" | "organizations";
 
-/** Map the selected area refs to API district/region/country code arrays. */
+/**
+ * Build the location filter for the API.
+ *
+ * In "lad" mode, maps the selected area refs to district/region/country code
+ * arrays. In "nhs" mode, ignores areas and filters by the selected trust codes.
+ */
 export function buildLocationFilterQuery(
-  filters: Pick<ExplorerFilters, "areas">,
+  filters: Pick<ExplorerFilters, "areas" | "boundaryType" | "nhsTrusts">,
   hierarchy: GeoHierarchy
 ): ActivitiesQuery {
+  if (filters.boundaryType === "nhs") {
+    return filters.nhsTrusts.length ? { nhs_trust: filters.nhsTrusts } : {};
+  }
+
   const { country, region, district } = partitionAreaRefsToCodes(
     filters.areas,
     hierarchy
@@ -26,7 +35,7 @@ export function buildLocationFilterQuery(
 
 /** User-facing message when a location-scoped API returns no items. */
 export function getLocationEmptyMessage(
-  filters: Pick<ExplorerFilters, "areas">,
+  filters: Pick<ExplorerFilters, "areas" | "boundaryType" | "nhsTrusts">,
   hierarchy: GeoHierarchy,
   item: LocationScopedItem
 ): string {
@@ -36,6 +45,15 @@ export function getLocationEmptyMessage(
       : item === "organizations"
         ? "providers"
         : "activities";
+
+  if (filters.boundaryType === "nhs") {
+    if (filters.nhsTrusts.length === 0) return `No ${noun} found`;
+    const where =
+      filters.nhsTrusts.length === 1
+        ? "the selected NHS Trust"
+        : "the selected NHS Trusts";
+    return `No ${noun} in ${where}`;
+  }
 
   if (filters.areas.length === 0) return `No ${noun} found`;
   if (filters.areas.length === 1) {

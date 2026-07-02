@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { ArrowRightIcon, XMarkIcon } from "@heroicons/react/20/solid";
 import { useEscapeClose } from "../../hooks/useEscapeClose";
 import { formatFullNumber, formatNumber } from "../../lib/format";
-import type { ExplorerSummary } from "../../lib/explore-filters";
+import { areaMetricLabel, type ExplorerSummary } from "../../lib/explore-filters";
 import { StatRow } from "./StatRow";
 import { TopBreakdownTabs } from "./TopBreakdownTabs";
 
@@ -126,7 +126,7 @@ export function ExplorerDetailsModal({
                 In this selection
               </h3>
               <dl className="mt-3 divide-y divide-oa-grey-100">
-                <StatRow label="Local areas" value={summary.areaCount} />
+                <StatRow label={areaMetricLabel(summary.boundaryType)} value={summary.areaCount} />
                 <StatRow label="Feed Publishers" value={summary.publisherCount} />
                 <StatRow label="Feeds" value={summary.feedCount} />
                 <StatRow label="Activity/Facility Providers" value={summary.organizationCount} />
@@ -146,7 +146,7 @@ export function ExplorerDetailsModal({
               tabs={[
                 {
                   key: "areas",
-                  label: "Areas",
+                  label: areaMetricLabel(summary.boundaryType, "short"),
                   items: summary.topAreas,
                   total: summary.areaCount,
                   barColor: "bg-oa-cyan",

@@ -3,7 +3,10 @@
 import { useState } from "react";
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/20/solid";
 import { formatFullNumber, formatNumber } from "../lib/format";
-import { type ExplorerSummary as ExplorerSummaryData } from "../lib/explore-filters";
+import {
+  areaMetricLabel,
+  type ExplorerSummary as ExplorerSummaryData,
+} from "../lib/explore-filters";
 import { ExplorerDetailsModal } from "./ExplorerDetailsModal";
 
 type SummaryLayout = "panel" | "sheet";
@@ -145,7 +148,7 @@ export function ExplorerSummary({
 
           <dl className="mt-2 divide-y divide-oa-grey-100">
             <StatRow
-              label="Local areas"
+              label={areaMetricLabel(summary.boundaryType)}
               value={summary.areaCount}
               isLoading={isLoading}
             />

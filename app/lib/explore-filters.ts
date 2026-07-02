@@ -5,9 +5,16 @@ export const ALL_FILTER = "all" as const;
 export const FILTER_LOADING_VALUE = "__loading__" as const;
 export const FILTER_EMPTY_VALUE = "__empty__" as const;
 
+/** Which boundary set the area filter and map operate on. */
+export type BoundaryType = "lad" | "nhs";
+
 export type ExplorerFilters = {
-  /** Selected area refs (country/region/district). Empty = all areas. */
+  /** Whether the area filter and map use Local Authority districts or NHS Trusts. */
+  boundaryType: BoundaryType;
+  /** Selected area refs (country/region/district). Empty = all areas. Used in "lad" mode. */
   areas: string[];
+  /** Selected NHS Trust codes (e.g. "R0A"). Empty = all trusts. Used in "nhs" mode. */
+  nhsTrusts: string[];
   publisher: string[];
   organization: string[];
   /** Selected activity names. Empty array = no activity filter. */
@@ -15,7 +22,9 @@ export type ExplorerFilters = {
 };
 
 export const DEFAULT_EXPLORER_FILTERS: ExplorerFilters = {
+  boundaryType: "lad",
   areas: [],
+  nhsTrusts: [],
   publisher: [],
   organization: [],
   activity: [],
@@ -29,6 +38,8 @@ export type ExplorerFilterOption = {
 export type RankedItem = { name: string; count: number };
 
 export type ExplorerSummary = {
+  /** Which boundary the area metric counts: districts ("lad") or trusts ("nhs"). */
+  boundaryType: BoundaryType;
   totalOpportunities: number;
   areaCount: number;
   publisherCount: number;
@@ -79,6 +90,23 @@ export const EXPLORER_SUMMARY_METRIC_KEYS: ExplorerSummaryMetricKey[] = [
   "organizationCount",
   "activityCount",
 ];
+
+// The area metric counts local authority districts in "lad" mode and NHS Trusts
+// in "nhs" mode, so its label follows the boundary the numbers describe.
+export function areaMetricLabel(
+  boundaryType: BoundaryType,
+  variant: "full" | "short" = "full",
+): string {
+  if (boundaryType === "nhs") return variant === "short" ? "Trusts" : "NHS Trusts";
+  return variant === "short" ? "Areas" : "Local areas";
+}
+
+// The noun for the current boundary, so captions and hints read as plain
+// English ("per NHS Trust", "explore local authorities").
+export function boundaryNoun(boundaryType: BoundaryType, plural = false): string {
+  if (boundaryType === "nhs") return plural ? "NHS Trusts" : "NHS Trust";
+  return plural ? "local authorities" : "local authority";
+}
 
 export type DistrictCount = {
   district: string;

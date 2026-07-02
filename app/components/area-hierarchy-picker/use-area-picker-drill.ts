@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { ExplorerFilters } from "../../lib/explore-filters";
+import type { BoundaryType, ExplorerFilters } from "../../lib/explore-filters";
 import {
   expandRefsToDistrictNames,
   setCountrySelected,
@@ -10,24 +10,28 @@ import type { GeoCountry, GeoHierarchy, GeoRegion } from "../../lib/geo-hierarch
 import { getBackLabel, getPanelTitle, goBackDrill } from "./drill-level";
 import type { DrillLevel } from "./types";
 
-function sameAreas(a: string[], b: string[]): boolean {
+function sameList(a: string[], b: string[]): boolean {
   return a.length === b.length && a.every((value, i) => value === b[i]);
 }
 
-/**
- * Drill navigation plus a draft area selection that only commits when the
- * panel closes, so toggling several areas fires one filter update instead of
- * one request fan-out per click.
- */
+// Holds a draft selection that only commits when the panel closes, so toggling
+// several areas (or trusts) fires one filter update instead of a request per
+// click.
 export function useAreaPickerDrill(
   hierarchy: GeoHierarchy,
   filters: ExplorerFilters,
   onChange: (filters: ExplorerFilters) => void,
   open: boolean
 ) {
-  const [drill, setDrill] = useState<DrillLevel>({ type: "root" });
+  const [drill, setDrill] = useState<DrillLevel>({ type: "boundary-choice" });
   const [query, setQuery] = useState("");
   const [draftAreas, setDraftAreas] = useState<string[]>(filters.areas);
+  const [draftBoundaryType, setDraftBoundaryType] = useState<BoundaryType>(
+    filters.boundaryType
+  );
+  const [draftNhsTrusts, setDraftNhsTrusts] = useState<string[]>(
+    filters.nhsTrusts
+  );
 
   const wasOpenRef = useRef(open);
 
@@ -40,14 +44,25 @@ export function useAreaPickerDrill(
 
     if (open && !wasOpen) {
       setDraftAreas(filters.areas);
-      setDrill({ type: "root" });
+      setDraftBoundaryType(filters.boundaryType);
+      setDraftNhsTrusts(filters.nhsTrusts);
+      setDrill({ type: "boundary-choice" });
       setQuery("");
     } else if (!open && wasOpen) {
-      if (!sameAreas(draftAreas, filters.areas)) {
-        onChange({ ...filters, areas: draftAreas });
+      const changed =
+        draftBoundaryType !== filters.boundaryType ||
+        !sameList(draftAreas, filters.areas) ||
+        !sameList(draftNhsTrusts, filters.nhsTrusts);
+      if (changed) {
+        onChange({
+          ...filters,
+          boundaryType: draftBoundaryType,
+          areas: draftAreas,
+          nhsTrusts: draftNhsTrusts,
+        });
       }
     }
-  }, [open, filters, draftAreas, onChange]);
+  }, [open, filters, draftAreas, draftBoundaryType, draftNhsTrusts, onChange]);
 
   const covered = useMemo(
     () => expandRefsToDistrictNames(draftAreas, hierarchy),
@@ -86,6 +101,22 @@ export function useAreaPickerDrill(
     setQuery("");
   }, []);
 
+  // Pick a boundary type on the entry screen and drill into its options.
+  const chooseBoundary = useCallback((type: BoundaryType) => {
+    setDraftBoundaryType(type);
+    setQuery("");
+    setDrill(type === "nhs" ? { type: "nhs" } : { type: "root" });
+  }, []);
+
+  const toggleNhsTrust = useCallback((code: string, selected: boolean) => {
+    setDraftNhsTrusts((current) => {
+      if (selected) {
+        return current.includes(code) ? current : [...current, code];
+      }
+      return current.filter((c) => c !== code);
+    });
+  }, []);
+
   const drillToCountry = useCallback((country: GeoCountry) => {
     setQuery("");
     if (country.regions.length === 1 && country.regions[0]) {
@@ -106,9 +137,13 @@ export function useAreaPickerDrill(
     setQuery,
     covered,
     draftAreas,
+    draftBoundaryType,
+    draftNhsTrusts,
     toggleCountry,
     toggleRegion,
     toggleDistrict,
+    chooseBoundary,
+    toggleNhsTrust,
     goBack,
     drillToCountry,
     drillToRegion,
