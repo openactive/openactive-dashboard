@@ -3,7 +3,7 @@ import { join } from "path";
 import { NextResponse } from "next/server";
 
 /**
- * Read a GeoJSON file from `app/data` and return it as an immutable HTTP
+ * Read a GeoJSON file from `app/data` and return it as a cacheable HTTP
  * response.
  *
  * The boundary route handlers share this single implementation so the
@@ -19,7 +19,8 @@ export function serveGeojson(filename: string, label: string) {
     return new NextResponse(body, {
       headers: {
         "Content-Type": "application/geo+json",
-        "Cache-Control": "public, max-age=86400, immutable",
+     
+        "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
       },
     });
   } catch {

@@ -35,7 +35,7 @@ export function buildLocationFilterQuery(
 
 /** User-facing message when a location-scoped API returns no items. */
 export function getLocationEmptyMessage(
-  filters: Pick<ExplorerFilters, "areas">,
+  filters: Pick<ExplorerFilters, "areas" | "boundaryType" | "nhsTrusts">,
   hierarchy: GeoHierarchy,
   item: LocationScopedItem
 ): string {
@@ -45,6 +45,15 @@ export function getLocationEmptyMessage(
       : item === "organizations"
         ? "providers"
         : "activities";
+
+  if (filters.boundaryType === "nhs") {
+    if (filters.nhsTrusts.length === 0) return `No ${noun} found`;
+    const where =
+      filters.nhsTrusts.length === 1
+        ? "the selected NHS Trust"
+        : "the selected NHS Trusts";
+    return `No ${noun} in ${where}`;
+  }
 
   if (filters.areas.length === 0) return `No ${noun} found`;
   if (filters.areas.length === 1) {
