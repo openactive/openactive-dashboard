@@ -3,6 +3,7 @@
 import { ChartBarIcon } from "@heroicons/react/24/outline";
 import { formatNumber } from "../../lib/format";
 import {
+  areaMetricLabel,
   EXPLORER_SUMMARY_METRIC_DEFS,
   EXPLORER_SUMMARY_METRIC_KEYS,
   type ExplorerSummary,
@@ -72,23 +73,29 @@ export function ExplorerMobileStatsDock({
         </div>
 
         <dl className="mt-3 grid grid-cols-4 gap-2 border-t border-oa-grey-100 pt-3">
-          {METRICS.map(({ key, label }) => (
-            <div key={key} className="text-center">
-              <dt className="text-[10px] font-medium uppercase tracking-wide text-oa-grey-500">
-                {label}
-              </dt>
-              <dd className="text-sm font-bold tabular-nums text-oa-navy">
-                {isLoading ? (
-                  <span
-                    className="inline-block h-3.5 w-8 animate-pulse rounded bg-oa-grey-200"
-                    aria-hidden="true"
-                  />
-                ) : (
-                  formatNumber(summary[key])
-                )}
-              </dd>
-            </div>
-          ))}
+          {METRICS.map(({ key, label }) => {
+            const resolvedLabel =
+              key === "areaCount"
+                ? areaMetricLabel(summary.boundaryType, "short")
+                : label;
+            return (
+              <div key={key} className="text-center">
+                <dt className="text-[10px] font-medium uppercase tracking-wide text-oa-grey-500">
+                  {resolvedLabel}
+                </dt>
+                <dd className="text-sm font-bold tabular-nums text-oa-navy">
+                  {isLoading ? (
+                    <span
+                      className="inline-block h-3.5 w-8 animate-pulse rounded bg-oa-grey-200"
+                      aria-hidden="true"
+                    />
+                  ) : (
+                    formatNumber(summary[key])
+                  )}
+                </dd>
+              </div>
+            );
+          })}
         </dl>
       </section>
     </div>

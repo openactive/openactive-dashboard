@@ -47,6 +47,7 @@ const EMPTY_PRESENT_NAMES: PresentNames = {
 };
 
 const EMPTY_SUMMARY: ExplorerSummary = {
+  boundaryType: "lad",
   totalOpportunities: 0,
   areaCount: 0,
   publisherCount: 0,
@@ -80,6 +81,7 @@ function rankTop(map: Map<string, number>, limit: number): RankedItem[] {
 function reduce(rows: Opportunity[], boundaryType: BoundaryType): ReducedData {
   const countByDistrict = new Map<string, number>();
   const countByTrust = new Map<string, number>();
+  const countByTrustName = new Map<string, number>();
   const countByPublisher = new Map<string, number>();
   const countByFeed = new Map<string, number>();
   const countByOrganization = new Map<string, number>();
@@ -113,31 +115,40 @@ function reduce(rows: Opportunity[], boundaryType: BoundaryType): ReducedData {
     if (boundaryType === "nhs" && row.nhstrust_code) {
       bump(countByTrust, row.nhstrust_code, n);
     }
+    if (boundaryType === "nhs" && row.nhstrust_name) {
+      bump(countByTrustName, row.nhstrust_name, n);
+    }
     if (row.publisher) bump(countByPublisher, row.publisher, n);
     if (row.provider) bump(countByFeed, row.provider, n);
     if (row.organization_names) bumpFromJsonArray(countByOrganization, row.organization_names, n);
     if (row.activity_or_facility) bumpFromJsonArray(countByActivity, row.activity_or_facility, n);
   }
 
-  // The choropleth joins the map shapes it draws: district names for local
-  // authorities, trust codes for NHS. The summary below stays district-keyed.
+  // The choropleth joins the map shapes it draws by different keys: district
+  // names for local authorities, trust codes for NHS.
   const choroplethCounts =
     boundaryType === "nhs" ? countByTrust : countByDistrict;
   const districtCounts: DistrictCount[] = [...choroplethCounts.entries()]
     .map(([district, count]) => ({ district, count }))
     .sort((a, b) => b.count - a.count);
 
+  // The summary's "area" metric counts what the user is exploring: local
+  // authority districts, or NHS Trusts (by name, so the breakdown is readable).
+  const summaryAreaCounts =
+    boundaryType === "nhs" ? countByTrustName : countByDistrict;
+
   return {
     summary: {
+      boundaryType,
       totalOpportunities,
-      areaCount: countByDistrict.size,
+      areaCount: summaryAreaCounts.size,
       publisherCount: countByPublisher.size,
       feedCount: countByFeed.size,
       organizationCount: countByOrganization.size,
       activityCount: countByActivity.size,
       activityOpportunities,
       facilityOpportunities,
-      topAreas: rankTop(countByDistrict, EXPLORER_TOP_LIMIT),
+      topAreas: rankTop(summaryAreaCounts, EXPLORER_TOP_LIMIT),
       topPublishers: rankTop(countByPublisher, EXPLORER_TOP_LIMIT),
       topFeeds: rankTop(countByFeed, EXPLORER_TOP_LIMIT),
       topOrganizations: rankTop(countByOrganization, EXPLORER_TOP_LIMIT),
@@ -195,7 +206,7 @@ export function useReactiveOpportunities({
         .then((rows) =>
           rows.length === 0
             ? {
-                summary: EMPTY_SUMMARY,
+                summary: { ...EMPTY_SUMMARY, boundaryType: filters.boundaryType },
                 districtCounts: [],
                 presentNames: EMPTY_PRESENT_NAMES,
               }

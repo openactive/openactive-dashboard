@@ -38,6 +38,8 @@ export type ExplorerFilterOption = {
 export type RankedItem = { name: string; count: number };
 
 export type ExplorerSummary = {
+  /** Which boundary the area metric counts: districts ("lad") or trusts ("nhs"). */
+  boundaryType: BoundaryType;
   totalOpportunities: number;
   areaCount: number;
   publisherCount: number;
@@ -88,6 +90,16 @@ export const EXPLORER_SUMMARY_METRIC_KEYS: ExplorerSummaryMetricKey[] = [
   "organizationCount",
   "activityCount",
 ];
+
+// The area metric counts local authority districts in "lad" mode and NHS Trusts
+// in "nhs" mode, so its label follows the boundary the numbers describe.
+export function areaMetricLabel(
+  boundaryType: BoundaryType,
+  variant: "full" | "short" = "full",
+): string {
+  if (boundaryType === "nhs") return variant === "short" ? "Trusts" : "NHS Trusts";
+  return variant === "short" ? "Areas" : "Local areas";
+}
 
 export type DistrictCount = {
   district: string;
