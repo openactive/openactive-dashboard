@@ -8,12 +8,9 @@ import { useEscapeClose } from "../../hooks/useEscapeClose";
 import { useFocusLeaveClose } from "../../hooks/useFocusLeaveClose";
 import { useTabExitClose } from "../../hooks/useTabExitClose";
 import { isCoarsePointer } from "../../lib/pointer";
-import type {
-  ExplorerFilterOption,
-  ExplorerFilters,
-} from "../../lib/explore-filters";
+import type { ExplorerFilters } from "../../lib/explore-filters";
 import type { GeoHierarchy } from "../../lib/geo-hierarchy";
-import { getAreaSelectionLabel } from "../../lib/area-selection";
+import { getAreaSelectionLabel, getNhsTrustLabel } from "../../lib/area-selection";
 import {
   EXPLORER_LABEL_BASE,
   EXPLORER_LABEL_DEFAULT_TEXT,
@@ -34,18 +31,6 @@ interface AreaHierarchyPickerProps {
 }
 
 // Trigger summary for the NHS Trust selection.
-function getNhsTrustLabel(
-  codes: string[],
-  options: ExplorerFilterOption[]
-): string {
-  if (codes.length === 0) return "All NHS Trusts";
-  if (codes.length === 1) {
-    const opt = options.find((o) => o.value === codes[0]);
-    return opt?.label ?? "1 Trust";
-  }
-  return `${codes.length} Trusts`;
-}
-
 // The dropdown opens on a boundary-type choice; choosing one swaps the panel to
 // that boundary's options (the LAD drill-down or the NHS Trust list).
 export function AreaHierarchyPicker({

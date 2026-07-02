@@ -15,12 +15,14 @@ import { OpportunityMap } from "./OpportunityMap";
 import type { GeoHierarchy } from "../lib/geo-hierarchy";
 import {
   getAreaSelectionLabel,
+  getNhsTrustLabel,
   getSelectedDistrictNames,
 } from "../lib/area-selection";
 import {
   DEFAULT_EXPLORER_FILTERS,
   type ExplorerFilters,
 } from "../lib/explore-filters";
+import { useNhsTrustOptions } from "../hooks/useNhsTrustOptions";
 import { getActivities } from "../services/activities";
 import { getOrganizations } from "../services/organizations";
 import { getPublishers } from "../services/publishers";
@@ -155,7 +157,17 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
       onResolved: onOpportunitiesResolved,
     });
 
-  const selectionLabel = getAreaSelectionLabel(filters.areas, hierarchy);
+  // NHS Trust names for the selection label, loaded lazily only in NHS mode
+  // (the picker uses the same cached hook, so this adds no extra fetch).
+  const { options: nhsOptions } = useNhsTrustOptions(
+    filters.boundaryType === "nhs"
+  );
+
+  // The "SELECTION" heading: LAD areas by name, NHS Trusts by their picker label.
+  const selectionLabel =
+    filters.boundaryType === "nhs"
+      ? getNhsTrustLabel(filters.nhsTrusts, nhsOptions)
+      : getAreaSelectionLabel(filters.areas, hierarchy);
 
   // What the map treats as "in scope". Local Authority mode scopes by district
   // name; NHS mode scopes by the selected trust codes (the map joins by code).
