@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import * as d3 from "d3";
-import type { BoundaryType, DistrictCount } from "../lib/explore-filters";
+import { boundaryNoun, type BoundaryType, type DistrictCount } from "../lib/explore-filters";
 import {
   GEOJSON_URL,
   LAND_FILL,
@@ -60,6 +60,16 @@ export function OpportunityMap({
   // Local Authority features join the data by name; NHS Trusts join by code.
   const joinKey: FeatureJoinKey =
     loadedBoundaryType === "nhs" ? "geo_code" : "geo_name";
+
+  // selectedDistrict is a trust code in NHS mode (the map joins by code), so
+  // resolve it to the trust name for the legend's "Viewing …" line.
+  const selectedLabel = useMemo(() => {
+    if (!selectedDistrict || loadedBoundaryType !== "nhs") return selectedDistrict;
+    const match = geojson?.features.find(
+      (f) => f.properties?.geo_code === selectedDistrict,
+    );
+    return match?.properties?.geo_name ?? selectedDistrict;
+  }, [selectedDistrict, loadedBoundaryType, geojson]);
 
   const countByDistrict = useRef(new Map<string, number>());
   countByDistrict.current = new Map(
@@ -244,7 +254,7 @@ export function OpportunityMap({
       .append("g")
       .attr("class", "data-layer")
       .attr("role", "group")
-      .attr("aria-label", "Local authority areas");
+      .attr("aria-label", `${boundaryNoun(loadedBoundaryType)} areas`);
 
     dataLayer
       .selectAll<SVGPathElement, LadFeature>("path")
@@ -293,7 +303,9 @@ export function OpportunityMap({
     };
     // Rebuild only when the shapes change; renderData is called via its ref so
     // a joinKey change recolours in place instead of tearing down the SVG.
-  }, [status, geojson, tooltipId]);
+    // loadedBoundaryType flips together with geojson, so it adds no extra
+    // rebuilds and just keeps the layer's aria-label in step with the shapes.
+  }, [status, geojson, tooltipId, loadedBoundaryType]);
 
   // Update geometry + colour in place when the data scope changes, reusing the
   // existing SVG, zoom behaviour and hover handlers, and re-framing on the new
@@ -400,9 +412,9 @@ export function OpportunityMap({
       </div>
 
       <figcaption className="sr-only" id="map-title">
-        Choropleth map of opportunities per local authority. Use the filters to
-        choose an area. Drag to pan and scroll or pinch to zoom; zoom buttons
-        are available after the filters in the tab order.
+        Choropleth map of opportunities per {boundaryNoun(loadedBoundaryType)}.
+        Use the filters to choose an area. Drag to pan and scroll or pinch to
+        zoom; zoom buttons are available after the filters in the tab order.
       </figcaption>
 
       <MapLegend
@@ -410,7 +422,8 @@ export function OpportunityMap({
         className={legendClass}
         focusedDistrict={focusedDistrict}
         focusedCount={focusedCount}
-        selectedDistrict={selectedDistrict}
+        selectedLabel={selectedLabel}
+        boundaryType={loadedBoundaryType}
       />
     </figure>
   );

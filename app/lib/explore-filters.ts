@@ -101,6 +101,13 @@ export function areaMetricLabel(
   return variant === "short" ? "Areas" : "Local areas";
 }
 
+// The noun for the current boundary, so captions and hints read as plain
+// English ("per NHS Trust", "explore local authorities").
+export function boundaryNoun(boundaryType: BoundaryType, plural = false): string {
+  if (boundaryType === "nhs") return plural ? "NHS Trusts" : "NHS Trust";
+  return plural ? "local authorities" : "local authority";
+}
+
 export type DistrictCount = {
   district: string;
   count: number;
