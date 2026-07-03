@@ -241,7 +241,7 @@ export const FEED_QUALITY_VIEWS: readonly FeedQualityView[] = [
 export const VIEW_CONFIGS: Record<FeedQualityView, FeedQualityViewConfig> = {
   data: {
     view: "data",
-    label: "Data completeness",
+    label: "Feed completeness",
     qualityHint:
       "Average completeness across location, activity/facility, and start and end dates",
     getScore: getQualityScore,

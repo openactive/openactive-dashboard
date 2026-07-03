@@ -30,7 +30,7 @@ export function HeroSection() {
                 href="#data"
                 className="inline-flex items-center px-7 py-3.5 rounded-full bg-oa-cyan text-white font-semibold text-sm hover:bg-oa-blue transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-oa-navy shadow-lg shadow-oa-cyan/25"
               >
-                Explore the data
+                Explore the feeds
               </a>
               <a
                 href="https://www.openactive.io"

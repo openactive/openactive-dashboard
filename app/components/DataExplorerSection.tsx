@@ -22,10 +22,10 @@ export function DataExplorerSection() {
             id="explorer-heading"
             className="text-3xl sm:text-4xl font-bold text-oa-navy tracking-tight"
           >
-            Interactive Data Explorer
+            Interactive Feed Explorer
           </h2>
           <p className="mt-4 text-base text-oa-grey-700 leading-relaxed max-w-prose">
-            Explore opportunity data on the map. Filters and summary float over
+            Explore opportunity feeds on the map. Filters and summary float over
             the view so the geography stays in focus.
           </p>
           <a
