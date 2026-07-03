@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { ArrowRightIcon, XMarkIcon } from "@heroicons/react/20/solid";
 import { useEscapeClose } from "../../hooks/useEscapeClose";
 import { formatFullNumber, formatNumber } from "../../lib/format";
-import { areaMetricLabel, type ExplorerSummary } from "../../lib/explore-filters";
+import { areaMetricLabel, EXPLORER_SUMMARY_METRIC_DEFS, type ExplorerSummary } from "../../lib/explore-filters";
 import { StatRow } from "./StatRow";
 import { TopBreakdownTabs } from "./TopBreakdownTabs";
 
@@ -129,7 +129,7 @@ export function ExplorerDetailsModal({
                 <StatRow label={areaMetricLabel(summary.boundaryType)} value={summary.areaCount} />
                 <StatRow label="Feed Publishers" value={summary.publisherCount} />
                 <StatRow label="Feeds" value={summary.feedCount} />
-                <StatRow label="Activity/Facility Providers" value={summary.organizationCount} />
+                <StatRow label={EXPLORER_SUMMARY_METRIC_DEFS.organizationCount.desktopLabel} value={summary.organizationCount} />
                 <StatRow
                   label="Activities & facilities"
                   value={summary.activityCount}
@@ -167,7 +167,7 @@ export function ExplorerDetailsModal({
                 },
                 {
                   key: "providers",
-                  label: "Activity/Facility Providers",
+                  label: EXPLORER_SUMMARY_METRIC_DEFS.organizationCount.desktopLabel,
                   items: summary.topOrganizations,
                   total: summary.organizationCount,
                   barColor: "bg-oa-purple",

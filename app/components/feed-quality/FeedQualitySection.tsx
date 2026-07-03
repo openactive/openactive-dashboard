@@ -60,7 +60,7 @@ export function FeedQualitySection() {
           </h2>
           <p className="mt-4 text-base text-oa-grey-700 leading-relaxed max-w-prose">
             See how each publisher&apos;s feeds measure up. Switch between{" "}
-            <strong className="font-semibold text-oa-navy">data completeness</strong>
+            <strong className="font-semibold text-oa-navy">feed completeness</strong>
             {" "}(the fields that decide whether opportunities count in
             OpenActive&apos;s headline figures) and{" "}
             <strong className="font-semibold text-oa-navy">content quality</strong>

@@ -5,6 +5,7 @@ import { ArrowTopRightOnSquareIcon } from "@heroicons/react/20/solid";
 import { formatFullNumber, formatNumber } from "../lib/format";
 import {
   areaMetricLabel,
+  EXPLORER_SUMMARY_METRIC_DEFS,
   type ExplorerSummary as ExplorerSummaryData,
 } from "../lib/explore-filters";
 import { ExplorerDetailsModal } from "./ExplorerDetailsModal";
@@ -58,7 +59,7 @@ function StatRow({
  * Two layouts:
  *  - `panel`: sits beside the map on desktop. Designed to fit without
  *    scrolling — the rich detail (top activities, full breakdown) lives
- *    behind the "View the data" button which opens a modal.
+ *    behind the "View the feeds" button which opens a modal.
  *  - `sheet`: rendered inside the mobile bottom-sheet.
  *
  * All metrics come from the live `/opportunities` response, so the card
@@ -158,7 +159,7 @@ export function ExplorerSummary({
               isLoading={isLoading}
             />
             <StatRow
-              label="Activity/Facility Providers"
+              label={EXPLORER_SUMMARY_METRIC_DEFS.organizationCount.desktopLabel}
               value={summary.organizationCount}
               isLoading={isLoading}
             />
@@ -178,7 +179,7 @@ export function ExplorerSummary({
                 aria-haspopup="dialog"
                 aria-expanded={detailsOpen}
               >
-                View the data
+                View the feeds
                 <ArrowTopRightOnSquareIcon
                   className="h-4 w-4"
                   aria-hidden="true"

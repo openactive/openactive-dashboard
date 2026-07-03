@@ -4,6 +4,7 @@ import { FilterDropdown } from "./FilterDropdown";
 import { AreaHierarchyPicker } from "./AreaHierarchyPicker";
 import {
   DEFAULT_EXPLORER_FILTERS,
+  EXPLORER_SUMMARY_METRIC_DEFS,
   type ExplorerFilters,
 } from "../lib/explore-filters";
 import type { ExplorerFilterControlProps } from "../lib/explorer-types";
@@ -128,7 +129,7 @@ export function ExplorerFilterBar({
         <div className={isOverlay || isSheet ? "" : "border-b border-oa-grey-200 p-4 md:border-b-0"}>
           <FilterDropdown
             id="explorer-organization"
-            label="Activity/Facility Providers"
+            label={EXPLORER_SUMMARY_METRIC_DEFS.organizationCount.desktopLabel}
             layout={isSheet ? "sheet" : isOverlay ? "glass" : "field"}
             options={organizationOptions}
             mode="multi"
