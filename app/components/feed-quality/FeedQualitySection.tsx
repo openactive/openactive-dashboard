@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFeedQuality } from "../../hooks/useFeedQuality";
 import { ErrorBanner } from "../ErrorBanner";
+import { useFeedQualityFilters } from "../FeedQualityFilterProvider";
 import { FeedQualitySummary } from "./FeedQualitySummary";
 import { FeedQualityTable } from "./FeedQualityTable";
 import { FeedQualityViewToggle } from "./FeedQualityViewToggle";
@@ -28,7 +29,10 @@ export function FeedQualitySection() {
     return () => observer.disconnect();
   }, [enabled]);
 
-  const { rows, groups, isLoading, error, retry } = useFeedQuality(enabled);
+  const { rows, groups, isLoading, error, retry } = useFeedQuality(
+    enabled,
+    useFeedQualityFilters()
+  );
 
   const counts = useMemo(() => {
     let okCount = 0;
