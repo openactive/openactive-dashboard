@@ -1,10 +1,13 @@
 import { formatFullNumber } from "../../lib/format";
 
 interface FeedQualitySummaryProps {
-  total: number;
-  okCount: number;
-  warningCount: number;
-  errorCount: number;
+  total?: number;
+  okCount?: number;
+  warningCount?: number;
+  errorCount?: number;
+  // While true, the live figures become placeholders; the labels,
+  // descriptions, and bar track stay put so only the numbers reload.
+  loading?: boolean;
 }
 
 interface Segment {
@@ -17,10 +20,11 @@ interface Segment {
 }
 
 export function FeedQualitySummary({
-  total,
-  okCount,
-  warningCount,
-  errorCount,
+  total = 0,
+  okCount = 0,
+  warningCount = 0,
+  errorCount = 0,
+  loading = false,
 }: FeedQualitySummaryProps) {
   const segments: Segment[] = [
     {
@@ -50,25 +54,34 @@ export function FeedQualitySummary({
   ];
 
   return (
-    <article aria-label="Feed status overview">
+    <article aria-label="Feed status overview" aria-busy={loading || undefined}>
       <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-oa-grey-600">
         Feed status
       </p>
 
       <p className="mt-2 flex items-baseline gap-2">
         <span className="text-5xl font-bold tabular-nums tracking-tight text-oa-navy">
-          {formatFullNumber(total)}
+          {loading ? (
+            <FigureSkeleton className="h-[0.75em] w-28" />
+          ) : (
+            formatFullNumber(total)
+          )}
         </span>
         <span className="text-sm font-medium text-oa-grey-600">
-          {total === 1 ? "feed tracked" : "feeds tracked"}
+          {!loading && total === 1 ? "feed tracked" : "feeds tracked"}
         </span>
       </p>
 
-      <ProportionBar segments={segments} total={total} />
+      <ProportionBar segments={segments} total={loading ? 0 : total} />
 
       <dl className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3 sm:gap-6">
         {segments.map((segment) => (
-          <LegendItem key={segment.key} segment={segment} total={total} />
+          <LegendItem
+            key={segment.key}
+            segment={segment}
+            total={total}
+            loading={loading}
+          />
         ))}
       </dl>
     </article>
@@ -103,7 +116,15 @@ function ProportionBar({ segments, total }: { segments: Segment[]; total: number
   );
 }
 
-function LegendItem({ segment, total }: { segment: Segment; total: number }) {
+function LegendItem({
+  segment,
+  total,
+  loading,
+}: {
+  segment: Segment;
+  total: number;
+  loading: boolean;
+}) {
   const percent = total === 0 ? null : Math.round((segment.count / total) * 100);
   return (
     <div>
@@ -116,9 +137,17 @@ function LegendItem({ segment, total }: { segment: Segment; total: number }) {
       </dt>
       <dd className="mt-1.5">
         <p className="text-sm tabular-nums">
-          <span className="font-bold text-oa-navy">{formatFullNumber(segment.count)}</span>
-          {percent !== null && (
-            <span className="ml-1 text-oa-grey-500">({percent}%)</span>
+          {loading ? (
+            <FigureSkeleton className="h-3.5 w-14" />
+          ) : (
+            <>
+              <span className="font-bold text-oa-navy">
+                {formatFullNumber(segment.count)}
+              </span>
+              {percent !== null && (
+                <span className="ml-1 text-oa-grey-500">({percent}%)</span>
+              )}
+            </>
           )}
         </p>
         <p className="mt-1 text-xs text-oa-grey-600 leading-relaxed">
@@ -126,5 +155,15 @@ function LegendItem({ segment, total }: { segment: Segment; total: number }) {
         </p>
       </dd>
     </div>
+  );
+}
+
+// Grey placeholder shown in place of a live figure while a new result loads.
+function FigureSkeleton({ className }: { className: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={`inline-block motion-safe:animate-pulse rounded bg-oa-grey-200 align-middle ${className}`}
+    />
   );
 }

@@ -10,6 +10,9 @@ interface FeedQualityStatusFilterProps {
   onChange: (next: StatusFilter) => void;
   counts: Record<FeedStatus, number>;
   total: number;
+  // While true, each chip shows a placeholder in place of its count; the
+  // labels and dots stay put so the toolbar doesn't shift or disappear.
+  loading?: boolean;
 }
 
 const FILTER_LABELS: Record<FeedStatus, string> = {
@@ -23,6 +26,7 @@ export function FeedQualityStatusFilter({
   onChange,
   counts,
   total,
+  loading = false,
 }: FeedQualityStatusFilterProps) {
   return (
     <div
@@ -35,6 +39,7 @@ export function FeedQualityStatusFilter({
         count={total}
         active={value === "all"}
         onClick={() => onChange("all")}
+        loading={loading}
       />
       {FEED_STATUSES.map((status) => (
         <Chip
@@ -45,6 +50,7 @@ export function FeedQualityStatusFilter({
           active={value === status}
           onClick={() => onChange(status)}
           srHint={STATUS_LABELS[status]}
+          loading={loading}
         />
       ))}
     </div>
@@ -58,6 +64,7 @@ function Chip({
   active,
   onClick,
   srHint,
+  loading,
 }: {
   label: string;
   count: number;
@@ -65,6 +72,7 @@ function Chip({
   active: boolean;
   onClick: () => void;
   srHint?: string;
+  loading?: boolean;
 }) {
   return (
     <button
@@ -92,7 +100,16 @@ function Chip({
           active ? "bg-white/20" : "bg-oa-grey-100 text-oa-grey-600"
         }`}
       >
-        {count}
+        {loading ? (
+          <span
+            aria-hidden="true"
+            className={`inline-block h-2.5 w-3.5 rounded align-middle motion-safe:animate-pulse ${
+              active ? "bg-white/60" : "bg-oa-grey-300"
+            }`}
+          />
+        ) : (
+          count
+        )}
       </span>
     </button>
   );

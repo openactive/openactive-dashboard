@@ -29,9 +29,11 @@ export function FeedQualitySection() {
     return () => observer.disconnect();
   }, [enabled]);
 
+  const filterQuery = useFeedQualityFilters();
+  const hasFilters = Object.keys(filterQuery).length > 0;
   const { rows, groups, isLoading, error, retry } = useFeedQuality(
     enabled,
-    useFeedQualityFilters()
+    filterQuery
   );
 
   const counts = useMemo(() => {
@@ -45,6 +47,12 @@ export function FeedQualitySection() {
     }
     return { total: rows.length, okCount, warningCount, errorCount };
   }, [rows]);
+
+  // True while a fresh result is loading (first load or a new filter
+  // combination). Only the figures and table rows swap to placeholders — the
+  // headings, labels, bar track, and view toggle stay put. Cached combinations
+  // don't set isLoading, so revisiting a filter set swaps in with no flash.
+  const showSkeleton = !enabled || isLoading;
 
   return (
     <section
@@ -74,54 +82,39 @@ export function FeedQualitySection() {
         </header>
 
         <div className="mt-10 space-y-8">
-          {!enabled || isLoading ? (
-            <>
-              <SummarySkeleton />
-              <TableSkeleton />
-            </>
-          ) : error ? (
+          {hasFilters && (
+            <p
+              className="text-sm text-oa-grey-600"
+              role="status"
+              aria-live="polite"
+            >
+              Showing feeds that match your filters above.
+            </p>
+          )}
+          {error ? (
             <ErrorBanner
               heading="Couldn't load feed quality."
               message={error}
               onRetry={retry}
             />
-          ) : counts.total === 0 ? (
-            <EmptyState />
+          ) : !showSkeleton && counts.total === 0 ? (
+            hasFilters ? <NoMatchesState /> : <EmptyState />
           ) : (
             <>
-              <FeedQualitySummary {...counts} />
+              <FeedQualitySummary {...counts} loading={showSkeleton} />
               <div className="flex">
                 <FeedQualityViewToggle value={view} onChange={setView} />
               </div>
-              <FeedQualityTable groups={groups} view={view} />
+              <FeedQualityTable
+                groups={groups}
+                view={view}
+                loading={showSkeleton}
+              />
             </>
           )}
         </div>
       </div>
     </section>
-  );
-}
-
-function SummarySkeleton() {
-  return (
-    <div
-      role="status"
-      aria-label="Loading feed status"
-      className="motion-safe:animate-pulse"
-    >
-      <div className="h-3 w-24 rounded bg-oa-grey-200" />
-      <div className="mt-3 h-10 w-32 rounded bg-oa-grey-200" />
-      <div className="mt-5 h-2.5 w-full rounded-full bg-oa-grey-100" />
-      <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3 sm:gap-6">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i}>
-            <div className="h-3 w-20 rounded bg-oa-grey-200" />
-            <div className="mt-2 h-3 w-16 rounded bg-oa-grey-200" />
-            <div className="mt-2 h-3 w-full max-w-[180px] rounded bg-oa-grey-100" />
-          </div>
-        ))}
-      </div>
-    </div>
   );
 }
 
@@ -139,60 +132,15 @@ function EmptyState() {
   );
 }
 
-function TableSkeleton() {
+function NoMatchesState() {
   return (
-    <div
-      role="status"
-      aria-label="Loading feed quality table"
-      className="motion-safe:animate-pulse"
-    >
-      {/* Toolbar placeholder — search field + filter chips */}
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-x-3">
-        <div className="h-9 w-full rounded-sm bg-oa-grey-200 lg:max-w-sm" />
-        <div className="flex gap-2">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-7 w-20 rounded-full bg-oa-grey-200" />
-          ))}
-        </div>
-      </div>
-
-      {/* Table view — desktop only */}
-      <div className="mt-3 hidden overflow-hidden rounded-sm bg-white ring-1 ring-oa-grey-200 lg:block">
-        <div className="h-11 bg-oa-navy" />
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div
-            key={i}
-            className="flex items-center gap-3 border-t border-oa-grey-200 px-3 py-3"
-          >
-            <div className="h-5 w-5 shrink-0 rounded-full bg-oa-grey-200" />
-            <div className="h-3 w-40 rounded bg-oa-grey-200" />
-            <div className="ml-auto flex gap-2">
-              <div className="h-7 w-12 rounded bg-oa-grey-100" />
-              <div className="h-7 w-12 rounded bg-oa-grey-100" />
-              <div className="h-7 w-12 rounded bg-oa-grey-100" />
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Card view — mobile only */}
-      <div className="mt-3 space-y-3 lg:hidden">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div
-            key={i}
-            className="space-y-3 rounded-sm bg-white p-4 ring-1 ring-oa-grey-200"
-          >
-            <div className="h-3 w-32 rounded bg-oa-grey-200" />
-            <div className="h-5 w-5 rounded-full bg-oa-grey-200" />
-            <div className="grid grid-cols-3 gap-1.5">
-              {Array.from({ length: 3 }).map((_, j) => (
-                <div key={j} className="h-12 rounded-sm bg-oa-grey-100" />
-              ))}
-            </div>
-            <div className="h-3 w-24 rounded bg-oa-grey-200" />
-          </div>
-        ))}
-      </div>
+    <div className="rounded-sm bg-white p-8 text-center ring-1 ring-oa-grey-200">
+      <p className="text-base font-semibold text-oa-navy">
+        No feeds match your current filters.
+      </p>
+      <p className="mt-1 text-sm text-oa-grey-600">
+        Try removing a filter above to widen the search.
+      </p>
     </div>
   );
 }
