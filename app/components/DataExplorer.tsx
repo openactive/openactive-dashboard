@@ -12,6 +12,7 @@ import {
   type MobilePanel,
 } from "./ExplorerMobileChrome";
 import { OpportunityMap } from "./OpportunityMap";
+import { usePublishFeedQualityFilters } from "./FeedQualityFilterProvider";
 import type { GeoHierarchy } from "../lib/geo-hierarchy";
 import {
   getAreaSelectionLabel,
@@ -22,6 +23,7 @@ import {
   DEFAULT_EXPLORER_FILTERS,
   type ExplorerFilters,
 } from "../lib/explore-filters";
+import { buildFeedQualityQuery } from "../lib/explorer-location-query";
 import { useNhsTrustOptions } from "../hooks/useNhsTrustOptions";
 import { getActivities } from "../services/activities";
 import { getOrganizations } from "../services/organizations";
@@ -113,6 +115,16 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
       deferredFilters.nhsTrusts,
     ]
   );
+
+  // Publish the current search to the Feed Quality section below, which fetches the feeds matching these filters.
+  const publishFeedQualityFilters = usePublishFeedQualityFilters();
+  const feedQualityQuery = useMemo(
+    () => buildFeedQualityQuery(deferredFilters, hierarchy),
+    [deferredFilters, hierarchy]
+  );
+  useEffect(() => {
+    publishFeedQualityFilters(feedQualityQuery);
+  }, [feedQualityQuery, publishFeedQualityFilters]);
 
   const publisherOptions = useLocationScopedFilterOptions({
     item: "publishers",

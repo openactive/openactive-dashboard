@@ -5,6 +5,7 @@ import {
   partitionAreaRefsToCodes,
 } from "./area-selection";
 import type { ActivitiesQuery } from "../types/activities";
+import type { FilterQuery } from "../services/filter-params";
 
 export type LocationScopedItem = "publishers" | "activities" | "organizations";
 
@@ -30,6 +31,25 @@ export function buildLocationFilterQuery(
     ...(district.length ? { district } : {}),
     ...(region.length ? { region } : {}),
     ...(country.length ? { country } : {}),
+  };
+}
+
+/**
+ * Build the full filter query for the feed-quality endpoint. Used to keep
+ * the feed-quality list in step with the explorer's current search.
+ */
+export function buildFeedQualityQuery(
+  filters: Pick<
+    ExplorerFilters,
+    "areas" | "boundaryType" | "nhsTrusts" | "publisher" | "organization" | "activity"
+  >,
+  hierarchy: GeoHierarchy
+): FilterQuery {
+  return {
+    ...buildLocationFilterQuery(filters, hierarchy),
+    ...(filters.publisher.length ? { publisher: filters.publisher } : {}),
+    ...(filters.organization.length ? { organization: filters.organization } : {}),
+    ...(filters.activity.length ? { activity: filters.activity } : {}),
   };
 }
 
