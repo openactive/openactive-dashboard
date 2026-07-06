@@ -6,6 +6,7 @@ import { ArrowRightIcon, XMarkIcon } from "@heroicons/react/20/solid";
 import { useEscapeClose } from "../../hooks/useEscapeClose";
 import { formatFullNumber, formatNumber } from "../../lib/format";
 import { areaMetricLabel, EXPLORER_SUMMARY_METRIC_DEFS, type ExplorerSummary } from "../../lib/explore-filters";
+import { EXPLORER_GLOSSARY } from "../../lib/explorer-glossary";
 import { StatRow } from "./StatRow";
 import { TopBreakdownTabs } from "./TopBreakdownTabs";
 
@@ -48,6 +49,13 @@ export function ExplorerDetailsModal({
 
   if (!open) return null;
   if (typeof document === "undefined") return null;
+
+
+  const areaHint = {
+    label: areaMetricLabel(summary.boundaryType),
+    definition: EXPLORER_GLOSSARY.area.definition,
+    category: "metric" as const,
+  };
 
   return createPortal(
     <div
@@ -109,11 +117,13 @@ export function ExplorerDetailsModal({
                   label="Physical Activity"
                   value={summary.activityOpportunities}
                   sub="Sessions, classes & events"
+                  hint={EXPLORER_GLOSSARY.physicalActivity}
                 />
                 <StatRow
                   label="Facility Use"
                   value={summary.facilityOpportunities}
                   sub="Spaces & equipment"
+                  hint={EXPLORER_GLOSSARY.facilityUse}
                 />
               </dl>
             </section>
@@ -126,13 +136,14 @@ export function ExplorerDetailsModal({
                 In this selection
               </h3>
               <dl className="mt-3 divide-y divide-oa-grey-100">
-                <StatRow label={areaMetricLabel(summary.boundaryType)} value={summary.areaCount} />
-                <StatRow label="Feed Publishers" value={summary.publisherCount} />
-                <StatRow label="Feeds" value={summary.feedCount} />
-                <StatRow label={EXPLORER_SUMMARY_METRIC_DEFS.organizationCount.desktopLabel} value={summary.organizationCount} />
+                <StatRow label={areaMetricLabel(summary.boundaryType)} value={summary.areaCount} hint={areaHint} />
+                <StatRow label="Feed Publishers" value={summary.publisherCount} hint={EXPLORER_GLOSSARY.feedPublisher} />
+                <StatRow label="Feeds" value={summary.feedCount} hint={EXPLORER_GLOSSARY.feeds} />
+                <StatRow label={EXPLORER_SUMMARY_METRIC_DEFS.organizationCount.desktopLabel} value={summary.organizationCount} hint={EXPLORER_GLOSSARY.provider} />
                 <StatRow
                   label="Activities & facilities"
                   value={summary.activityCount}
+                  hint={EXPLORER_GLOSSARY.activitiesFacilities}
                 />
               </dl>
             </section>
