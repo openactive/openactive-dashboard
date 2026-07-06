@@ -11,7 +11,8 @@
  * change in one place.
  */
 
-export type GlossaryCategory = "column" | "feed-type";
+
+export type GlossaryCategory = "column" | "feed-type" | "filter" | "metric";
 
 export interface GlossaryEntry {
   /** Canonical display label, e.g. "Scheduled session". */
