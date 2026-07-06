@@ -26,7 +26,7 @@ export const EXPLORER_GLOSSARY = {
   provider: {
     label: "Activity/Facility Providers",
     definition:
-      "The organisation that runs the activity or owns the facility, such as a club, leisure centre or coaching business.",
+      "The organisation that runs the activity or provides the facility, such as a club, leisure centre or coaching business.",
     category: "filter",
   },
   publisher: {
