@@ -4,6 +4,8 @@ import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "rea
 import { createPortal } from "react-dom";
 import { CheckIcon, ChevronDownIcon, XMarkIcon } from "@heroicons/react/20/solid";
 import { useListbox, type ListboxOption } from "../hooks/useListbox";
+import { GlossaryTip } from "./feed-quality/GlossaryTip";
+import type { GlossaryEntry } from "../lib/feed-quality-glossary";
 import {
   ALL_FILTER,
   FILTER_EMPTY_VALUE,
@@ -12,9 +14,9 @@ import {
 import { isCoarsePointer } from "../lib/pointer";
 import {
   EXPLORER_GLASS_BACKDROP_BLUR_MD,
-  EXPLORER_LABEL_BASE,
   EXPLORER_LABEL_DEFAULT_TEXT,
   EXPLORER_LABEL_GLASS_TEXT,
+  EXPLORER_LABEL_TEXT,
   EXPLORER_SHADOW_LG,
   EXPLORER_TRIGGER_FIELD_TAILWIND,
   EXPLORER_TRIGGER_GLASS_TAILWIND,
@@ -99,10 +101,12 @@ type FilterDropdownProps = (
   id?: string;
   layout?: "inline" | "field" | "glass" | "sheet";
   searchable?: boolean;
+  // When set, an info icon sits beside the label and reveals this definition.
+  hint?: GlossaryEntry;
 };
 
 export function FilterDropdown(props: FilterDropdownProps) {
-  const { label, options, id, layout = "inline", searchable = false } = props;
+  const { label, options, id, layout = "inline", searchable = false, hint } = props;
   const isMulti = props.mode === "multi";
   const isGlass = layout === "glass";
   const isSheet = layout === "sheet";
@@ -542,6 +546,20 @@ export function FilterDropdown(props: FilterDropdownProps) {
     </div>
   );
 
+  // Field-layout label, with an optional info icon beside it.
+  const labelNode = (
+    <span
+      className={`mb-1.5 flex items-center gap-1 ${EXPLORER_LABEL_TEXT} ${
+        isGlass ? EXPLORER_LABEL_GLASS_TEXT : EXPLORER_LABEL_DEFAULT_TEXT
+      }`}
+    >
+      <label id={labelId} htmlFor={triggerId}>
+        {label}
+      </label>
+      {hint && <GlossaryTip entry={hint} iconClassName="h-3.5 w-3.5" />}
+    </span>
+  );
+
   if (isField) {
     if (isMulti) {
       const selected = (props as FilterDropdownMultiProps).value;
@@ -568,15 +586,7 @@ export function FilterDropdown(props: FilterDropdownProps) {
 
       return root(
         <>
-          <label
-            id={labelId}
-            htmlFor={triggerId}
-            className={`${EXPLORER_LABEL_BASE} ${
-              isGlass ? EXPLORER_LABEL_GLASS_TEXT : EXPLORER_LABEL_DEFAULT_TEXT
-            }`}
-          >
-            {label}
-          </label>
+          {labelNode}
           <div className={multiWrapperClass}>
             {visiblePills.map((name) => {
               const optLabel =
@@ -633,15 +643,7 @@ export function FilterDropdown(props: FilterDropdownProps) {
 
     return root(
       <>
-        <label
-          id={labelId}
-          htmlFor={triggerId}
-          className={`${EXPLORER_LABEL_BASE} ${
-            isGlass ? EXPLORER_LABEL_GLASS_TEXT : EXPLORER_LABEL_DEFAULT_TEXT
-          }`}
-        >
-          {label}
-        </label>
+        {labelNode}
         <button
           ref={triggerRef}
           id={triggerId}
