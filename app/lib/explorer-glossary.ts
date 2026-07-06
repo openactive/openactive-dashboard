@@ -8,7 +8,7 @@ import type { GlossaryEntry } from "./feed-quality-glossary";
 // One publisher can serve many providers, so the same wording is reused
 // wherever the "publisher" concept appears under a slightly different label.
 const PUBLISHER_DEFINITION =
-  "The software platform or booking system that publishes the data. One publisher often lists opportunities for many different providers.";
+  "The software platform or booking system that publishes the data feed. One publisher often lists opportunities for many different providers.";
 
 export const EXPLORER_GLOSSARY = {
   area: {
