@@ -69,7 +69,7 @@ function buildColumns(view: FeedQualityView): Column[] {
     ...STATIC_LEFT_COLUMNS,
     {
       key: "quality",
-      label: "Quality",
+      label: "Completeness",
       align: "center",
       hint: config.qualityHint,
     },
