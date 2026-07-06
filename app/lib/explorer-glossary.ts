@@ -12,7 +12,7 @@ const PUBLISHER_DEFINITION =
 
 export const EXPLORER_GLOSSARY = {
   area: {
-    label: "Areas",
+    label: "Location",
     definition:
       "The geographic area used to group opportunities by location, such as a local authority or NHS trust.",
     category: "filter",
