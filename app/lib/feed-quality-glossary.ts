@@ -39,7 +39,7 @@ export const COLUMN_GLOSSARY: Record<string, GlossaryEntry> = {
     category: "column",
   },
   quality: {
-    label: "Quality",
+    label: "Completeness",
     definition:
       "The feed's overall score: the average completeness across the fields shown in the current view.",
     category: "column",

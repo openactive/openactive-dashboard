@@ -62,7 +62,7 @@ export function FeedQualityFeedCard({ feed, view, dataset }: FeedQualityFeedCard
       </div>
 
       <dl className="grid grid-cols-3 gap-1.5">
-        <Stat label="Quality" colKey="quality" value={config.getScore(feed)} />
+        <Stat label="Completeness" colKey="quality" value={config.getScore(feed)} />
         {config.completenessColumns.map((col) => (
           <Stat
             key={col.key}
