@@ -27,6 +27,10 @@ import { ColumnGlossaryIcon } from "./feed-quality-glossary-ui";
 interface FeedQualityTableProps {
   groups: FeedQualityGroup[];
   view: FeedQualityView;
+  // While true, keep the toolbar and column head visible but swap the rows
+  // (and the status-chip counts) for placeholders. Used while a new filter
+  // combination loads so the static controls don't flash or disappear.
+  loading?: boolean;
 }
 
 const PAGE_SIZE = 10;
@@ -79,7 +83,11 @@ function buildColumns(view: FeedQualityView): Column[] {
   ];
 }
 
-export function FeedQualityTable({ groups, view }: FeedQualityTableProps) {
+export function FeedQualityTable({
+  groups,
+  view,
+  loading = false,
+}: FeedQualityTableProps) {
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -212,6 +220,21 @@ export function FeedQualityTable({ groups, view }: FeedQualityTableProps) {
       : `${count} ${noun} match the current filters.`;
   }, [filteredGroups.length, hasActiveFilters]);
 
+  // Size the loading skeleton to the rows currently on screen so swapping the real content for placeholders doesn't resize the box.
+  const skeletonRowCount = (() => {
+    if (visibleGroups.length === 0) return 18;
+    let rows = 0;
+    for (const group of visibleGroups) {
+      rows +=
+        group.feeds.length === 1
+          ? 1
+          : 1 + (collapsed.has(group.datasetUrl) ? 0 : group.feeds.length);
+    }
+    return Math.min(rows, 30);
+  })();
+  const skeletonCardCount =
+    visibleGroups.length === 0 ? 6 : Math.min(visibleGroups.length, 12);
+
   return (
     <div className="space-y-3">
       <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center lg:gap-x-3 lg:gap-y-2">
@@ -236,6 +259,7 @@ export function FeedQualityTable({ groups, view }: FeedQualityTableProps) {
           onChange={setStatusFilter}
           counts={statusCounts}
           total={groups.length}
+          loading={loading}
         />
 
         {/* On desktop ml-auto pushes this group to the right edge; on mobile
@@ -264,7 +288,7 @@ export function FeedQualityTable({ groups, view }: FeedQualityTableProps) {
         {liveMessage}
       </p>
 
-      {filteredGroups.length === 0 ? (
+      {!loading && filteredGroups.length === 0 ? (
         <div className="rounded-sm bg-white p-8 text-center ring-1 ring-oa-grey-200">
           <p className="text-base font-semibold text-oa-navy">
             No publishers match those filters.
@@ -291,7 +315,7 @@ export function FeedQualityTable({ groups, view }: FeedQualityTableProps) {
       ) : (
         <div
           ref={scrollRef}
-          className="relative max-h-[40rem] overflow-auto overscroll-contain rounded-sm bg-oa-grey-50 p-2 lg:bg-white lg:p-0 lg:ring-1 lg:ring-oa-grey-200"
+          className="relative max-h-[40rem] overflow-auto [scrollbar-gutter:stable] overscroll-contain rounded-sm bg-oa-grey-50 p-2 lg:bg-white lg:p-0 lg:ring-1 lg:ring-oa-grey-200"
         >
           <table
             id="feed-quality-table"
@@ -327,31 +351,41 @@ export function FeedQualityTable({ groups, view }: FeedQualityTableProps) {
                 ))}
               </tr>
             </thead>
-            {visibleGroups.map((group) => (
-              <FeedQualityDatasetGroup
-                key={group.datasetUrl}
-                group={group}
-                view={view}
-                collapsed={collapsed.has(group.datasetUrl)}
-                onToggle={() => toggle(group.datasetUrl)}
-                columnCount={columns.length}
-              />
-            ))}
+            {loading
+              ? <FeedRowsSkeleton columnCount={columns.length} rows={skeletonRowCount} />
+              : visibleGroups.map((group) => (
+                  <FeedQualityDatasetGroup
+                    key={group.datasetUrl}
+                    group={group}
+                    view={view}
+                    collapsed={collapsed.has(group.datasetUrl)}
+                    onToggle={() => toggle(group.datasetUrl)}
+                    columnCount={columns.length}
+                  />
+                ))}
           </table>
 
-          <div className="space-y-3 lg:hidden">
-            {visibleGroups.map((group) => (
-              <FeedQualityDatasetCard
-                key={group.datasetUrl}
-                group={group}
-                view={view}
-                collapsed={collapsed.has(group.datasetUrl)}
-                onToggle={() => toggle(group.datasetUrl)}
-              />
-            ))}
+          <div
+            className={`space-y-3 lg:hidden ${
+              loading ? "motion-safe:animate-pulse" : ""
+            }`}
+          >
+            {loading
+              ? Array.from({ length: skeletonCardCount }).map((_, i) => (
+                  <FeedCardSkeleton key={i} />
+                ))
+              : visibleGroups.map((group) => (
+                  <FeedQualityDatasetCard
+                    key={group.datasetUrl}
+                    group={group}
+                    view={view}
+                    collapsed={collapsed.has(group.datasetUrl)}
+                    onToggle={() => toggle(group.datasetUrl)}
+                  />
+                ))}
           </div>
 
-          {hasMore && (
+          {hasMore && !loading && (
             <div
               ref={sentinelRef}
               className="px-3 py-3 text-center text-xs text-oa-grey-500"
@@ -361,6 +395,59 @@ export function FeedQualityTable({ groups, view }: FeedQualityTableProps) {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+// Placeholder table body shown while a new filter combination loads. Matches
+// the real column count and row padding so the header stays aligned and the
+// row height mirrors a populated table.
+function FeedRowsSkeleton({
+  columnCount,
+  rows,
+}: {
+  columnCount: number;
+  rows: number;
+}) {
+  // Vary the feed-name widths so the placeholder reads as real content.
+  const feedWidths = ["w-40", "w-52", "w-44", "w-36", "w-48"];
+  return (
+    <tbody className="motion-safe:animate-pulse">
+      {Array.from({ length: rows }).map((_, row) => (
+        <tr key={row} className="border-t border-oa-grey-200">
+          <td className="px-3 py-2.5">
+            <div className="mx-auto h-5 w-5 rounded-full bg-oa-grey-200" />
+          </td>
+          <td className="px-3 py-2.5">
+            <div
+              className={`h-3.5 max-w-full rounded bg-oa-grey-200 ${
+                feedWidths[row % feedWidths.length]
+              }`}
+            />
+          </td>
+          {Array.from({ length: Math.max(0, columnCount - 2) }).map((_, cell) => (
+            <td key={cell} className="px-3 py-2.5">
+              <div className="mx-auto h-3.5 w-10 rounded bg-oa-grey-100" />
+            </td>
+          ))}
+        </tr>
+      ))}
+    </tbody>
+  );
+}
+
+// Placeholder card for the mobile layout, mirroring FeedQualityDatasetCard.
+function FeedCardSkeleton() {
+  return (
+    <div className="space-y-3 rounded-sm bg-white p-4 ring-1 ring-oa-grey-200">
+      <div className="h-3 w-32 rounded bg-oa-grey-200" />
+      <div className="h-5 w-5 rounded-full bg-oa-grey-200" />
+      <div className="grid grid-cols-3 gap-1.5">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="h-12 rounded-sm bg-oa-grey-100" />
+        ))}
+      </div>
+      <div className="h-3 w-24 rounded bg-oa-grey-200" />
     </div>
   );
 }
