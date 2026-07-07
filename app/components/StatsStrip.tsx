@@ -19,13 +19,13 @@ const STAT_DEFS: StatDef[] = [
   },
   {
     key: "number_of_publishers",
-    label: "Feed Publishers",
+    label: "Data Publishers",
     textColor: "text-oa-orange",
     format: (d) => formatNumber(d.number_of_publishers),
   },
   {
     key: "number_of_activity_providers",
-    label: "Activity Providers",
+    label: "Facility/Activity Providers",
     textColor: "text-oa-purple",
     format: (d) => formatNumber(d.number_of_activity_providers),
   },

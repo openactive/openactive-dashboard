@@ -11,7 +11,8 @@
  * change in one place.
  */
 
-export type GlossaryCategory = "column" | "feed-type";
+
+export type GlossaryCategory = "column" | "feed-type" | "filter" | "metric";
 
 export interface GlossaryEntry {
   /** Canonical display label, e.g. "Scheduled session". */
@@ -134,16 +135,16 @@ export const FEED_TYPE_GLOSSARY: Record<string, GlossaryEntry> = {
       "A course booked as a whole, made up of multiple sessions over a set period.",
     category: "feed-type",
   },
-  facilityuse: {
-    label: "Facility use",
+  facilities: {
+    label: "Facilities",
     definition:
       "A bookable facility for an activity at a venue, for example 'Badminton at Downtown Leisure Centre', reserved in time slots.",
     category: "feed-type",
   },
   individualfacilityuse: {
-    label: "Individual facility use",
+    label: "Individual facility",
     definition:
-      "A specific sub-facility within a venue, like 'Court 2', the finer-grained version of a facility use.",
+      "A specific sub-facility within a venue, like 'Court 2', the finer-grained version of a facility.",
     category: "feed-type",
   },
   slot: {

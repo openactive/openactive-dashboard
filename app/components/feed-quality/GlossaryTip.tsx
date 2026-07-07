@@ -140,8 +140,7 @@ export function GlossaryTip({
         }}
         className="z-[60] rounded-lg bg-white p-3 text-left shadow-xl ring-1 ring-oa-grey-200"
       >
-        <p className="text-sm font-bold text-oa-navy">{entry.label}</p>
-        <p className="mt-1 text-xs leading-relaxed text-oa-grey-600">
+        <p className="text-xs leading-relaxed text-oa-grey-600">
           {entry.definition}
         </p>
       </div>

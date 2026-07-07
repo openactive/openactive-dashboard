@@ -2,6 +2,7 @@
 
 import { FilterDropdown } from "./FilterDropdown";
 import { AreaHierarchyPicker } from "./AreaHierarchyPicker";
+import { EXPLORER_GLOSSARY } from "../lib/explorer-glossary";
 import {
   DEFAULT_EXPLORER_FILTERS,
   EXPLORER_SUMMARY_METRIC_DEFS,
@@ -118,6 +119,7 @@ export function ExplorerFilterBar({
           <FilterDropdown
             id="explorer-activity"
             label="Activity"
+            hint={EXPLORER_GLOSSARY.activity}
             layout={isSheet ? "sheet" : isOverlay ? "glass" : "field"}
             options={activityOptions}
             mode="multi"
@@ -130,6 +132,7 @@ export function ExplorerFilterBar({
           <FilterDropdown
             id="explorer-organization"
             label={EXPLORER_SUMMARY_METRIC_DEFS.organizationCount.desktopLabel}
+            hint={EXPLORER_GLOSSARY.provider}
             layout={isSheet ? "sheet" : isOverlay ? "glass" : "field"}
             options={organizationOptions}
             mode="multi"
@@ -141,7 +144,8 @@ export function ExplorerFilterBar({
         <div className={isOverlay || isSheet ? "" : "p-4"}>
           <FilterDropdown
             id="explorer-publisher"
-            label="Publisher"
+            label="Data Publishers"
+            hint={EXPLORER_GLOSSARY.publisher}
             layout={isSheet ? "sheet" : isOverlay ? "glass" : "field"}
             options={publisherOptions}
             mode="multi"

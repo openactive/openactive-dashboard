@@ -48,7 +48,7 @@ export type ExplorerSummary = {
   activityCount: number;
   /** Opportunities flagged is_activity=true — Physical Activity (sessions, classes, events). */
   activityOpportunities: number;
-  /** Opportunities flagged is_activity=false — Facility Use (spaces, equipment). */
+  /** Opportunities flagged is_activity=false — Facilities (spaces, equipment). */
   facilityOpportunities: number;
   topAreas: RankedItem[];
   topPublishers: RankedItem[];

@@ -11,10 +11,12 @@ import { isCoarsePointer } from "../../lib/pointer";
 import type { ExplorerFilters } from "../../lib/explore-filters";
 import type { GeoHierarchy } from "../../lib/geo-hierarchy";
 import { getAreaSelectionLabel, getNhsTrustLabel } from "../../lib/area-selection";
+import { EXPLORER_GLOSSARY } from "../../lib/explorer-glossary";
+import { GlossaryTip } from "../feed-quality/GlossaryTip";
 import {
-  EXPLORER_LABEL_BASE,
   EXPLORER_LABEL_DEFAULT_TEXT,
   EXPLORER_LABEL_GLASS_TEXT,
+  EXPLORER_LABEL_TEXT,
   EXPLORER_TRIGGER_FIELD_TAILWIND,
   EXPLORER_TRIGGER_GLASS_TAILWIND,
 } from "../../lib/explorer-ui-styles";
@@ -199,14 +201,14 @@ export function AreaHierarchyPicker({
       onBlur={handleFocusLeave}
       onKeyDown={handlePanelKeyDown}
     >
-      <label
-        htmlFor={`${listboxId}-trigger`}
-        className={`${EXPLORER_LABEL_BASE} ${
+      <span
+        className={`mb-1.5 flex items-center gap-1 ${EXPLORER_LABEL_TEXT} ${
           isGlass ? EXPLORER_LABEL_GLASS_TEXT : EXPLORER_LABEL_DEFAULT_TEXT
         }`}
       >
-        Location
-      </label>
+        <label htmlFor={`${listboxId}-trigger`}>Location</label>
+        <GlossaryTip entry={EXPLORER_GLOSSARY.area} iconClassName="h-3.5 w-3.5" />
+      </span>
       <button
         id={`${listboxId}-trigger`}
         type="button"

@@ -1,7 +1,8 @@
 // Shared Tailwind class fragments for explorer filter UIs.
 
-export const EXPLORER_LABEL_BASE =
-  "mb-1.5 block text-[11px] font-semibold uppercase tracking-widest";
+export const EXPLORER_LABEL_TEXT =
+  "text-[11px] font-semibold uppercase tracking-widest";
+export const EXPLORER_LABEL_BASE = `mb-1.5 block ${EXPLORER_LABEL_TEXT}`;
 export const EXPLORER_LABEL_GLASS_TEXT = "text-oa-grey-500";
 export const EXPLORER_LABEL_DEFAULT_TEXT =
   "font-bold tracking-[0.12em] text-oa-grey-500";

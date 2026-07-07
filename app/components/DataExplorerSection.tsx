@@ -22,11 +22,12 @@ export function DataExplorerSection() {
             id="explorer-heading"
             className="text-3xl sm:text-4xl font-bold text-oa-navy tracking-tight"
           >
-            Interactive Feed Explorer
+            Interactive Data Explorer
           </h2>
           <p className="mt-4 text-base text-oa-grey-700 leading-relaxed max-w-prose">
-            Explore opportunity feeds on the map. Filters and summary float over
-            the view so the geography stays in focus.
+            See what is on offer to get active in any part of the country. Choose an area
+            on the map to reveal the opportunities available there, from led sessions and
+            classes to facilities like courts and pitches.
           </p>
           <a
             href="#explorer-filters"
