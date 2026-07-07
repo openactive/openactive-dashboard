@@ -19,14 +19,14 @@ const STAT_DEFS: StatDef[] = [
   },
   {
     key: "number_of_publishers",
-    label: "Data Publishers",
-    textColor: "text-oa-orange",
+    label: "Data publishers",
+    textColor: "text-oa-orange-on-navy",
     format: (d) => formatNumber(d.number_of_publishers),
   },
   {
     key: "number_of_activity_providers",
-    label: "Facility/Activity Providers",
-    textColor: "text-oa-purple",
+    label: "Facility/activity providers",
+    textColor: "text-oa-purple-on-navy",
     format: (d) => formatNumber(d.number_of_activity_providers),
   },
   {
@@ -37,8 +37,8 @@ const STAT_DEFS: StatDef[] = [
   },
   {
     key: "percentage_of_local_authorities",
-    label: "Of Local Authorities",
-    textColor: "text-oa-magenta",
+    label: "Of local authorities",
+    textColor: "text-oa-magenta-on-navy",
     format: (d) => `${d.percentage_of_local_authorities}%`,
   },
 ];
