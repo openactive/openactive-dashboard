@@ -30,22 +30,28 @@ export const EXPLORER_GLOSSARY = {
     category: "filter",
   },
   publisher: {
-    label: "Publisher",
+    label: "Data Publishers",
     definition: PUBLISHER_DEFINITION,
     category: "filter",
   },
 
-  // Metrics shown in the "View the data" details modal.
+  // Metrics shown in the summary panel and the "View the data" details modal.
+  opportunities: {
+    label: "Opportunities",
+    definition:
+      "Activities and facilities you can use to get active in the near future, usually within the next 2 to 4 weeks.",
+    category: "metric",
+  },
   physicalActivity: {
     label: "Physical Activity",
     definition:
-      "Opportunities that are led sessions, classes or events with a set date and time.",
+      "Opportunities that are led sessions, classes or events.",
     category: "metric",
   },
-  facilityUse: {
-    label: "Facility Use",
+  facilities: {
+    label: "Facilities",
     definition:
-      "Opportunities to hire or use a space or equipment, like a court or pitch, in bookable time slots.",
+      "Opportunities to hire or use a space or equipment, like a court or pitch.",
     category: "metric",
   },
   feedPublisher: {
@@ -54,7 +60,7 @@ export const EXPLORER_GLOSSARY = {
     category: "metric",
   },
   feeds: {
-    label: "Feeds",
+    label: "Data",
     definition:
       "A single stream of one opportunity type from a publisher, such as sessions or facility slots.",
     category: "metric",

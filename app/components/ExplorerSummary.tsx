@@ -8,6 +8,8 @@ import {
   EXPLORER_SUMMARY_METRIC_DEFS,
   type ExplorerSummary as ExplorerSummaryData,
 } from "../lib/explore-filters";
+import { EXPLORER_GLOSSARY } from "../lib/explorer-glossary";
+import { GlossaryTip } from "./feed-quality/GlossaryTip";
 import { ExplorerDetailsModal } from "./ExplorerDetailsModal";
 
 type SummaryLayout = "panel" | "sheet";
@@ -114,8 +116,12 @@ export function ExplorerSummary({
         </header>
 
         <div className="flex flex-1 flex-col px-5 pt-5 pb-5">
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-oa-grey-500">
-            Future opportunities
+          <p className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-widest text-oa-grey-500">
+            Opportunities
+            <GlossaryTip
+              entry={EXPLORER_GLOSSARY.opportunities}
+              iconClassName="h-3.5 w-3.5"
+            />
           </p>
           {isLoading ? (
             <span
@@ -140,7 +146,7 @@ export function ExplorerSummary({
               isLoading={isLoading}
             />
             <StatRow
-              label="Facility Use"
+              label="Facilities"
               value={summary.facilityOpportunities}
               sub="Spaces & equipment"
               isLoading={isLoading}
@@ -154,7 +160,7 @@ export function ExplorerSummary({
               isLoading={isLoading}
             />
             <StatRow
-              label="Feed Publishers"
+              label="Data Publishers"
               value={summary.publisherCount}
               isLoading={isLoading}
             />
@@ -179,7 +185,7 @@ export function ExplorerSummary({
                 aria-haspopup="dialog"
                 aria-expanded={detailsOpen}
               >
-                View the feeds
+                View more details
                 <ArrowTopRightOnSquareIcon
                   className="h-4 w-4"
                   aria-hidden="true"

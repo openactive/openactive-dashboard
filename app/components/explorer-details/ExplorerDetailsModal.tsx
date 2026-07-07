@@ -101,7 +101,7 @@ export function ExplorerDetailsModal({
                 id="details-headline"
                 className="text-[11px] font-semibold uppercase tracking-widest text-oa-grey-500"
               >
-                Future opportunities
+                Opportunities
               </h3>
               <p
                 className="mt-1 text-5xl font-bold tabular-nums tracking-tight text-oa-navy"
@@ -120,10 +120,10 @@ export function ExplorerDetailsModal({
                   hint={EXPLORER_GLOSSARY.physicalActivity}
                 />
                 <StatRow
-                  label="Facility Use"
+                  label="Facilities"
                   value={summary.facilityOpportunities}
                   sub="Spaces & equipment"
-                  hint={EXPLORER_GLOSSARY.facilityUse}
+                  hint={EXPLORER_GLOSSARY.facilities}
                 />
               </dl>
             </section>
@@ -137,8 +137,7 @@ export function ExplorerDetailsModal({
               </h3>
               <dl className="mt-3 divide-y divide-oa-grey-100">
                 <StatRow label={areaMetricLabel(summary.boundaryType)} value={summary.areaCount} hint={areaHint} />
-                <StatRow label="Feed Publishers" value={summary.publisherCount} hint={EXPLORER_GLOSSARY.feedPublisher} />
-                <StatRow label="Feeds" value={summary.feedCount} hint={EXPLORER_GLOSSARY.feeds} />
+                <StatRow label="Data Publishers" value={summary.publisherCount} hint={EXPLORER_GLOSSARY.feedPublisher} />
                 <StatRow label={EXPLORER_SUMMARY_METRIC_DEFS.organizationCount.desktopLabel} value={summary.organizationCount} hint={EXPLORER_GLOSSARY.provider} />
                 <StatRow
                   label="Activities & facilities"
@@ -170,13 +169,6 @@ export function ExplorerDetailsModal({
                   barColor: "bg-oa-blue",
                 },
                 {
-                  key: "feeds",
-                  label: "Feeds",
-                  items: summary.topFeeds,
-                  total: summary.feedCount,
-                  barColor: "bg-oa-magenta",
-                },
-                {
                   key: "providers",
                   label: EXPLORER_SUMMARY_METRIC_DEFS.organizationCount.desktopLabel,
                   items: summary.topOrganizations,
@@ -198,19 +190,20 @@ export function ExplorerDetailsModal({
         {/* Sticky footer: closes the modal and jumps the page to
             #feed-quality.  */}
         <aside
-          aria-label="Check feed quality"
+          aria-label="Check the data quality"
           className="border-t-4 border-oa-cyan bg-oa-grey-50 px-6 py-4"
         >
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
             <h3 className="text-sm font-bold text-oa-navy sm:text-base">
-              Are these publishers shipping clean data?
+              How good is the data behind these numbers?
             </h3>
             <a
               href="#feed-quality"
               onClick={onClose}
+              aria-label="Find out how good the data is"
               className="inline-flex shrink-0 cursor-pointer items-center gap-2 self-start rounded-sm bg-oa-navy px-4 py-2.5 text-sm font-semibold text-white hover:bg-oa-blue focus:outline-none focus-visible:ring-2 focus-visible:ring-oa-cyan focus-visible:ring-offset-2 sm:self-auto"
             >
-              Check feed quality
+              Let's Find Out
               <ArrowRightIcon aria-hidden="true" className="h-4 w-4" />
             </a>
           </div>
