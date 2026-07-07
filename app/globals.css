@@ -16,6 +16,11 @@
   --oa-yellow: #f7a836;
   --oa-scarlet: #be1622;
 
+  /* Brand hues lightened to clear WCAG 3:1 when used on an oa-navy background */
+  --oa-orange-on-navy: #ff7a63;
+  --oa-purple-on-navy: #cd8ac4;
+  --oa-magenta-on-navy: #ff74b8;
+
   /* Neutrals */
   --oa-grey-50: #f8f9fa;
   --oa-grey-100: #f3f4f6;
@@ -42,6 +47,11 @@
   --color-oa-orange: var(--oa-orange);
   --color-oa-yellow: var(--oa-yellow);
   --color-oa-scarlet: var(--oa-scarlet);
+
+  /* Navy-safe brand tints (see :root) */
+  --color-oa-orange-on-navy: var(--oa-orange-on-navy);
+  --color-oa-purple-on-navy: var(--oa-purple-on-navy);
+  --color-oa-magenta-on-navy: var(--oa-magenta-on-navy);
 
   /* Neutrals */
   --color-oa-grey-50: var(--oa-grey-50);
