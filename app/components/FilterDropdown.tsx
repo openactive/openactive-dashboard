@@ -251,7 +251,6 @@ export function FilterDropdown(props: FilterDropdownProps) {
     labelId,
     listboxId,
     openListbox,
-    closeListbox,
     selectIndex,
     setOptionRef,
     handleTriggerKeyDown,
@@ -379,14 +378,7 @@ export function FilterDropdown(props: FilterDropdownProps) {
                 isMulti ? toggleValue(option.value) : selectIndex(index)
               }
               onKeyDown={(e) => {
-                // Multi mode: Enter closes (and flushes via the open/close
-                // effect). Space falls through to the button's default
-                // click → toggleValue, leaving the dropdown open.
-                if (isMulti && e.key === "Enter") {
-                  e.preventDefault();
-                  closeListbox();
-                  return;
-                }
+            
                 handleOptionKeyDown(e, index);
               }}
               title={option.label}
