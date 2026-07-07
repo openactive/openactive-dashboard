@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, type ReactNode } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
+import { useEscapeClose } from "../../hooks/useEscapeClose";
 import { useFocusTrap } from "../../hooks/useFocusTrap";
 import type { MobilePanel } from "../../lib/explorer-types";
 
@@ -50,6 +51,10 @@ export function ExplorerMobileSheet({ panel, onClose, children }: ExplorerMobile
         ?.focus();
     });
   }, [onClose, panel]);
+
+  // Escape closes through the same path as the overlay and Done button, so
+  // focus returns to the opening trigger instead of falling to the body.
+  useEscapeClose(true, handleClose);
 
   useEffect(() => {
     const initial =

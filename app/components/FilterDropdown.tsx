@@ -12,6 +12,7 @@ import {
   FILTER_LOADING_VALUE,
 } from "../lib/explore-filters";
 import { isCoarsePointer } from "../lib/pointer";
+import { getFocusableElements } from "../lib/focusable";
 import {
   EXPLORER_GLASS_BACKDROP_BLUR_MD,
   EXPLORER_LABEL_DEFAULT_TEXT,
@@ -306,7 +307,7 @@ export function FilterDropdown(props: FilterDropdownProps) {
       return;
     }
     const compute = () => {
-      const el = triggerRef.current;
+      const el = rootRef.current;
       if (!el) return;
       const r = el.getBoundingClientRect();
       const margin = 8;
@@ -325,7 +326,42 @@ export function FilterDropdown(props: FilterDropdownProps) {
       window.removeEventListener("resize", compute);
       window.removeEventListener("scroll", compute, true);
     };
-  }, [isSheet, open, triggerRef]);
+  }, [isSheet, open, rootRef]);
+
+
+  const handleSheetTab = (e: React.KeyboardEvent): boolean => {
+    const panel = portalRef.current;
+    const trigger = triggerRef.current;
+    if (!panel || !trigger) return false;
+    const stops = getFocusableElements(panel);
+    if (stops.length === 0) return false;
+    const active = document.activeElement;
+    const first = stops[0];
+    const last = stops[stops.length - 1];
+
+    if (!e.shiftKey && active === trigger) {
+      e.preventDefault();
+      first.focus();
+      return true;
+    }
+    if (e.shiftKey && active === first) {
+      e.preventDefault();
+      trigger.focus();
+      return true;
+    }
+    if (!e.shiftKey && active === last) {
+      e.preventDefault();
+      setOpen(false);
+      trigger.focus();
+      return true;
+    }
+    return false;
+  };
+
+  const onRootKeyDown = (e: React.KeyboardEvent) => {
+    if (isSheet && open && e.key === "Tab" && handleSheetTab(e)) return;
+    handleRootKeyDown(e);
+  };
 
   const triggerClass = isGlass
     ? `flex w-full cursor-pointer items-center justify-between gap-2 ${EXPLORER_TRIGGER_GLASS_TAILWIND} font-medium`
@@ -531,7 +567,7 @@ export function FilterDropdown(props: FilterDropdownProps) {
       ref={rootRef}
       className={isField ? "relative w-full" : "relative inline-block"}
       onBlur={handleFocusLeave}
-      onKeyDown={handleRootKeyDown}
+      onKeyDown={onRootKeyDown}
     >
       {trigger}
       {isSheet ? sheetPanel : listbox}
