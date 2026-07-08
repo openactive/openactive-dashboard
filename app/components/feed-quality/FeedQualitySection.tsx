@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useFeedQuality } from "../../hooks/useFeedQuality";
 import { ErrorBanner } from "../ErrorBanner";
 import { useFeedQualityFilters } from "../FeedQualityFilterProvider";
@@ -13,6 +13,19 @@ export function FeedQualitySection() {
   const [enabled, setEnabled] = useState(false);
   const [view, setView] = useState<FeedQualityView>("data");
   const sectionRef = useRef<HTMLElement>(null);
+  const viewToggleRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const focusViewToggle = useCallback(() => {
+    const activeTab = viewToggleRef.current?.querySelector<HTMLButtonElement>(
+      'button[role="tab"][aria-selected="true"]'
+    );
+    activeTab?.focus();
+  }, []);
+
+  const focusSearch = useCallback(() => {
+    searchInputRef.current?.focus();
+  }, []);
 
   useEffect(() => {
     if (enabled || !sectionRef.current) return;
@@ -103,12 +116,19 @@ export function FeedQualitySection() {
             <>
               <FeedQualitySummary {...counts} loading={showSkeleton} />
               <div className="flex">
-                <FeedQualityViewToggle value={view} onChange={setView} />
+                <FeedQualityViewToggle
+                  value={view}
+                  onChange={setView}
+                  tabListRef={viewToggleRef}
+                  onArrowDownFromTab={focusSearch}
+                />
               </div>
               <FeedQualityTable
                 groups={groups}
                 view={view}
                 loading={showSkeleton}
+                searchInputRef={searchInputRef}
+                onFocusViewToggle={focusViewToggle}
               />
             </>
           )}

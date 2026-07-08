@@ -11,6 +11,7 @@ import {
 import { InformationCircleIcon } from "@heroicons/react/20/solid";
 import { useClickOutside } from "../../hooks/useClickOutside";
 import { useEscapeClose } from "../../hooks/useEscapeClose";
+import { useFocusTrap } from "../../hooks/useFocusTrap";
 import {
   COMPLETENESS_BANDS,
   type CompletenessBand,
@@ -44,6 +45,7 @@ export function FeedQualityColourKey() {
 
   const wrapRef = useRef<HTMLSpanElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const panelId = useId();
   const headingId = `${panelId}-heading`;
   const [position, setPosition] = useState<{
@@ -59,6 +61,7 @@ export function FeedQualityColourKey() {
 
   useEscapeClose(open, closeAll);
   useClickOutside(wrapRef, pinned, closeAll);
+  useFocusTrap(panelRef, pinned && position !== null);
 
   // Position the panel under the trigger, flipped if it would clip the viewport.
   useLayoutEffect(() => {
@@ -74,6 +77,11 @@ export function FeedQualityColourKey() {
     }
     setPosition({ top: rect.bottom + PANEL_GAP, left });
   }, [open]);
+
+  useEffect(() => {
+    if (!pinned || !position) return;
+    requestAnimationFrame(() => panelRef.current?.focus());
+  }, [pinned, position]);
 
   // Close on any scroll — the trigger moves but a fixed-position panel doesn't
   // follow. Capture phase catches scrolls inside the bounded table too.
@@ -126,9 +134,11 @@ export function FeedQualityColourKey() {
 
       {open && position && (
         <div
+          ref={panelRef}
           id={panelId}
           role="dialog"
           aria-labelledby={headingId}
+          tabIndex={pinned ? -1 : undefined}
           style={{
             position: "fixed",
             top: position.top,

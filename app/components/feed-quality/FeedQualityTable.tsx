@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type RefObject } from "react";
 import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
 import { FeedQualityColourKey } from "./FeedQualityColourKey";
 import { FeedQualityDatasetCard } from "./FeedQualityDatasetCard";
@@ -31,6 +31,8 @@ interface FeedQualityTableProps {
   // (and the status-chip counts) for placeholders. Used while a new filter
   // combination loads so the static controls don't flash or disappear.
   loading?: boolean;
+  searchInputRef?: RefObject<HTMLInputElement | null>;
+  onFocusViewToggle?: () => void;
 }
 
 const PAGE_SIZE = 10;
@@ -87,6 +89,8 @@ export function FeedQualityTable({
   groups,
   view,
   loading = false,
+  searchInputRef,
+  onFocusViewToggle,
 }: FeedQualityTableProps) {
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
   const [query, setQuery] = useState("");
@@ -95,6 +99,7 @@ export function FeedQualityTable({
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const scrollRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const searchId = useId();
 
   const columns = useMemo(() => buildColumns(view), [view]);
   const getGroupScore = VIEW_CONFIGS[view].getGroupScore;
@@ -238,16 +243,27 @@ export function FeedQualityTable({
   return (
     <div className="space-y-3">
       <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center lg:gap-x-3 lg:gap-y-2">
-        <label className="flex w-full items-center gap-2 rounded-sm border border-oa-grey-300 bg-white px-3 py-2 focus-within:border-oa-cyan focus-within:ring-1 focus-within:ring-oa-cyan lg:max-w-sm">
+        <label
+          htmlFor={searchId}
+          className="flex w-full items-center gap-2 rounded-sm border border-oa-grey-300 bg-white px-3 py-2 focus-within:border-oa-cyan focus-within:ring-1 focus-within:ring-oa-cyan lg:max-w-sm"
+        >
           <MagnifyingGlassIcon
             aria-hidden="true"
             className="h-4 w-4 shrink-0 text-oa-grey-500"
           />
           <span className="sr-only">Search publishers by name</span>
           <input
+            ref={searchInputRef}
+            id={searchId}
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "ArrowUp") {
+                event.preventDefault();
+                onFocusViewToggle?.();
+              }
+            }}
             placeholder="Search publishers"
             className="w-full bg-transparent text-sm text-oa-grey-800 placeholder:text-oa-grey-400 focus:outline-none"
             aria-controls="feed-quality-table"

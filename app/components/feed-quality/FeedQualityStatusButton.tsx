@@ -12,6 +12,7 @@ import { FeedQualityStatusIcon } from "./FeedQualityStatusIcon";
 import { useClickOutside } from "../../hooks/useClickOutside";
 import { useEscapeClose } from "../../hooks/useEscapeClose";
 import { useFocusLeaveClose } from "../../hooks/useFocusLeaveClose";
+import { useFocusTrap } from "../../hooks/useFocusTrap";
 import { STATUS_LABELS } from "../../lib/feed-quality";
 import type { FeedStatus } from "../../types/feed-quality";
 
@@ -42,6 +43,7 @@ export function FeedQualityStatusButton({
   );
   const wrapRef = useRef<HTMLSpanElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const panelId = useId();
   const headingId = `${panelId}-heading`;
 
@@ -50,6 +52,7 @@ export function FeedQualityStatusButton({
   useEscapeClose(open, close);
   useClickOutside(wrapRef, open, close);
   const handleBlur = useFocusLeaveClose(wrapRef, open, close);
+  useFocusTrap(panelRef, open && position !== null);
 
   // Position the panel under the button, flipped if it would clip the viewport.
   useLayoutEffect(() => {
@@ -65,6 +68,11 @@ export function FeedQualityStatusButton({
     if (left < VIEWPORT_PADDING) left = VIEWPORT_PADDING;
     setPosition({ top: rect.bottom + PANEL_GAP, left });
   }, [open]);
+
+  useEffect(() => {
+    if (!open || !position) return;
+    requestAnimationFrame(() => panelRef.current?.focus());
+  }, [open, position]);
 
   // Close on any scroll — the button moves but a fixed-position panel doesn't
   // follow. Capture phase catches scrolls inside the bounded table too.
@@ -90,16 +98,19 @@ export function FeedQualityStatusButton({
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}
+        aria-label={`View ${STATUS_LABELS[status]} status details`}
         className="cursor-pointer rounded-full p-1.5 hover:bg-oa-grey-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-oa-cyan"
       >
-        <FeedQualityStatusIcon status={status} />
+        <FeedQualityStatusIcon status={status} decorative />
       </button>
 
       {open && position && (
         <div
+          ref={panelRef}
           id={panelId}
           role="dialog"
           aria-labelledby={headingId}
+          tabIndex={-1}
           style={{
             position: "fixed",
             top: position.top,
