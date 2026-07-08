@@ -144,7 +144,7 @@ export function ExplorerFilterBar({
         <div className={isOverlay || isSheet ? "" : "p-4"}>
           <FilterDropdown
             id="explorer-publisher"
-            label="Data Publishers"
+            label={EXPLORER_GLOSSARY.publisher.label}
             hint={EXPLORER_GLOSSARY.publisher}
             layout={isSheet ? "sheet" : isOverlay ? "glass" : "field"}
             options={publisherOptions}

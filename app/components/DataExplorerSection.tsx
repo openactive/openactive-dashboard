@@ -31,7 +31,7 @@ export function DataExplorerSection() {
           </p>
           <a
             href="#explorer-filters"
-            className="sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:block focus:h-auto focus:w-auto focus:overflow-visible focus:rounded-sm focus:bg-oa-navy focus:px-3 focus:py-2 focus:text-sm focus:font-semibold focus:text-white focus:outline-none focus:ring-2 focus:ring-oa-cyan"
+            className="max-lg:hidden sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:block focus:h-auto focus:w-auto focus:overflow-visible focus:rounded-sm focus:bg-oa-navy focus:px-3 focus:py-2 focus:text-sm focus:font-semibold focus:text-white focus:outline-none focus:ring-2 focus:ring-oa-cyan"
           >
             Skip to map filters
           </a>

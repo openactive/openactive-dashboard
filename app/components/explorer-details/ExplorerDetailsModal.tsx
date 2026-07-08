@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { ArrowRightIcon, XMarkIcon } from "@heroicons/react/20/solid";
 import { useEscapeClose } from "../../hooks/useEscapeClose";
+import { useFocusTrap } from "../../hooks/useFocusTrap";
 import { formatFullNumber, formatNumber } from "../../lib/format";
 import { areaMetricLabel, EXPLORER_SUMMARY_METRIC_DEFS, type ExplorerSummary } from "../../lib/explore-filters";
 import { EXPLORER_GLOSSARY } from "../../lib/explorer-glossary";
@@ -27,9 +28,12 @@ export function ExplorerDetailsModal({
   selectionLabel,
 }: ExplorerDetailsModalProps) {
   const closeRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
   const previouslyFocusedRef = useRef<HTMLElement | null>(null);
 
   useEscapeClose(open, onClose);
+  // Trap Tab inside the dialog so focus can't slip to the page behind. 
+  useFocusTrap(dialogRef, open, { restoreFocus: false });
 
   useEffect(() => {
     if (!open) return;
@@ -64,6 +68,7 @@ export function ExplorerDetailsModal({
       role="presentation"
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={TITLE_ID}
@@ -114,13 +119,13 @@ export function ExplorerDetailsModal({
 
               <dl className="mt-5 divide-y divide-oa-grey-100 border-y border-oa-grey-100">
                 <StatRow
-                  label="Physical Activity"
+                  label={EXPLORER_GLOSSARY.physicalActivity.label}
                   value={summary.activityOpportunities}
                   sub="Sessions, classes & events"
                   hint={EXPLORER_GLOSSARY.physicalActivity}
                 />
                 <StatRow
-                  label="Facilities"
+                  label={EXPLORER_GLOSSARY.facilities.label}
                   value={summary.facilityOpportunities}
                   sub="Spaces & equipment"
                   hint={EXPLORER_GLOSSARY.facilities}
@@ -137,10 +142,10 @@ export function ExplorerDetailsModal({
               </h3>
               <dl className="mt-3 divide-y divide-oa-grey-100">
                 <StatRow label={areaMetricLabel(summary.boundaryType)} value={summary.areaCount} hint={areaHint} />
-                <StatRow label="Data Publishers" value={summary.publisherCount} hint={EXPLORER_GLOSSARY.feedPublisher} />
+                <StatRow label={EXPLORER_GLOSSARY.feedPublisher.label} value={summary.publisherCount} hint={EXPLORER_GLOSSARY.feedPublisher} />
                 <StatRow label={EXPLORER_SUMMARY_METRIC_DEFS.organizationCount.desktopLabel} value={summary.organizationCount} hint={EXPLORER_GLOSSARY.provider} />
                 <StatRow
-                  label="Activities & facilities"
+                  label={EXPLORER_GLOSSARY.activitiesFacilities.label}
                   value={summary.activityCount}
                   hint={EXPLORER_GLOSSARY.activitiesFacilities}
                 />
@@ -163,7 +168,7 @@ export function ExplorerDetailsModal({
                 },
                 {
                   key: "publishers",
-                  label: "Feed Publishers",
+                  label: EXPLORER_SUMMARY_METRIC_DEFS.publisherCount.desktopLabel,
                   items: summary.topPublishers,
                   total: summary.publisherCount,
                   barColor: "bg-oa-blue",
@@ -177,7 +182,7 @@ export function ExplorerDetailsModal({
                 },
                 {
                   key: "activities",
-                  label: "Activities",
+                  label: EXPLORER_SUMMARY_METRIC_DEFS.activityCount.desktopLabel,
                   items: summary.topActivities,
                   total: summary.activityCount,
                   barColor: "bg-oa-indigo",
@@ -203,7 +208,7 @@ export function ExplorerDetailsModal({
               aria-label="Find out how good the data is"
               className="inline-flex shrink-0 cursor-pointer items-center gap-2 self-start rounded-sm bg-oa-navy px-4 py-2.5 text-sm font-semibold text-white hover:bg-oa-blue focus:outline-none focus-visible:ring-2 focus-visible:ring-oa-cyan focus-visible:ring-offset-2 sm:self-auto"
             >
-              Let's Find Out
+              Let&apos;s find out
               <ArrowRightIcon aria-hidden="true" className="h-4 w-4" />
             </a>
           </div>

@@ -6,7 +6,6 @@ import { ExplorerSummary } from "../ExplorerSummary";
 import { ExplorerMobileFilterButton } from "./ExplorerMobileFilterButton";
 import { ExplorerMobileSheet } from "./ExplorerMobileSheet";
 import { ExplorerMobileStatsDock } from "./ExplorerMobileStatsDock";
-import { useEscapeClose } from "../../hooks/useEscapeClose";
 import type { ExplorerMobileChromeProps } from "../../lib/explorer-types";
 
 export type { MobilePanel } from "../../lib/explorer-types";
@@ -25,8 +24,6 @@ export function ExplorerMobileChrome({
   const toggleFilters = useCallback(() => {
     onPanelChange(panel === "filters" ? "none" : "filters");
   }, [panel, onPanelChange]);
-
-  useEscapeClose(panel !== "none", closePanel);
 
   const sheetOpen = panel !== "none";
 

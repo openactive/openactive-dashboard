@@ -87,8 +87,6 @@ export function ExplorerSummary({
     <>
       <div
         className={containerClass}
-        aria-live="polite"
-        aria-atomic="true"
         aria-busy={isLoading || undefined}
       >
         <header
@@ -123,11 +121,15 @@ export function ExplorerSummary({
               iconClassName="h-3.5 w-3.5"
             />
           </p>
+          <p className="sr-only" role="status" aria-live="polite">
+            {isLoading
+              ? "Loading opportunities"
+              : headlineLabel}
+          </p>
           {isLoading ? (
             <span
               className="mt-2 inline-block h-9 w-28 animate-pulse rounded bg-oa-grey-200"
-              aria-label="Loading"
-              role="status"
+              aria-hidden="true"
             />
           ) : (
             <p
@@ -140,13 +142,13 @@ export function ExplorerSummary({
 
           <dl className="mt-4 divide-y divide-oa-grey-100 border-y border-oa-grey-100">
             <StatRow
-              label="Physical Activity"
+              label={EXPLORER_GLOSSARY.physicalActivity.label}
               value={summary.activityOpportunities}
               sub="Sessions, classes & events"
               isLoading={isLoading}
             />
             <StatRow
-              label="Facilities"
+              label={EXPLORER_GLOSSARY.facilities.label}
               value={summary.facilityOpportunities}
               sub="Spaces & equipment"
               isLoading={isLoading}
@@ -160,7 +162,7 @@ export function ExplorerSummary({
               isLoading={isLoading}
             />
             <StatRow
-              label="Data Publishers"
+              label={EXPLORER_SUMMARY_METRIC_DEFS.publisherCount.desktopLabel}
               value={summary.publisherCount}
               isLoading={isLoading}
             />
@@ -170,7 +172,7 @@ export function ExplorerSummary({
               isLoading={isLoading}
             />
             <StatRow
-              label="Activities"
+              label={EXPLORER_SUMMARY_METRIC_DEFS.activityCount.desktopLabel}
               value={summary.activityCount}
               isLoading={isLoading}
             />
