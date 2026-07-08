@@ -213,10 +213,10 @@ export function FeedQualityTable({
   // currently sees so screen readers know if their filter actually matched.
   const liveMessage = useMemo(() => {
     const count = filteredGroups.length;
-    const noun = count === 1 ? "publisher" : "publishers";
+    const noun = count === 1 ? "data stream" : "data streams";
     if (!hasActiveFilters) return "";
     return count === 0
-      ? "No publishers match the current filters."
+      ? "No data streams match the current filters."
       : `${count} ${noun} match the current filters.`;
   }, [filteredGroups.length, hasActiveFilters]);
 
@@ -291,7 +291,7 @@ export function FeedQualityTable({
       {!loading && filteredGroups.length === 0 ? (
         <div className="rounded-sm bg-white p-8 text-center ring-1 ring-oa-grey-200">
           <p className="text-base font-semibold text-oa-navy">
-            No publishers match those filters.
+            No data streams match those filters.
           </p>
           <p className="mt-1 text-sm text-oa-grey-600">
             {query
@@ -388,9 +388,11 @@ export function FeedQualityTable({
           {hasMore && !loading && (
             <div
               ref={sentinelRef}
+              role="status"
+              aria-live="polite"
               className="px-3 py-3 text-center text-xs text-oa-grey-500"
             >
-              Loading more publishers…
+              Loading more data streams…
             </div>
           )}
         </div>
