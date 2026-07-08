@@ -163,7 +163,6 @@ export function GlossaryTip({
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         aria-label={`What does ${entry.label} mean?`}
-        aria-expanded={open}
         aria-describedby={open ? panelId : undefined}
         className={`inline-flex cursor-pointer items-center justify-center rounded-full p-0.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-oa-cyan ${
           triggerClassName ?? "text-oa-grey-400 hover:text-oa-navy"
