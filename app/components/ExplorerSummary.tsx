@@ -142,13 +142,13 @@ export function ExplorerSummary({
 
           <dl className="mt-4 divide-y divide-oa-grey-100 border-y border-oa-grey-100">
             <StatRow
-              label="Physical Activity"
+              label={EXPLORER_GLOSSARY.physicalActivity.label}
               value={summary.activityOpportunities}
               sub="Sessions, classes & events"
               isLoading={isLoading}
             />
             <StatRow
-              label="Facilities"
+              label={EXPLORER_GLOSSARY.facilities.label}
               value={summary.facilityOpportunities}
               sub="Spaces & equipment"
               isLoading={isLoading}
@@ -162,7 +162,7 @@ export function ExplorerSummary({
               isLoading={isLoading}
             />
             <StatRow
-              label="Data Publishers"
+              label={EXPLORER_SUMMARY_METRIC_DEFS.publisherCount.desktopLabel}
               value={summary.publisherCount}
               isLoading={isLoading}
             />
@@ -172,7 +172,7 @@ export function ExplorerSummary({
               isLoading={isLoading}
             />
             <StatRow
-              label="Activities"
+              label={EXPLORER_SUMMARY_METRIC_DEFS.activityCount.desktopLabel}
               value={summary.activityCount}
               isLoading={isLoading}
             />
