@@ -78,7 +78,7 @@ export function FeedQualityFeedCard({ feed, view, dataset }: FeedQualityFeedCard
           <span className="font-semibold tabular-nums text-oa-navy">
             {formatFullNumber(feed.num_future_opportunity_items)}
           </span>{" "}
-          future items
+          opportunities
         </span>
         <time dateTime={feed.last_assessed} title={absolute}>
           {relative}

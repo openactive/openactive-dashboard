@@ -145,7 +145,7 @@ export function FeedQualityColourKey() {
           </p>
           <p className="mt-1 text-xs leading-relaxed text-oa-grey-600">
             Cells in the table are tinted by how often a field is filled in
-            across each feed&apos;s future items.
+            across each data&apos;s opportunities.
           </p>
 
           <ul className="mt-3 space-y-2.5">

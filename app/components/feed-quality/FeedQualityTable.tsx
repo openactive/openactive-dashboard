@@ -51,7 +51,7 @@ const STATIC_LEFT_COLUMNS: Column[] = [
 const STATIC_RIGHT_COLUMNS: Column[] = [
   {
     key: "items",
-    label: "Future items",
+    label: COLUMN_GLOSSARY.items.label,
     align: "right",
     hint: COLUMN_GLOSSARY.items.definition,
   },

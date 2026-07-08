@@ -10,6 +10,9 @@ import type { GlossaryEntry } from "./feed-quality-glossary";
 const PUBLISHER_DEFINITION =
   "The software platform or booking system that publishes the data feed. One publisher often lists opportunities for many different providers.";
 
+export const OPPORTUNITIES_DEFINITION =
+  "Activities and facilities you can use to get active in the near future, usually within the next 2 to 4 weeks.";
+
 export const EXPLORER_GLOSSARY = {
   area: {
     label: "Location",
@@ -38,8 +41,7 @@ export const EXPLORER_GLOSSARY = {
   // Metrics shown in the summary panel and the "View the data" details modal.
   opportunities: {
     label: "Opportunities",
-    definition:
-      "Activities and facilities you can use to get active in the near future, usually within the next 2 to 4 weeks.",
+    definition: OPPORTUNITIES_DEFINITION,
     category: "metric",
   },
   physicalActivity: {
