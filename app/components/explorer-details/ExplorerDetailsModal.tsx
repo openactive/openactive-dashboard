@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { ArrowRightIcon, XMarkIcon } from "@heroicons/react/20/solid";
 import { useEscapeClose } from "../../hooks/useEscapeClose";
+import { useFocusTrap } from "../../hooks/useFocusTrap";
 import { formatFullNumber, formatNumber } from "../../lib/format";
 import { areaMetricLabel, EXPLORER_SUMMARY_METRIC_DEFS, type ExplorerSummary } from "../../lib/explore-filters";
 import { EXPLORER_GLOSSARY } from "../../lib/explorer-glossary";
@@ -27,9 +28,12 @@ export function ExplorerDetailsModal({
   selectionLabel,
 }: ExplorerDetailsModalProps) {
   const closeRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
   const previouslyFocusedRef = useRef<HTMLElement | null>(null);
 
   useEscapeClose(open, onClose);
+  // Trap Tab inside the dialog so focus can't slip to the page behind. 
+  useFocusTrap(dialogRef, open, { restoreFocus: false });
 
   useEffect(() => {
     if (!open) return;
@@ -64,6 +68,7 @@ export function ExplorerDetailsModal({
       role="presentation"
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={TITLE_ID}
