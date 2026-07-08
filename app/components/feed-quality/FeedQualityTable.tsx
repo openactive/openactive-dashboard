@@ -45,7 +45,7 @@ interface Column {
 
 const STATIC_LEFT_COLUMNS: Column[] = [
   { key: "status", label: "Status", srOnly: true, align: "center" },
-  { key: "feed", label: "Feed", align: "left" },
+  { key: "feed", label: COLUMN_GLOSSARY.feed.label, align: "left" },
 ];
 
 const STATIC_RIGHT_COLUMNS: Column[] = [
@@ -315,7 +315,7 @@ export function FeedQualityTable({
       ) : (
         <div
           ref={scrollRef}
-          className="relative max-h-[40rem] overflow-auto [scrollbar-gutter:stable] overscroll-contain rounded-sm bg-oa-grey-50 p-2 lg:bg-white lg:p-0 lg:ring-1 lg:ring-oa-grey-200"
+          className="relative max-h-160 overflow-auto scrollbar-gutter-stable overscroll-contain rounded-sm bg-oa-grey-50 p-2 lg:bg-white lg:p-0 lg:ring-1 lg:ring-oa-grey-200"
         >
           <table
             id="feed-quality-table"
@@ -323,7 +323,7 @@ export function FeedQualityTable({
           >
             <caption className="sr-only">
               {VIEW_CONFIGS[view].label} by publisher. Each row shows a single
-              feed&apos;s completeness for the relevant fields.
+              data stream&apos;s completeness for the relevant fields.
             </caption>
             <thead className="sticky top-0 z-10">
               <tr>

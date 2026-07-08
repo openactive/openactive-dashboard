@@ -68,16 +68,16 @@ export function FeedQualitySection() {
             id="feed-quality-heading"
             className="text-3xl sm:text-4xl font-bold text-oa-navy tracking-tight"
           >
-            Feed quality
+            Data quality
           </h2>
           <p className="mt-4 text-base text-oa-grey-700 leading-relaxed max-w-prose">
-            See how each publisher&apos;s feeds measure up. Switch between{" "}
-            <strong className="font-semibold text-oa-navy">feed completeness</strong>
-            {" "}(the fields that decide whether opportunities count in
-            OpenActive&apos;s headline figures) and{" "}
+            See how well each publisher&apos;s data is filled in. You can switch between{" "}
+            <strong className="font-semibold text-oa-navy">data completeness</strong>
+            {" "}for the core details needed for opportunities to count in
+            OpenActive&apos;s headline figures, and{" "}
             <strong className="font-semibold text-oa-navy">content quality</strong>
-            {" "}(the optional fields that make those opportunities genuinely
-            useful, like age range, level, and accessibility support).
+            {" "}for the extra details that help people decide what is right for
+            them, such as age range, level, and accessibility support.
           </p>
         </header>
 
@@ -88,12 +88,12 @@ export function FeedQualitySection() {
               role="status"
               aria-live="polite"
             >
-              Showing feeds that match your filters above.
+              Showing data streams that match your filters above.
             </p>
           )}
           {error ? (
             <ErrorBanner
-              heading="Couldn't load feed quality."
+              heading="Couldn't load data quality."
               message={error}
               onRetry={retry}
             />
@@ -122,10 +122,10 @@ function EmptyState() {
   return (
     <div className="rounded-sm bg-white p-8 text-center ring-1 ring-oa-grey-200">
       <p className="text-base font-semibold text-oa-navy">
-        No feed quality data yet.
+        No data quality data yet.
       </p>
       <p className="mt-1 text-sm text-oa-grey-600">
-        OpenActive hasn&apos;t assessed any feeds in this window. Check back
+        OpenActive hasn&apos;t assessed any data streams in this window. Check back
         once publishers have started shipping data.
       </p>
     </div>
@@ -136,7 +136,7 @@ function NoMatchesState() {
   return (
     <div className="rounded-sm bg-white p-8 text-center ring-1 ring-oa-grey-200">
       <p className="text-base font-semibold text-oa-navy">
-        No feeds match your current filters.
+        No data streams match your current filters.
       </p>
       <p className="mt-1 text-sm text-oa-grey-600">
         Try removing a filter above to widen the search.

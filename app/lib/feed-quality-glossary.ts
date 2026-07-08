@@ -32,11 +32,11 @@ export const COLUMN_GLOSSARY: Record<string, GlossaryEntry> = {
   status: {
     label: "Status",
     definition:
-      "Whether the feed is healthy, has warnings, or has errors in OpenActive's latest automated check.",
+      "Whether the data is healthy, has warnings, or has errors in OpenActive's latest automated check.",
     category: "column",
   },
   feed: {
-    label: "Feed",
+    label: "Data",
     definition:
       "A single published stream of one opportunity type (such as sessions or facility slots) from a publisher.",
     category: "column",
@@ -84,7 +84,8 @@ export const COLUMN_GLOSSARY: Record<string, GlossaryEntry> = {
   },
   updated: {
     label: "Last assessed",
-    definition: "When OpenActive last ran a quality check on this feed.",
+    definition:
+      "When OpenActive last ran a quality check on each data stream.",
     category: "column",
   },
 };

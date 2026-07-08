@@ -59,7 +59,7 @@ export function FeedQualityDatasetCard({
             }`}
           />
           <span className="sr-only">
-            {collapsed ? "Show" : "Hide"} feeds for {group.datasetName}
+            {collapsed ? "Show" : "Hide"} data streams for {group.datasetName}
           </span>
         </button>
         <span
@@ -72,7 +72,7 @@ export function FeedQualityDatasetCard({
           className="text-sm font-semibold text-oa-navy"
         />
         <span className="ml-auto text-xs font-medium text-oa-grey-500">
-          {group.feeds.length} feeds
+          {group.feeds.length} data streams
         </span>
       </header>
 
