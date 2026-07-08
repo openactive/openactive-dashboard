@@ -414,7 +414,13 @@ export function FilterDropdown(props: FilterDropdownProps) {
                 isMulti ? toggleValue(option.value) : selectIndex(index)
               }
               onKeyDown={(e) => {
-            
+                // ArrowUp on the first option returns to the search box, so
+                // arrows move focus both ways through the panel.
+                if (searchable && e.key === "ArrowUp" && index === 0) {
+                  e.preventDefault();
+                  searchInputRef.current?.focus();
+                  return;
+                }
                 handleOptionKeyDown(e, index);
               }}
               title={option.label}
