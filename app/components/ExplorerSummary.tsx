@@ -87,8 +87,6 @@ export function ExplorerSummary({
     <>
       <div
         className={containerClass}
-        aria-live="polite"
-        aria-atomic="true"
         aria-busy={isLoading || undefined}
       >
         <header
@@ -123,11 +121,15 @@ export function ExplorerSummary({
               iconClassName="h-3.5 w-3.5"
             />
           </p>
+          <p className="sr-only" role="status" aria-live="polite">
+            {isLoading
+              ? "Loading opportunities"
+              : headlineLabel}
+          </p>
           {isLoading ? (
             <span
               className="mt-2 inline-block h-9 w-28 animate-pulse rounded bg-oa-grey-200"
-              aria-label="Loading"
-              role="status"
+              aria-hidden="true"
             />
           ) : (
             <p

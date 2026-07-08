@@ -1,7 +1,7 @@
 "use client";
 
 import { ChartBarIcon } from "@heroicons/react/24/outline";
-import { formatNumber } from "../../lib/format";
+import { formatFullNumber, formatNumber } from "../../lib/format";
 import {
   areaMetricLabel,
   EXPLORER_SUMMARY_METRIC_DEFS,
@@ -39,19 +39,23 @@ export function ExplorerMobileStatsDock({
       >
         <div className="flex items-end justify-between gap-3">
           <div className="min-w-0 flex-1">
+            <p className="sr-only" role="status" aria-live="polite">
+              {isLoading
+                ? "Loading opportunities"
+                : `${formatFullNumber(summary.totalOpportunities)} future opportunities`}
+            </p>
             <p className="truncate text-[10px] font-semibold uppercase tracking-widest text-oa-grey-500">
               {selectionLabel}
             </p>
             {isLoading ? (
               <span
                 className="mt-1 inline-block h-7 w-20 animate-pulse rounded bg-oa-grey-200"
-                aria-label="Loading"
-                role="status"
+                aria-hidden="true"
               />
             ) : (
               <p
                 className="text-3xl font-bold tabular-nums leading-none text-oa-navy"
-                aria-label={`${formatNumber(summary.totalOpportunities)} future opportunities`}
+                aria-label={`${formatFullNumber(summary.totalOpportunities)} future opportunities`}
               >
                 {formatNumber(summary.totalOpportunities)}
               </p>
