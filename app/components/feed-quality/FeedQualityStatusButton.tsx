@@ -7,6 +7,7 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  type KeyboardEvent,
 } from "react";
 import { FeedQualityStatusIcon } from "./FeedQualityStatusIcon";
 import { useClickOutside } from "../../hooks/useClickOutside";
@@ -14,7 +15,9 @@ import { useEscapeClose } from "../../hooks/useEscapeClose";
 import { useFocusLeaveClose } from "../../hooks/useFocusLeaveClose";
 import { useFocusTrap } from "../../hooks/useFocusTrap";
 import { STATUS_LABELS } from "../../lib/feed-quality";
+import { FEED_QUALITY_NAV_ATTR } from "../../lib/feed-quality-table-nav";
 import type { FeedStatus } from "../../types/feed-quality";
+import { useFeedQualityRowNavKeyDown } from "./FeedQualityTableNavContext";
 
 interface FeedQualityStatusButtonProps {
   status: FeedStatus;
@@ -48,6 +51,11 @@ export function FeedQualityStatusButton({
   const headingId = `${panelId}-heading`;
 
   const close = useCallback(() => setOpen(false), []);
+  const onRowNavKeyDown = useFeedQualityRowNavKeyDown();
+
+  const onButtonKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+    if (!open) onRowNavKeyDown(event);
+  };
 
   useEscapeClose(open, close);
   useClickOutside(wrapRef, open, close);
@@ -95,6 +103,8 @@ export function FeedQualityStatusButton({
         ref={buttonRef}
         type="button"
         onClick={() => setOpen((prev) => !prev)}
+        onKeyDown={onButtonKeyDown}
+        {...{ [FEED_QUALITY_NAV_ATTR]: true }}
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}

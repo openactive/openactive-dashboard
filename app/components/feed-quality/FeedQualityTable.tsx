@@ -5,6 +5,7 @@ import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
 import { FeedQualityColourKey } from "./FeedQualityColourKey";
 import { FeedQualityDatasetCard } from "./FeedQualityDatasetCard";
 import { FeedQualityDatasetGroup } from "./FeedQualityDatasetGroup";
+import { FeedQualityTableNavProvider } from "./FeedQualityTableNavContext";
 import {
   FeedQualitySortSelect,
   type SortKey,
@@ -21,6 +22,7 @@ import {
   type FeedQualityView,
 } from "../../lib/feed-quality";
 import { COLUMN_GLOSSARY } from "../../lib/feed-quality-glossary";
+import { FEED_QUALITY_NAV_ATTR } from "../../lib/feed-quality-table-nav";
 import type { FeedStatus } from "../../types/feed-quality";
 import { ColumnGlossaryIcon } from "./feed-quality-glossary-ui";
 
@@ -127,6 +129,12 @@ export function FeedQualityTable({
 
   const focusCollapseToggle = useCallback(() => {
     collapseButtonRef.current?.focus();
+  }, []);
+
+  const focusFirstTableRow = useCallback(() => {
+    scrollRef.current
+      ?.querySelector<HTMLElement>(`[${FEED_QUALITY_NAV_ATTR}]`)
+      ?.focus();
   }, []);
 
   const columns = useMemo(() => buildColumns(view), [view]);
@@ -352,6 +360,11 @@ export function FeedQualityTable({
               type="button"
               onClick={collapseToggle}
               onKeyDown={(event) => {
+                if (event.key === "ArrowDown") {
+                  event.preventDefault();
+                  focusFirstTableRow();
+                  return;
+                }
                 if (event.key === "ArrowUp" || event.key === "ArrowLeft") {
                   event.preventDefault();
                   focusColourKey();
@@ -398,10 +411,14 @@ export function FeedQualityTable({
           )}
         </div>
       ) : (
-        <div
-          ref={scrollRef}
-          className="relative max-h-160 overflow-auto scrollbar-gutter-stable overscroll-contain rounded-sm bg-oa-grey-50 p-2 lg:bg-white lg:p-0 lg:ring-1 lg:ring-oa-grey-200"
+        <FeedQualityTableNavProvider
+          containerRef={scrollRef}
+          onArrowUpFromFirst={focusCollapseToggle}
         >
+          <div
+            ref={scrollRef}
+            className="relative max-h-160 overflow-auto scrollbar-gutter-stable overscroll-contain rounded-sm bg-oa-grey-50 p-2 lg:bg-white lg:p-0 lg:ring-1 lg:ring-oa-grey-200"
+          >
           <table
             id="feed-quality-table"
             className="hidden w-full border-collapse lg:table"
@@ -480,7 +497,8 @@ export function FeedQualityTable({
               Loading more data streams…
             </div>
           )}
-        </div>
+          </div>
+        </FeedQualityTableNavProvider>
       )}
     </div>
   );
