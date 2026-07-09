@@ -22,7 +22,7 @@ import {
   type FeedQualityView,
 } from "../../lib/feed-quality";
 import { COLUMN_GLOSSARY } from "../../lib/feed-quality-glossary";
-import { FEED_QUALITY_NAV_ATTR } from "../../lib/feed-quality-table-nav";
+import { focusFirstFeedQualityNav } from "../../lib/feed-quality-table-nav";
 import type { FeedStatus } from "../../types/feed-quality";
 import { ColumnGlossaryIcon } from "./feed-quality-glossary-ui";
 
@@ -132,9 +132,7 @@ export function FeedQualityTable({
   }, []);
 
   const focusFirstTableRow = useCallback(() => {
-    scrollRef.current
-      ?.querySelector<HTMLElement>(`[${FEED_QUALITY_NAV_ATTR}]`)
-      ?.focus();
+    focusFirstFeedQualityNav(scrollRef.current);
   }, []);
 
   const columns = useMemo(() => buildColumns(view), [view]);
