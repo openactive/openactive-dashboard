@@ -54,9 +54,12 @@ export function FeedQualitySummary({
   ];
 
   return (
-    <article aria-label="Feed status overview" aria-busy={loading || undefined}>
+    <article
+      aria-label="Data stream status overview"
+      aria-busy={loading || undefined}
+    >
       <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-oa-grey-600">
-        Feed status
+        Data stream status
       </p>
 
       <p className="mt-2 flex items-baseline gap-2">
@@ -68,7 +71,9 @@ export function FeedQualitySummary({
           )}
         </span>
         <span className="text-sm font-medium text-oa-grey-600">
-          {!loading && total === 1 ? "feed tracked" : "feeds tracked"}
+          {!loading && total === 1
+            ? "data stream tracked"
+            : "data streams tracked"}
         </span>
       </p>
 

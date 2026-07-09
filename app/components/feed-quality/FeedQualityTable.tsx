@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type RefObject } from "react";
 import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
 import { FeedQualityColourKey } from "./FeedQualityColourKey";
 import { FeedQualityDatasetCard } from "./FeedQualityDatasetCard";
 import { FeedQualityDatasetGroup } from "./FeedQualityDatasetGroup";
+import { FeedQualityTableNavProvider } from "./FeedQualityTableNavContext";
 import {
   FeedQualitySortSelect,
   type SortKey,
@@ -21,6 +22,7 @@ import {
   type FeedQualityView,
 } from "../../lib/feed-quality";
 import { COLUMN_GLOSSARY } from "../../lib/feed-quality-glossary";
+import { focusFirstFeedQualityNav } from "../../lib/feed-quality-table-nav";
 import type { FeedStatus } from "../../types/feed-quality";
 import { ColumnGlossaryIcon } from "./feed-quality-glossary-ui";
 
@@ -31,6 +33,8 @@ interface FeedQualityTableProps {
   // (and the status-chip counts) for placeholders. Used while a new filter
   // combination loads so the static controls don't flash or disappear.
   loading?: boolean;
+  searchInputRef?: RefObject<HTMLInputElement | null>;
+  onFocusViewToggle?: () => void;
 }
 
 const PAGE_SIZE = 10;
@@ -45,13 +49,13 @@ interface Column {
 
 const STATIC_LEFT_COLUMNS: Column[] = [
   { key: "status", label: "Status", srOnly: true, align: "center" },
-  { key: "feed", label: "Feed", align: "left" },
+  { key: "feed", label: COLUMN_GLOSSARY.feed.label, align: "left" },
 ];
 
 const STATIC_RIGHT_COLUMNS: Column[] = [
   {
     key: "items",
-    label: "Future items",
+    label: COLUMN_GLOSSARY.items.label,
     align: "right",
     hint: COLUMN_GLOSSARY.items.definition,
   },
@@ -87,6 +91,8 @@ export function FeedQualityTable({
   groups,
   view,
   loading = false,
+  searchInputRef,
+  onFocusViewToggle,
 }: FeedQualityTableProps) {
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
   const [query, setQuery] = useState("");
@@ -95,6 +101,39 @@ export function FeedQualityTable({
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const scrollRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const statusFilterRef = useRef<HTMLDivElement>(null);
+  const sortWrapRef = useRef<HTMLDivElement>(null);
+  const colourKeyButtonRef = useRef<HTMLButtonElement>(null);
+  const collapseButtonRef = useRef<HTMLButtonElement>(null);
+  const searchId = useId();
+
+  const focusSearch = useCallback(() => {
+    searchInputRef?.current?.focus();
+  }, [searchInputRef]);
+
+  const focusActiveStatusChip = useCallback(() => {
+    statusFilterRef.current
+      ?.querySelector<HTMLButtonElement>('button[aria-pressed="true"]')
+      ?.focus();
+  }, []);
+
+  const focusSortTrigger = useCallback(() => {
+    sortWrapRef.current
+      ?.querySelector<HTMLButtonElement>('button[aria-haspopup="listbox"]')
+      ?.focus();
+  }, []);
+
+  const focusColourKey = useCallback(() => {
+    colourKeyButtonRef.current?.focus();
+  }, []);
+
+  const focusCollapseToggle = useCallback(() => {
+    collapseButtonRef.current?.focus();
+  }, []);
+
+  const focusFirstTableRow = useCallback(() => {
+    focusFirstFeedQualityNav(scrollRef.current);
+  }, []);
 
   const columns = useMemo(() => buildColumns(view), [view]);
   const getGroupScore = VIEW_CONFIGS[view].getGroupScore;
@@ -213,10 +252,10 @@ export function FeedQualityTable({
   // currently sees so screen readers know if their filter actually matched.
   const liveMessage = useMemo(() => {
     const count = filteredGroups.length;
-    const noun = count === 1 ? "publisher" : "publishers";
+    const noun = count === 1 ? "data stream" : "data streams";
     if (!hasActiveFilters) return "";
     return count === 0
-      ? "No publishers match the current filters."
+      ? "No data streams match the current filters."
       : `${count} ${noun} match the current filters.`;
   }, [filteredGroups.length, hasActiveFilters]);
 
@@ -238,40 +277,97 @@ export function FeedQualityTable({
   return (
     <div className="space-y-3">
       <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center lg:gap-x-3 lg:gap-y-2">
-        <label className="flex w-full items-center gap-2 rounded-sm border border-oa-grey-300 bg-white px-3 py-2 focus-within:border-oa-cyan focus-within:ring-1 focus-within:ring-oa-cyan lg:max-w-sm">
+        <label
+          htmlFor={searchId}
+          className="flex w-full items-center gap-2 rounded-sm border border-oa-grey-300 bg-white px-3 py-2 focus-within:border-oa-cyan focus-within:ring-1 focus-within:ring-oa-cyan lg:max-w-sm"
+        >
           <MagnifyingGlassIcon
             aria-hidden="true"
             className="h-4 w-4 shrink-0 text-oa-grey-500"
           />
-          <span className="sr-only">Search publishers by name</span>
+          <span className="sr-only">Search data providers by name</span>
           <input
+            ref={searchInputRef}
+            id={searchId}
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search publishers"
+            onKeyDown={(event) => {
+              if (event.key === "ArrowUp") {
+                event.preventDefault();
+                onFocusViewToggle?.();
+                return;
+              }
+              if (event.key === "ArrowDown") {
+                event.preventDefault();
+                focusActiveStatusChip();
+                return;
+              }
+              if (event.key === "ArrowRight") {
+                const input = event.currentTarget;
+                const atEnd =
+                  input.selectionStart === input.value.length &&
+                  input.selectionEnd === input.value.length;
+                if (atEnd) {
+                  event.preventDefault();
+                  focusActiveStatusChip();
+                }
+              }
+            }}
+            placeholder="Search data providers"
             className="w-full bg-transparent text-sm text-oa-grey-800 placeholder:text-oa-grey-400 focus:outline-none"
             aria-controls="feed-quality-table"
           />
         </label>
 
         <FeedQualityStatusFilter
+          groupRef={statusFilterRef}
           value={statusFilter}
           onChange={setStatusFilter}
           counts={statusCounts}
           total={groups.length}
           loading={loading}
+          onFocusSearch={focusSearch}
+          onFocusSort={focusSortTrigger}
         />
 
         {/* On desktop ml-auto pushes this group to the right edge; on mobile
             it owns its own row, with the colour key + collapse toggle wrapped
             into a sub-row so they sit side-by-side under the sort. */}
         <div className="flex flex-col gap-2 lg:ml-auto lg:flex-row lg:flex-wrap lg:items-center lg:gap-x-3">
-          <FeedQualitySortSelect value={sortKey} onChange={setSortKey} />
+          <div ref={sortWrapRef}>
+            <FeedQualitySortSelect
+              value={sortKey}
+              onChange={setSortKey}
+              toolbarNav={{
+                onArrowUp: focusActiveStatusChip,
+                onArrowDown: focusColourKey,
+                onArrowLeft: focusActiveStatusChip,
+                onArrowRight: focusColourKey,
+              }}
+            />
+          </div>
           <div className="flex items-center justify-between gap-3 lg:justify-start">
-            <FeedQualityColourKey />
+            <FeedQualityColourKey
+              buttonRef={colourKeyButtonRef}
+              onFocusSort={focusSortTrigger}
+              onFocusCollapse={focusCollapseToggle}
+            />
             <button
+              ref={collapseButtonRef}
               type="button"
               onClick={collapseToggle}
+              onKeyDown={(event) => {
+                if (event.key === "ArrowDown") {
+                  event.preventDefault();
+                  focusFirstTableRow();
+                  return;
+                }
+                if (event.key === "ArrowUp" || event.key === "ArrowLeft") {
+                  event.preventDefault();
+                  focusColourKey();
+                }
+              }}
               aria-pressed={!allExpanded}
               className="cursor-pointer rounded-sm px-2 py-1 text-xs font-semibold text-oa-blue underline-offset-2 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-oa-cyan"
             >
@@ -291,7 +387,7 @@ export function FeedQualityTable({
       {!loading && filteredGroups.length === 0 ? (
         <div className="rounded-sm bg-white p-8 text-center ring-1 ring-oa-grey-200">
           <p className="text-base font-semibold text-oa-navy">
-            No publishers match those filters.
+            No data streams match those filters.
           </p>
           <p className="mt-1 text-sm text-oa-grey-600">
             {query
@@ -313,17 +409,21 @@ export function FeedQualityTable({
           )}
         </div>
       ) : (
-        <div
-          ref={scrollRef}
-          className="relative max-h-[40rem] overflow-auto [scrollbar-gutter:stable] overscroll-contain rounded-sm bg-oa-grey-50 p-2 lg:bg-white lg:p-0 lg:ring-1 lg:ring-oa-grey-200"
+        <FeedQualityTableNavProvider
+          containerRef={scrollRef}
+          onArrowUpFromFirst={focusCollapseToggle}
         >
+          <div
+            ref={scrollRef}
+            className="relative max-h-160 overflow-auto scrollbar-gutter-stable overscroll-contain rounded-sm bg-oa-grey-50 p-2 lg:bg-white lg:p-0 lg:ring-1 lg:ring-oa-grey-200"
+          >
           <table
             id="feed-quality-table"
             className="hidden w-full border-collapse lg:table"
           >
             <caption className="sr-only">
-              {VIEW_CONFIGS[view].label} by publisher. Each row shows a single
-              feed&apos;s completeness for the relevant fields.
+              {VIEW_CONFIGS[view].label} by data provider. Each row shows a single
+              data stream&apos;s completeness for the relevant fields.
             </caption>
             <thead className="sticky top-0 z-10">
               <tr>
@@ -388,12 +488,15 @@ export function FeedQualityTable({
           {hasMore && !loading && (
             <div
               ref={sentinelRef}
+              role="status"
+              aria-live="polite"
               className="px-3 py-3 text-center text-xs text-oa-grey-500"
             >
-              Loading more publishers…
+              Loading more data streams…
             </div>
           )}
-        </div>
+          </div>
+        </FeedQualityTableNavProvider>
       )}
     </div>
   );

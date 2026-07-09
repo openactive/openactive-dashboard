@@ -1,6 +1,15 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type ReactNode,
+} from "react";
 import { createPortal } from "react-dom";
 import { CheckIcon, ChevronDownIcon, XMarkIcon } from "@heroicons/react/20/solid";
 import { useListbox, type ListboxOption } from "../hooks/useListbox";
@@ -93,6 +102,13 @@ type FilterDropdownMultiProps = {
   onChange: (values: string[]) => void;
 };
 
+export type FilterDropdownToolbarNav = {
+  onArrowUp?: () => void;
+  onArrowDown?: () => void;
+  onArrowLeft?: () => void;
+  onArrowRight?: () => void;
+};
+
 type FilterDropdownProps = (
   | FilterDropdownSingleProps
   | FilterDropdownMultiProps
@@ -104,10 +120,19 @@ type FilterDropdownProps = (
   searchable?: boolean;
   // When set, an info icon sits beside the label and reveals this definition.
   hint?: GlossaryEntry;
+  toolbarNav?: FilterDropdownToolbarNav;
 };
 
 export function FilterDropdown(props: FilterDropdownProps) {
-  const { label, options, id, layout = "inline", searchable = false, hint } = props;
+  const {
+    label,
+    options,
+    id,
+    layout = "inline",
+    searchable = false,
+    hint,
+    toolbarNav,
+  } = props;
   const isMulti = props.mode === "multi";
   const isGlass = layout === "glass";
   const isSheet = layout === "sheet";
@@ -270,6 +295,27 @@ export function FilterDropdown(props: FilterDropdownProps) {
     typeahead: !searchable,
     outsideRef: portalRef,
   });
+
+  const onTriggerKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (!open && toolbarNav) {
+        const handlers: Partial<Record<string, (() => void) | undefined>> = {
+          ArrowUp: toolbarNav.onArrowUp,
+          ArrowDown: toolbarNav.onArrowDown,
+          ArrowLeft: toolbarNav.onArrowLeft,
+          ArrowRight: toolbarNav.onArrowRight,
+        };
+        const handler = handlers[event.key];
+        if (handler) {
+          event.preventDefault();
+          handler();
+          return;
+        }
+      }
+      handleTriggerKeyDown(event);
+    },
+    [handleTriggerKeyDown, open, toolbarNav]
+  );
 
   // Multi mode: snapshot the parent value into the draft on open (handles
   // external resets like 'Clear all') and flush any pending commit on close.
@@ -647,7 +693,7 @@ export function FilterDropdown(props: FilterDropdownProps) {
                 selected.length === 0 ? emptyTriggerClass : compactTriggerClass
               }
               onClick={() => (open ? setOpen(false) : openListbox())}
-              onKeyDown={handleTriggerKeyDown}
+              onKeyDown={onTriggerKeyDown}
               aria-haspopup="listbox"
               aria-expanded={open}
               aria-controls={listboxId}
@@ -684,7 +730,7 @@ export function FilterDropdown(props: FilterDropdownProps) {
           type="button"
           className={triggerClass}
           onClick={() => (open ? setOpen(false) : openListbox())}
-          onKeyDown={handleTriggerKeyDown}
+          onKeyDown={onTriggerKeyDown}
           aria-haspopup="listbox"
           aria-expanded={open}
           aria-controls={listboxId}
@@ -707,7 +753,7 @@ export function FilterDropdown(props: FilterDropdownProps) {
       type="button"
       className={`${triggerClass} cursor-pointer`}
       onClick={() => (open ? setOpen(false) : openListbox())}
-      onKeyDown={handleTriggerKeyDown}
+      onKeyDown={onTriggerKeyDown}
       aria-haspopup="listbox"
       aria-expanded={open}
       aria-controls={listboxId}

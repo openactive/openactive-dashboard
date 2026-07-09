@@ -1,3 +1,5 @@
+import { OPPORTUNITIES_DEFINITION } from "./explorer-glossary";
+
 /**
  * Single source of truth for the plain-English definitions used across the
  * feed-quality table. Two kinds of term live here:
@@ -30,59 +32,60 @@ export const COLUMN_GLOSSARY: Record<string, GlossaryEntry> = {
   status: {
     label: "Status",
     definition:
-      "Whether the feed is healthy, has warnings, or has errors in OpenActive's latest automated check.",
+      "Whether the data is healthy, has warnings, or has errors in OpenActive's latest automated check.",
     category: "column",
   },
   feed: {
-    label: "Feed",
+    label: "Data",
     definition:
-      "A single published stream of one opportunity type (such as sessions or facility slots) from a publisher.",
+      "A single published stream of one opportunity type (such as sessions or facility slots) from a data provider.",
     category: "column",
   },
   quality: {
     label: "Completeness",
     definition:
-      "The feed's overall score: the average completeness across the fields shown in the current view.",
+      "The data's overall score: the average completeness across the fields shown in the current view.",
     category: "column",
   },
   location: {
     label: "Location",
-    definition: "% of future items with a geographic location.",
+    definition: "% of opportunities with a geographic location.",
     category: "column",
   },
   activity: {
     label: "Activity / Facility",
-    definition: "% of future items naming an activity or facility.",
+    definition: "% of opportunities naming an activity or facility.",
     category: "column",
   },
   "age-range": {
     label: "Age range",
-    definition: "% of future items with an age range.",
+    definition: "% of opportunities with an age range.",
     category: "column",
   },
   level: {
     label: "Level",
-    definition: "% of future items naming a difficulty level.",
+    definition: "% of opportunities naming a difficulty level.",
     category: "column",
   },
   accessibility: {
     label: "Accessibility",
-    definition: "% of future items naming accessibility support.",
+    definition: "% of opportunities naming accessibility support.",
     category: "column",
   },
   gender: {
     label: "Gender restriction",
-    definition: "% of future items naming a gender restriction.",
+    definition: "% of opportunities naming a gender restriction.",
     category: "column",
   },
   items: {
-    label: "Future items",
-    definition: "Items in this feed scheduled for the future.",
+    label: "Opportunities",
+    definition: OPPORTUNITIES_DEFINITION,
     category: "column",
   },
   updated: {
     label: "Last assessed",
-    definition: "When OpenActive last ran a quality check on this feed.",
+    definition:
+      "When OpenActive last ran a quality check on each data stream.",
     category: "column",
   },
 };

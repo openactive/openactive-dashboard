@@ -3,11 +3,13 @@
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { ExternalDataLink } from "./ExternalDataLink";
 import { FeedQualityFeedCard } from "./FeedQualityFeedCard";
+import { useFeedQualityRowNavKeyDown } from "./FeedQualityTableNavContext";
 import {
   STATUS_DOT_CLASS,
   type FeedQualityGroup,
   type FeedQualityView,
 } from "../../lib/feed-quality";
+import { FEED_QUALITY_NAV_ATTR } from "../../lib/feed-quality-table-nav";
 
 interface FeedQualityDatasetCardProps {
   group: FeedQualityGroup;
@@ -22,6 +24,7 @@ export function FeedQualityDatasetCard({
   collapsed,
   onToggle,
 }: FeedQualityDatasetCardProps) {
+  const onRowNavKeyDown = useFeedQualityRowNavKeyDown();
   const wrapClass =
     "overflow-hidden rounded-sm bg-white shadow-sm ring-1 ring-oa-grey-200";
 
@@ -49,6 +52,8 @@ export function FeedQualityDatasetCard({
         <button
           type="button"
           onClick={onToggle}
+          onKeyDown={onRowNavKeyDown}
+          {...{ [FEED_QUALITY_NAV_ATTR]: true }}
           aria-expanded={!collapsed}
           className="cursor-pointer rounded-sm p-0.5 hover:bg-oa-grey-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-oa-cyan"
         >
@@ -59,7 +64,7 @@ export function FeedQualityDatasetCard({
             }`}
           />
           <span className="sr-only">
-            {collapsed ? "Show" : "Hide"} feeds for {group.datasetName}
+            {collapsed ? "Show" : "Hide"} data streams for {group.datasetName}
           </span>
         </button>
         <span
@@ -72,7 +77,7 @@ export function FeedQualityDatasetCard({
           className="text-sm font-semibold text-oa-navy"
         />
         <span className="ml-auto text-xs font-medium text-oa-grey-500">
-          {group.feeds.length} feeds
+          {group.feeds.length} data streams
         </span>
       </header>
 

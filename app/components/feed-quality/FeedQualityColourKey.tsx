@@ -7,10 +7,13 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  type KeyboardEvent,
+  type RefObject,
 } from "react";
 import { InformationCircleIcon } from "@heroicons/react/20/solid";
 import { useClickOutside } from "../../hooks/useClickOutside";
 import { useEscapeClose } from "../../hooks/useEscapeClose";
+import { useFocusTrap } from "../../hooks/useFocusTrap";
 import {
   COMPLETENESS_BANDS,
   type CompletenessBand,
@@ -21,6 +24,12 @@ const PANEL_GAP = 6;
 const VIEWPORT_PADDING = 8;
 
 const ORDER: CompletenessBand[] = ["high", "moderate", "low", "none", "na"];
+
+interface FeedQualityColourKeyProps {
+  buttonRef?: RefObject<HTMLButtonElement | null>;
+  onFocusSort?: () => void;
+  onFocusCollapse?: () => void;
+}
 
 // Representative number per band so the swatch matches an actual table cell.
 const BAND_PREVIEW: Record<CompletenessBand, string> = {
@@ -36,20 +45,42 @@ const BAND_PREVIEW: Record<CompletenessBand, string> = {
  * Opens on hover, focus, or click; click pins it open so users can read
  * carefully without keeping the cursor still.
  */
-export function FeedQualityColourKey() {
+export function FeedQualityColourKey({
+  buttonRef,
+  onFocusSort,
+  onFocusCollapse,
+}: FeedQualityColourKeyProps = {}) {
   const [pinned, setPinned] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
   const open = pinned || hovered || focused;
 
   const wrapRef = useRef<HTMLSpanElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const panelId = useId();
   const headingId = `${panelId}-heading`;
   const [position, setPosition] = useState<{
     top: number;
     left: number;
   } | null>(null);
+
+  const internalButtonRef = useRef<HTMLButtonElement>(null);
+  const resolvedButtonRef = buttonRef ?? internalButtonRef;
+
+  const onButtonKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+    if (pinned) return;
+
+    if (event.key === "ArrowUp" || event.key === "ArrowLeft") {
+      event.preventDefault();
+      onFocusSort?.();
+      return;
+    }
+
+    if (event.key === "ArrowDown" || event.key === "ArrowRight") {
+      event.preventDefault();
+      onFocusCollapse?.();
+    }
+  };
 
   const closeAll = useCallback(() => {
     setPinned(false);
@@ -59,14 +90,15 @@ export function FeedQualityColourKey() {
 
   useEscapeClose(open, closeAll);
   useClickOutside(wrapRef, pinned, closeAll);
+  useFocusTrap(panelRef, pinned && position !== null);
 
   // Position the panel under the trigger, flipped if it would clip the viewport.
   useLayoutEffect(() => {
-    if (!open || !buttonRef.current) {
+    if (!open || !resolvedButtonRef.current) {
       setPosition(null);
       return;
     }
-    const rect = buttonRef.current.getBoundingClientRect();
+    const rect = resolvedButtonRef.current.getBoundingClientRect();
     let left = rect.right - PANEL_WIDTH;
     if (left < VIEWPORT_PADDING) left = VIEWPORT_PADDING;
     if (left + PANEL_WIDTH > window.innerWidth - VIEWPORT_PADDING) {
@@ -74,6 +106,11 @@ export function FeedQualityColourKey() {
     }
     setPosition({ top: rect.bottom + PANEL_GAP, left });
   }, [open]);
+
+  useEffect(() => {
+    if (!pinned || !position) return;
+    requestAnimationFrame(() => panelRef.current?.focus());
+  }, [pinned, position]);
 
   // Close on any scroll — the trigger moves but a fixed-position panel doesn't
   // follow. Capture phase catches scrolls inside the bounded table too.
@@ -89,10 +126,17 @@ export function FeedQualityColourKey() {
       ref={wrapRef}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      onBlurCapture={(event) => {
+        if (pinned) return;
+        const next = event.relatedTarget;
+        if (next instanceof Node && wrapRef.current?.contains(next)) return;
+        setFocused(false);
+        setHovered(false);
+      }}
       className="relative inline-flex"
     >
       <button
-        ref={buttonRef}
+        ref={resolvedButtonRef}
         type="button"
         onClick={() => {
           // Pin or unpin. Clearing hovered means a click-to-unpin while still
@@ -102,6 +146,7 @@ export function FeedQualityColourKey() {
         }}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
+        onKeyDown={onButtonKeyDown}
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}
@@ -126,9 +171,11 @@ export function FeedQualityColourKey() {
 
       {open && position && (
         <div
+          ref={panelRef}
           id={panelId}
           role="dialog"
           aria-labelledby={headingId}
+          tabIndex={pinned ? -1 : undefined}
           style={{
             position: "fixed",
             top: position.top,
@@ -145,7 +192,7 @@ export function FeedQualityColourKey() {
           </p>
           <p className="mt-1 text-xs leading-relaxed text-oa-grey-600">
             Cells in the table are tinted by how often a field is filled in
-            across each feed&apos;s future items.
+            across each data stream&apos;s opportunities.
           </p>
 
           <ul className="mt-3 space-y-2.5">

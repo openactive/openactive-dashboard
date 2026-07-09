@@ -16,31 +16,31 @@ export const STATUS_DOT_CLASS: Record<FeedStatus, string> = {
 export const COMPLETENESS_BANDS = {
   high: {
     label: "High completeness",
-    description: "Field is present in 70–100% of items",
+    description: "Field is present in 70–100% of opportunities",
     cellClass: "bg-oa-cyan/15 text-oa-navy",
     dotClass: "bg-oa-cyan",
   },
   moderate: {
     label: "Moderate completeness",
-    description: "Field is present in 35–70% of items",
+    description: "Field is present in 35–70% of opportunities",
     cellClass: "bg-oa-yellow/20 text-oa-navy",
     dotClass: "bg-oa-yellow",
   },
   low: {
     label: "Low completeness",
-    description: "Field is present in 1–35% of items",
+    description: "Field is present in 1–35% of opportunities",
     cellClass: "bg-oa-scarlet/10 text-oa-navy",
     dotClass: "bg-oa-scarlet",
   },
   none: {
     label: "No completeness",
-    description: "Items exist but never include this field (0%)",
+    description: "Opportunities exist but never include this field (0%)",
     cellClass: "bg-oa-scarlet/25 text-oa-scarlet",
     dotClass: "bg-oa-scarlet",
   },
   na: {
     label: "Not assessed",
-    description: "No future items in this feed to assess",
+    description: "No opportunities in this data to assess",
     cellClass: "bg-oa-grey-50 text-oa-grey-500",
     dotClass: "bg-oa-grey-300",
   },
@@ -241,7 +241,7 @@ export const FEED_QUALITY_VIEWS: readonly FeedQualityView[] = [
 export const VIEW_CONFIGS: Record<FeedQualityView, FeedQualityViewConfig> = {
   data: {
     view: "data",
-    label: "Feed completeness",
+    label: "Data completeness",
     qualityHint:
       "Average completeness across location, activity/facility, and start and end dates",
     getScore: getQualityScore,

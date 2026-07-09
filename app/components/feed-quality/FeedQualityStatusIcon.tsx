@@ -19,17 +19,21 @@ const STATUS_ICONS: Record<
 interface FeedQualityStatusIconProps {
   status: FeedStatus;
   sizeClass?: string;
+  /** When true, the parent control supplies the accessible name. */
+  decorative?: boolean;
 }
 
 export function FeedQualityStatusIcon({
   status,
   sizeClass = "h-5 w-5",
+  decorative = false,
 }: FeedQualityStatusIconProps) {
   const { Icon, colorClass } = STATUS_ICONS[status];
   return (
     <Icon
-      role="img"
-      aria-label={STATUS_LABELS[status]}
+      role={decorative ? undefined : "img"}
+      aria-hidden={decorative ? true : undefined}
+      aria-label={decorative ? undefined : STATUS_LABELS[status]}
       className={`${colorClass} ${sizeClass}`}
     />
   );
