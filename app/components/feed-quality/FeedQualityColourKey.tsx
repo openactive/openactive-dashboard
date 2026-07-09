@@ -126,6 +126,13 @@ export function FeedQualityColourKey({
       ref={wrapRef}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      onBlurCapture={(event) => {
+        if (pinned) return;
+        const next = event.relatedTarget;
+        if (next instanceof Node && wrapRef.current?.contains(next)) return;
+        setFocused(false);
+        setHovered(false);
+      }}
       className="relative inline-flex"
     >
       <button
