@@ -102,7 +102,7 @@ export function FeedQualityStatusFilter({
       ref={groupRef}
       role="group"
       aria-label="Filter data streams by status"
-      className="no-scrollbar relative -mx-1 flex items-center gap-1.5 overflow-x-auto px-1 pb-1"
+      className="no-scrollbar relative -mx-1 flex items-center gap-1.5 overflow-x-auto px-1 py-1"
     >
       <Chip
         ref={(element) => {
