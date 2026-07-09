@@ -15,15 +15,24 @@ import type { FeedQualityRow } from "../../types/feed-quality";
 interface FeedQualityFeedRowProps {
   feed: FeedQualityRow;
   view: FeedQualityView;
+  isLast?: boolean;
 }
 
-export function FeedQualityFeedRow({ feed, view }: FeedQualityFeedRowProps) {
+export function FeedQualityFeedRow({
+  feed,
+  view,
+  isLast = false,
+}: FeedQualityFeedRowProps) {
   const config = VIEW_CONFIGS[view];
   const { relative, absolute } = formatLastAssessed(feed.last_assessed);
   const typeLabel = humaniseFeedType(feed.feed_type);
 
   return (
-    <tr className="border-t border-oa-grey-200 hover:bg-oa-grey-50">
+    <tr
+      className={`border-t border-oa-grey-100 bg-white hover:bg-oa-grey-50 ${
+        isLast ? "border-b border-oa-grey-200" : ""
+      }`}
+    >
       <td className="px-3 py-2.5 text-center align-middle">
         <FeedQualityStatusButton
           status={feed.status}
@@ -32,8 +41,8 @@ export function FeedQualityFeedRow({ feed, view }: FeedQualityFeedRowProps) {
         />
       </td>
 
-      <td className="px-3 py-2.5 align-middle">
-        <div className="flex items-center gap-1.5 pl-4">
+      <td className="border-l-2 border-oa-cyan/25 px-3 py-2.5 align-middle">
+        <div className="flex items-center gap-1.5 pl-5">
           <ExternalDataLink
             href={feed.feed_url}
             label={typeLabel}
