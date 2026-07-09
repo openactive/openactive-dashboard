@@ -7,6 +7,8 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  type KeyboardEvent,
+  type RefObject,
 } from "react";
 import { InformationCircleIcon } from "@heroicons/react/20/solid";
 import { useClickOutside } from "../../hooks/useClickOutside";
@@ -23,6 +25,12 @@ const VIEWPORT_PADDING = 8;
 
 const ORDER: CompletenessBand[] = ["high", "moderate", "low", "none", "na"];
 
+interface FeedQualityColourKeyProps {
+  buttonRef?: RefObject<HTMLButtonElement | null>;
+  onFocusSort?: () => void;
+  onFocusCollapse?: () => void;
+}
+
 // Representative number per band so the swatch matches an actual table cell.
 const BAND_PREVIEW: Record<CompletenessBand, string> = {
   high: "92%",
@@ -37,14 +45,17 @@ const BAND_PREVIEW: Record<CompletenessBand, string> = {
  * Opens on hover, focus, or click; click pins it open so users can read
  * carefully without keeping the cursor still.
  */
-export function FeedQualityColourKey() {
+export function FeedQualityColourKey({
+  buttonRef,
+  onFocusSort,
+  onFocusCollapse,
+}: FeedQualityColourKeyProps = {}) {
   const [pinned, setPinned] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
   const open = pinned || hovered || focused;
 
   const wrapRef = useRef<HTMLSpanElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const panelId = useId();
   const headingId = `${panelId}-heading`;
@@ -52,6 +63,24 @@ export function FeedQualityColourKey() {
     top: number;
     left: number;
   } | null>(null);
+
+  const internalButtonRef = useRef<HTMLButtonElement>(null);
+  const resolvedButtonRef = buttonRef ?? internalButtonRef;
+
+  const onButtonKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+    if (pinned) return;
+
+    if (event.key === "ArrowUp" || event.key === "ArrowLeft") {
+      event.preventDefault();
+      onFocusSort?.();
+      return;
+    }
+
+    if (event.key === "ArrowDown" || event.key === "ArrowRight") {
+      event.preventDefault();
+      onFocusCollapse?.();
+    }
+  };
 
   const closeAll = useCallback(() => {
     setPinned(false);
@@ -65,11 +94,11 @@ export function FeedQualityColourKey() {
 
   // Position the panel under the trigger, flipped if it would clip the viewport.
   useLayoutEffect(() => {
-    if (!open || !buttonRef.current) {
+    if (!open || !resolvedButtonRef.current) {
       setPosition(null);
       return;
     }
-    const rect = buttonRef.current.getBoundingClientRect();
+    const rect = resolvedButtonRef.current.getBoundingClientRect();
     let left = rect.right - PANEL_WIDTH;
     if (left < VIEWPORT_PADDING) left = VIEWPORT_PADDING;
     if (left + PANEL_WIDTH > window.innerWidth - VIEWPORT_PADDING) {
@@ -100,7 +129,7 @@ export function FeedQualityColourKey() {
       className="relative inline-flex"
     >
       <button
-        ref={buttonRef}
+        ref={resolvedButtonRef}
         type="button"
         onClick={() => {
           // Pin or unpin. Clearing hovered means a click-to-unpin while still
@@ -110,6 +139,7 @@ export function FeedQualityColourKey() {
         }}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
+        onKeyDown={onButtonKeyDown}
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}

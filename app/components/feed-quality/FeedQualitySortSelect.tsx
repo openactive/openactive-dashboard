@@ -1,6 +1,10 @@
 "use client";
 
-import { FilterDropdown, type FilterOption } from "../FilterDropdown";
+import {
+  FilterDropdown,
+  type FilterDropdownToolbarNav,
+  type FilterOption,
+} from "../FilterDropdown";
 
 const SORT_KEYS = [
   "quality-best",
@@ -30,6 +34,7 @@ const SORT_OPTIONS: FilterOption[] = SORT_KEYS.map((key) => ({
 interface FeedQualitySortSelectProps {
   value: SortKey;
   onChange: (next: SortKey) => void;
+  toolbarNav?: FilterDropdownToolbarNav;
 }
 
 /**
@@ -40,6 +45,7 @@ interface FeedQualitySortSelectProps {
 export function FeedQualitySortSelect({
   value,
   onChange,
+  toolbarNav,
 }: FeedQualitySortSelectProps) {
   return (
     <div className="w-full lg:w-auto [&_button[aria-haspopup=listbox]]:w-full [&_button[aria-haspopup=listbox]]:justify-between lg:[&_button[aria-haspopup=listbox]]:w-72">
@@ -48,6 +54,7 @@ export function FeedQualitySortSelect({
         options={SORT_OPTIONS}
         value={value}
         onChange={(next) => onChange(next as SortKey)}
+        toolbarNav={toolbarNav}
       />
     </div>
   );

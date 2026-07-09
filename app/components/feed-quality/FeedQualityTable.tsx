@@ -99,7 +99,35 @@ export function FeedQualityTable({
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const scrollRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const statusFilterRef = useRef<HTMLDivElement>(null);
+  const sortWrapRef = useRef<HTMLDivElement>(null);
+  const colourKeyButtonRef = useRef<HTMLButtonElement>(null);
+  const collapseButtonRef = useRef<HTMLButtonElement>(null);
   const searchId = useId();
+
+  const focusSearch = useCallback(() => {
+    searchInputRef?.current?.focus();
+  }, [searchInputRef]);
+
+  const focusActiveStatusChip = useCallback(() => {
+    statusFilterRef.current
+      ?.querySelector<HTMLButtonElement>('button[aria-pressed="true"]')
+      ?.focus();
+  }, []);
+
+  const focusSortTrigger = useCallback(() => {
+    sortWrapRef.current
+      ?.querySelector<HTMLButtonElement>('button[aria-haspopup="listbox"]')
+      ?.focus();
+  }, []);
+
+  const focusColourKey = useCallback(() => {
+    colourKeyButtonRef.current?.focus();
+  }, []);
+
+  const focusCollapseToggle = useCallback(() => {
+    collapseButtonRef.current?.focus();
+  }, []);
 
   const columns = useMemo(() => buildColumns(view), [view]);
   const getGroupScore = VIEW_CONFIGS[view].getGroupScore;
@@ -262,6 +290,22 @@ export function FeedQualityTable({
               if (event.key === "ArrowUp") {
                 event.preventDefault();
                 onFocusViewToggle?.();
+                return;
+              }
+              if (event.key === "ArrowDown") {
+                event.preventDefault();
+                focusActiveStatusChip();
+                return;
+              }
+              if (event.key === "ArrowRight") {
+                const input = event.currentTarget;
+                const atEnd =
+                  input.selectionStart === input.value.length &&
+                  input.selectionEnd === input.value.length;
+                if (atEnd) {
+                  event.preventDefault();
+                  focusActiveStatusChip();
+                }
               }
             }}
             placeholder="Search publishers"
@@ -271,23 +315,48 @@ export function FeedQualityTable({
         </label>
 
         <FeedQualityStatusFilter
+          groupRef={statusFilterRef}
           value={statusFilter}
           onChange={setStatusFilter}
           counts={statusCounts}
           total={groups.length}
           loading={loading}
+          onFocusSearch={focusSearch}
+          onFocusSort={focusSortTrigger}
         />
 
         {/* On desktop ml-auto pushes this group to the right edge; on mobile
             it owns its own row, with the colour key + collapse toggle wrapped
             into a sub-row so they sit side-by-side under the sort. */}
         <div className="flex flex-col gap-2 lg:ml-auto lg:flex-row lg:flex-wrap lg:items-center lg:gap-x-3">
-          <FeedQualitySortSelect value={sortKey} onChange={setSortKey} />
+          <div ref={sortWrapRef}>
+            <FeedQualitySortSelect
+              value={sortKey}
+              onChange={setSortKey}
+              toolbarNav={{
+                onArrowUp: focusActiveStatusChip,
+                onArrowDown: focusColourKey,
+                onArrowLeft: focusActiveStatusChip,
+                onArrowRight: focusColourKey,
+              }}
+            />
+          </div>
           <div className="flex items-center justify-between gap-3 lg:justify-start">
-            <FeedQualityColourKey />
+            <FeedQualityColourKey
+              buttonRef={colourKeyButtonRef}
+              onFocusSort={focusSortTrigger}
+              onFocusCollapse={focusCollapseToggle}
+            />
             <button
+              ref={collapseButtonRef}
               type="button"
               onClick={collapseToggle}
+              onKeyDown={(event) => {
+                if (event.key === "ArrowUp" || event.key === "ArrowLeft") {
+                  event.preventDefault();
+                  focusColourKey();
+                }
+              }}
               aria-pressed={!allExpanded}
               className="cursor-pointer rounded-sm px-2 py-1 text-xs font-semibold text-oa-blue underline-offset-2 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-oa-cyan"
             >
