@@ -287,7 +287,7 @@ export function FeedQualityTable({
             aria-hidden="true"
             className="h-4 w-4 shrink-0 text-oa-grey-500"
           />
-          <span className="sr-only">Search publishers by name</span>
+          <span className="sr-only">Search data providers by name</span>
           <input
             ref={searchInputRef}
             id={searchId}
@@ -316,7 +316,7 @@ export function FeedQualityTable({
                 }
               }
             }}
-            placeholder="Search publishers"
+            placeholder="Search data providers"
             className="w-full bg-transparent text-sm text-oa-grey-800 placeholder:text-oa-grey-400 focus:outline-none"
             aria-controls="feed-quality-table"
           />
@@ -424,7 +424,7 @@ export function FeedQualityTable({
             className="hidden w-full border-collapse lg:table"
           >
             <caption className="sr-only">
-              {VIEW_CONFIGS[view].label} by publisher. Each row shows a single
+              {VIEW_CONFIGS[view].label} by data provider. Each row shows a single
               data stream&apos;s completeness for the relevant fields.
             </caption>
             <thead className="sticky top-0 z-10">

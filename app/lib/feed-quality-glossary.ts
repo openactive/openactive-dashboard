@@ -38,7 +38,7 @@ export const COLUMN_GLOSSARY: Record<string, GlossaryEntry> = {
   feed: {
     label: "Data",
     definition:
-      "A single published stream of one opportunity type (such as sessions or facility slots) from a publisher.",
+      "A single published stream of one opportunity type (such as sessions or facility slots) from a data provider.",
     category: "column",
   },
   quality: {

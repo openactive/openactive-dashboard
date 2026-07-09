@@ -22,8 +22,8 @@ const SORT_LABELS: Record<SortKey, string> = {
   "activities-most": "Most activities first",
   "status-worst": "Issues first",
   "updated-newest": "Last assessed (newest)",
-  "name-asc": "Publisher (A–Z)",
-  "name-desc": "Publisher (Z–A)",
+  "name-asc": "Data provider (A–Z)",
+  "name-desc": "Data provider (Z–A)",
 };
 
 const SORT_OPTIONS: FilterOption[] = SORT_KEYS.map((key) => ({

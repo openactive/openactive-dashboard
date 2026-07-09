@@ -10,7 +10,7 @@ import { getFocusableElements } from "../lib/focusable";
 
 const navLinks = [
   { href: "/#data", label: "Explore Data" },
-  { href: "/#feed-quality", label: "Feed Quality" },
+  { href: "/#feed-quality", label: "Data quality" },
   {
     href: "https://www.openactive.io/about/",
     label: "About",

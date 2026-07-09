@@ -84,7 +84,7 @@ export function FeedQualitySection() {
             Data quality
           </h2>
           <p className="mt-4 text-base text-oa-grey-700 leading-relaxed max-w-prose">
-            See how well each publisher&apos;s data is filled in. You can switch between{" "}
+            See how well each data provider&apos;s information is filled in. You can switch between{" "}
             <strong className="font-semibold text-oa-navy">data completeness</strong>
             {" "}for the core details needed for opportunities to count in
             OpenActive&apos;s headline figures, and{" "}
@@ -146,7 +146,7 @@ function EmptyState() {
       </p>
       <p className="mt-1 text-sm text-oa-grey-600">
         OpenActive hasn&apos;t assessed any data streams in this window. Check back
-        once publishers have started shipping data.
+        once data providers have started sharing data.
       </p>
     </div>
   );
