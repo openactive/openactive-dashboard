@@ -10,7 +10,7 @@ import {
   VIEW_CONFIGS,
   formatLastAssessed,
   getCompletenessBand,
-  humaniseFeedType,
+  getFeedStreamLabel,
   type FeedQualityView,
 } from "../../lib/feed-quality";
 import { formatFullNumber } from "../../lib/format";
@@ -30,7 +30,7 @@ const MOBILE_STAT_LABELS: Record<string, string> = {
 export function FeedQualityFeedCard({ feed, view }: FeedQualityFeedCardProps) {
   const config = VIEW_CONFIGS[view];
   const { relative, absolute } = formatLastAssessed(feed.last_assessed);
-  const typeLabel = humaniseFeedType(feed.feed_type);
+  const typeLabel = getFeedStreamLabel(feed);
 
   return (
     <article className="space-y-3 border-l-2 border-oa-cyan/25 py-3 pl-4 pr-4">

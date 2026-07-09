@@ -239,8 +239,12 @@ export function FeedQualityTable({
   // True when nothing is collapsed; flipping then collapses everything visible.
   const allExpanded = collapsed.size === 0;
   const collapseToggle = useCallback(() => {
-    setCollapsed(allExpanded ? new Set(groups.map((g) => g.datasetUrl)) : new Set());
-  }, [allExpanded, groups]);
+    setCollapsed(
+      allExpanded
+        ? new Set(filteredGroups.map((g) => g.datasetUrl))
+        : new Set()
+    );
+  }, [allExpanded, filteredGroups]);
 
   const hasActiveFilters = query.trim() !== "" || statusFilter !== "all";
   const clearFilters = useCallback(() => {

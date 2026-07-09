@@ -119,6 +119,17 @@ export function humaniseFeedType(feedType: string): string {
   return spaced.charAt(0).toUpperCase() + spaced.slice(1).toLowerCase();
 }
 
+/** User-facing label for a data stream row when feed_type is missing from the API. */
+export function getFeedStreamLabel(feed: FeedQualityRow): string {
+  const fromType = humaniseFeedType(feed.feed_type).trim();
+  if (fromType) return fromType;
+
+  const segment = feed.feed_url.split("/").filter(Boolean).pop();
+  if (segment) return segment.replace(/[-_]/g, " ");
+
+  return "Data stream";
+}
+
 // Higher number = worse status.
 export const STATUS_RANK: Record<FeedStatus, number> = {
   OK: 0,

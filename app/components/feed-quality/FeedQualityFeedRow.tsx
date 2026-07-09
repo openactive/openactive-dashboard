@@ -6,7 +6,7 @@ import { FeedTypeGlossaryIcon } from "./feed-quality-glossary-ui";
 import {
   VIEW_CONFIGS,
   formatLastAssessed,
-  humaniseFeedType,
+  getFeedStreamLabel,
   type FeedQualityView,
 } from "../../lib/feed-quality";
 import { formatFullNumber } from "../../lib/format";
@@ -25,7 +25,7 @@ export function FeedQualityFeedRow({
 }: FeedQualityFeedRowProps) {
   const config = VIEW_CONFIGS[view];
   const { relative, absolute } = formatLastAssessed(feed.last_assessed);
-  const typeLabel = humaniseFeedType(feed.feed_type);
+  const typeLabel = getFeedStreamLabel(feed);
 
   return (
     <tr
