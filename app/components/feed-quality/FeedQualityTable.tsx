@@ -264,10 +264,7 @@ export function FeedQualityTable({
     if (visibleGroups.length === 0) return 18;
     let rows = 0;
     for (const group of visibleGroups) {
-      rows +=
-        group.feeds.length === 1
-          ? 1
-          : 1 + (collapsed.has(group.datasetUrl) ? 0 : group.feeds.length);
+      rows += 1 + (collapsed.has(group.datasetUrl) ? 0 : group.feeds.length);
     }
     return Math.min(rows, 30);
   })();

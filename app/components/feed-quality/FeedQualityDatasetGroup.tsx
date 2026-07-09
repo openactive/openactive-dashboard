@@ -6,6 +6,7 @@ import { FeedQualityFeedRow } from "./FeedQualityFeedRow";
 import { useFeedQualityRowNavKeyDown } from "./FeedQualityTableNavContext";
 import {
   STATUS_DOT_CLASS,
+  formatDataStreamCount,
   type FeedQualityGroup,
   type FeedQualityView,
 } from "../../lib/feed-quality";
@@ -28,18 +29,6 @@ export function FeedQualityDatasetGroup({
   columnCount,
 }: FeedQualityDatasetGroupProps) {
   const onRowNavKeyDown = useFeedQualityRowNavKeyDown();
-
-  if (group.feeds.length === 1) {
-    return (
-      <tbody>
-        <FeedQualityFeedRow
-          feed={group.feeds[0]}
-          view={view}
-          dataset={{ name: group.datasetName, worstStatus: group.worstStatus }}
-        />
-      </tbody>
-    );
-  }
 
   return (
     <tbody>
@@ -78,7 +67,7 @@ export function FeedQualityDatasetGroup({
               className="text-sm font-semibold text-oa-navy"
             />
             <span className="text-xs font-medium text-oa-grey-500">
-              {group.feeds.length} data streams
+              {formatDataStreamCount(group.feeds.length)}
             </span>
           </div>
         </th>

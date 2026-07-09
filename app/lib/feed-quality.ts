@@ -172,6 +172,10 @@ export interface FeedQualityGroup {
   feeds: FeedQualityRow[];
 }
 
+export function formatDataStreamCount(count: number): string {
+  return count === 1 ? "1 data stream" : `${count} data streams`;
+}
+
 export function groupFeedsByDataset(
   rows: FeedQualityRow[]
 ): FeedQualityGroup[] {

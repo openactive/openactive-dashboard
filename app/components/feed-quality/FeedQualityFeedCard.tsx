@@ -11,41 +11,23 @@ import {
   formatLastAssessed,
   getCompletenessBand,
   humaniseFeedType,
-  STATUS_DOT_CLASS,
   type FeedQualityView,
 } from "../../lib/feed-quality";
 import { formatFullNumber } from "../../lib/format";
-import type { FeedQualityRow, FeedStatus } from "../../types/feed-quality";
+import type { FeedQualityRow } from "../../types/feed-quality";
 
 interface FeedQualityFeedCardProps {
   feed: FeedQualityRow;
   view: FeedQualityView;
-  // Provided for single-feed datasets so the card carries the publisher name
-  // and worst-status dot at the top, mirroring the table's merged-row mode.
-  dataset?: { name: string; url: string; worstStatus: FeedStatus };
 }
 
-export function FeedQualityFeedCard({ feed, view, dataset }: FeedQualityFeedCardProps) {
+export function FeedQualityFeedCard({ feed, view }: FeedQualityFeedCardProps) {
   const config = VIEW_CONFIGS[view];
   const { relative, absolute } = formatLastAssessed(feed.last_assessed);
   const typeLabel = humaniseFeedType(feed.feed_type);
 
   return (
-    <article className="space-y-3 px-4 py-3.5">
-      {dataset && (
-        <div className="flex items-center gap-2">
-          <span
-            aria-hidden="true"
-            className={`inline-block h-2.5 w-2.5 shrink-0 rounded-full ${STATUS_DOT_CLASS[dataset.worstStatus]}`}
-          />
-          <ExternalDataLink
-            href={dataset.url}
-            label={dataset.name}
-            className="text-sm font-semibold text-oa-navy"
-          />
-        </div>
-      )}
-
+    <article className="space-y-3 border-l-2 border-oa-grey-200 px-4 py-3.5 pl-5">
       <div className="flex items-center gap-2">
         <FeedQualityStatusButton
           status={feed.status}

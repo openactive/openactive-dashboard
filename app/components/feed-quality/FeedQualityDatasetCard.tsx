@@ -6,6 +6,7 @@ import { FeedQualityFeedCard } from "./FeedQualityFeedCard";
 import { useFeedQualityRowNavKeyDown } from "./FeedQualityTableNavContext";
 import {
   STATUS_DOT_CLASS,
+  formatDataStreamCount,
   type FeedQualityGroup,
   type FeedQualityView,
 } from "../../lib/feed-quality";
@@ -25,29 +26,12 @@ export function FeedQualityDatasetCard({
   onToggle,
 }: FeedQualityDatasetCardProps) {
   const onRowNavKeyDown = useFeedQualityRowNavKeyDown();
-  const wrapClass =
-    "overflow-hidden rounded-sm bg-white shadow-sm ring-1 ring-oa-grey-200";
-
-  // Single-feed groups merge the publisher header into the feed card itself,
-  // matching how the desktop table avoids a header row for one-feed datasets.
-  if (group.feeds.length === 1) {
-    return (
-      <section className={wrapClass} aria-label={group.datasetName}>
-        <FeedQualityFeedCard
-          feed={group.feeds[0]}
-          view={view}
-          dataset={{
-            name: group.datasetName,
-            url: group.datasetUrl,
-            worstStatus: group.worstStatus,
-          }}
-        />
-      </section>
-    );
-  }
 
   return (
-    <section className={wrapClass} aria-label={group.datasetName}>
+    <section
+      className="overflow-hidden rounded-sm bg-white shadow-sm ring-1 ring-oa-grey-200"
+      aria-label={group.datasetName}
+    >
       <header className="flex items-center gap-2 bg-oa-grey-50 px-4 py-2.5">
         <button
           type="button"
@@ -74,10 +58,10 @@ export function FeedQualityDatasetCard({
         <ExternalDataLink
           href={group.datasetUrl}
           label={group.datasetName}
-          className="text-sm font-semibold text-oa-navy"
+          className="min-w-0 text-sm font-semibold text-oa-navy"
         />
-        <span className="ml-auto text-xs font-medium text-oa-grey-500">
-          {group.feeds.length} data streams
+        <span className="ml-auto shrink-0 text-xs font-medium text-oa-grey-500">
+          {formatDataStreamCount(group.feeds.length)}
         </span>
       </header>
 
