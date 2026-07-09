@@ -571,15 +571,23 @@ function FeedRowsSkeleton({
 // Placeholder card for the mobile layout, mirroring FeedQualityDatasetCard.
 function FeedCardSkeleton() {
   return (
-    <div className="space-y-3 rounded-sm bg-white p-4 ring-1 ring-oa-grey-200">
-      <div className="h-3 w-32 rounded bg-oa-grey-200" />
-      <div className="h-5 w-5 rounded-full bg-oa-grey-200" />
-      <div className="grid grid-cols-3 gap-1.5">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="h-12 rounded-sm bg-oa-grey-100" />
-        ))}
+    <div className="motion-safe:animate-pulse overflow-hidden rounded-sm bg-white ring-1 ring-oa-grey-200">
+      <div className="bg-oa-grey-100 px-4 py-3">
+        <div className="h-3.5 w-40 rounded bg-oa-grey-200" />
+        <div className="mt-2 h-5 w-24 rounded-full bg-oa-grey-200" />
       </div>
-      <div className="h-3 w-24 rounded bg-oa-grey-200" />
+      <div className="space-y-3 border-l-2 border-oa-grey-200 py-3 pl-4 pr-4">
+        <div className="flex items-center gap-2">
+          <div className="h-5 w-5 rounded-full bg-oa-grey-200" />
+          <div className="h-3.5 w-20 rounded bg-oa-grey-200" />
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-12 rounded-sm bg-oa-grey-100" />
+          ))}
+        </div>
+        <div className="h-3 w-32 rounded bg-oa-grey-200" />
+      </div>
     </div>
   );
 }
