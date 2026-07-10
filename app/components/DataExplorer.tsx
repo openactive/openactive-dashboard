@@ -18,6 +18,7 @@ import {
   getAreaSelectionLabel,
   getNhsTrustLabel,
   getSelectedDistrictNames,
+  setDistrictSelected,
 } from "../lib/area-selection";
 import {
   DEFAULT_EXPLORER_FILTERS,
@@ -28,6 +29,7 @@ import { useNhsTrustOptions } from "../hooks/useNhsTrustOptions";
 import { getActivities } from "../services/activities";
 import { getOrganizations } from "../services/organizations";
 import { getPublishers } from "../services/publishers";
+import type { MapAreaSelectPayload } from "./OpportunityMap";
 
 interface DataExplorerProps {
   hierarchy: GeoHierarchy;
@@ -76,6 +78,45 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
   const onMapReset = useCallback(
     () => setFilters(DEFAULT_EXPLORER_FILTERS),
     []
+  );
+
+  // Clicking a choropleth area replaces the location filter with that place
+  // LAD uses district name refs; NHS uses trust codes.
+  const onMapAreaSelect = useCallback(
+    ({ key, boundaryType }: MapAreaSelectPayload) => {
+      setFilters((current) => {
+        if (boundaryType === "nhs") {
+          if (
+            current.boundaryType === "nhs" &&
+            current.nhsTrusts.length === 1 &&
+            current.nhsTrusts[0] === key
+          ) {
+            return current;
+          }
+          return {
+            ...current,
+            boundaryType: "nhs",
+            nhsTrusts: [key],
+            areas: [],
+          };
+        }
+
+        const nextAreas = setDistrictSelected([], hierarchy, key, true);
+        if (
+          current.boundaryType === "lad" &&
+          sameAreaList(current.areas, nextAreas)
+        ) {
+          return current;
+        }
+        return {
+          ...current,
+          boundaryType: "lad",
+          areas: nextAreas,
+          nhsTrusts: [],
+        };
+      });
+    },
+    [hierarchy]
   );
 
   // Opportunities is the source of truth for valid selections: drop any chosen
@@ -252,6 +293,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
             boundaryType={filters.boundaryType}
             isLoading={isOpportunitiesLoading}
             onReset={onMapReset}
+            onAreaSelect={onMapAreaSelect}
           />
         </div>
       </div>
@@ -285,9 +327,14 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
             boundaryType={filters.boundaryType}
             isLoading={isOpportunitiesLoading}
             onReset={onMapReset}
+            onAreaSelect={onMapAreaSelect}
           />
         </div>
       </div>
     </div>
   );
+}
+
+function sameAreaList(a: string[], b: string[]): boolean {
+  return a.length === b.length && a.every((value, i) => value === b[i]);
 }
