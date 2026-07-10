@@ -6,6 +6,7 @@ import { FeedQualityFeedRow } from "./FeedQualityFeedRow";
 import { useFeedQualityRowNavKeyDown } from "./FeedQualityTableNavContext";
 import {
   STATUS_DOT_CLASS,
+  formatDataStreamCount,
   type FeedQualityGroup,
   type FeedQualityView,
 } from "../../lib/feed-quality";
@@ -29,30 +30,22 @@ export function FeedQualityDatasetGroup({
 }: FeedQualityDatasetGroupProps) {
   const onRowNavKeyDown = useFeedQualityRowNavKeyDown();
 
-  if (group.feeds.length === 1) {
-    return (
-      <tbody>
-        <FeedQualityFeedRow
-          feed={group.feeds[0]}
-          view={view}
-          dataset={{ name: group.datasetName, worstStatus: group.worstStatus }}
-        />
-      </tbody>
-    );
-  }
-
   return (
-    <tbody>
-      <tr className="bg-oa-grey-50">
+    <tbody className="border-t-2 border-oa-grey-200">
+      <tr className="bg-oa-grey-100">
         <th
           scope="rowgroup"
           colSpan={columnCount}
-          className="px-3 py-2.5 text-left font-normal"
+          onClick={onToggle}
+          className="cursor-pointer px-3 py-3 text-left font-normal transition-colors hover:bg-oa-grey-200/70"
         >
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={onToggle}
+              onClick={(event) => {
+                event.stopPropagation();
+                onToggle();
+              }}
               onKeyDown={onRowNavKeyDown}
               {...{ [FEED_QUALITY_NAV_ATTR]: true }}
               aria-expanded={!collapsed}
@@ -60,7 +53,7 @@ export function FeedQualityDatasetGroup({
             >
               <ChevronDownIcon
                 aria-hidden="true"
-                className={`h-4 w-4 text-oa-grey-500 motion-safe:transition-transform ${
+                className={`h-4 w-4 text-oa-grey-600 motion-safe:transition-transform ${
                   collapsed ? "-rotate-90" : ""
                 }`}
               />
@@ -72,20 +65,30 @@ export function FeedQualityDatasetGroup({
               aria-hidden="true"
               className={`inline-block h-2.5 w-2.5 shrink-0 rounded-full ${STATUS_DOT_CLASS[group.worstStatus]}`}
             />
-            <ExternalDataLink
-              href={group.datasetUrl}
-              label={group.datasetName}
-              className="text-sm font-semibold text-oa-navy"
-            />
-            <span className="text-xs font-medium text-oa-grey-500">
-              {group.feeds.length} data streams
+            <span
+              className="min-w-0"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <ExternalDataLink
+                href={group.datasetUrl}
+                label={group.datasetName}
+                className="text-sm font-semibold text-oa-navy"
+              />
+            </span>
+            <span className="ml-auto shrink-0 rounded-full bg-white px-2.5 py-0.5 text-xs font-medium text-oa-grey-600 ring-1 ring-oa-grey-200">
+              {formatDataStreamCount(group.feeds.length)}
             </span>
           </div>
         </th>
       </tr>
       {!collapsed &&
-        group.feeds.map((feed) => (
-          <FeedQualityFeedRow key={feed.feed_url} feed={feed} view={view} />
+        group.feeds.map((feed, index) => (
+          <FeedQualityFeedRow
+            key={feed.feed_url}
+            feed={feed}
+            view={view}
+            isLast={index === group.feeds.length - 1}
+          />
         ))}
     </tbody>
   );

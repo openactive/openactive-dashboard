@@ -239,8 +239,12 @@ export function FeedQualityTable({
   // True when nothing is collapsed; flipping then collapses everything visible.
   const allExpanded = collapsed.size === 0;
   const collapseToggle = useCallback(() => {
-    setCollapsed(allExpanded ? new Set(groups.map((g) => g.datasetUrl)) : new Set());
-  }, [allExpanded, groups]);
+    setCollapsed(
+      allExpanded
+        ? new Set(filteredGroups.map((g) => g.datasetUrl))
+        : new Set()
+    );
+  }, [allExpanded, filteredGroups]);
 
   const hasActiveFilters = query.trim() !== "" || statusFilter !== "all";
   const clearFilters = useCallback(() => {
@@ -264,10 +268,7 @@ export function FeedQualityTable({
     if (visibleGroups.length === 0) return 18;
     let rows = 0;
     for (const group of visibleGroups) {
-      rows +=
-        group.feeds.length === 1
-          ? 1
-          : 1 + (collapsed.has(group.datasetUrl) ? 0 : group.feeds.length);
+      rows += 1 + (collapsed.has(group.datasetUrl) ? 0 : group.feeds.length);
     }
     return Math.min(rows, 30);
   })();
@@ -502,9 +503,8 @@ export function FeedQualityTable({
   );
 }
 
-// Placeholder table body shown while a new filter combination loads. Matches
-// the real column count and row padding so the header stays aligned and the
-// row height mirrors a populated table.
+// Placeholder table bodies shown while a new filter combination loads. Mirrors
+// the grouped header + nested child row layout.
 function FeedRowsSkeleton({
   columnCount,
   rows,
@@ -512,45 +512,86 @@ function FeedRowsSkeleton({
   columnCount: number;
   rows: number;
 }) {
-  // Vary the feed-name widths so the placeholder reads as real content.
   const feedWidths = ["w-40", "w-52", "w-44", "w-36", "w-48"];
+  const groups: number[] = [];
+  let remaining = rows;
+
+  while (remaining > 0) {
+    groups.push(1);
+    remaining--;
+    const children = Math.min(3, remaining);
+    if (children > 0) {
+      groups[groups.length - 1] += children;
+      remaining -= children;
+    }
+  }
+
+  let rowOffset = 0;
   return (
-    <tbody className="motion-safe:animate-pulse">
-      {Array.from({ length: rows }).map((_, row) => (
-        <tr key={row} className="border-t border-oa-grey-200">
-          <td className="px-3 py-2.5">
-            <div className="mx-auto h-5 w-5 rounded-full bg-oa-grey-200" />
-          </td>
-          <td className="px-3 py-2.5">
-            <div
-              className={`h-3.5 max-w-full rounded bg-oa-grey-200 ${
-                feedWidths[row % feedWidths.length]
-              }`}
-            />
-          </td>
-          {Array.from({ length: Math.max(0, columnCount - 2) }).map((_, cell) => (
-            <td key={cell} className="px-3 py-2.5">
-              <div className="mx-auto h-3.5 w-10 rounded bg-oa-grey-100" />
-            </td>
-          ))}
-        </tr>
-      ))}
-    </tbody>
+    <>
+      {groups.map((groupRows, groupIndex) => {
+        const childRows = groupRows - 1;
+        const tbody = (
+          <tbody
+            key={groupIndex}
+            className="motion-safe:animate-pulse border-t-2 border-oa-grey-200"
+          >
+            <tr className="bg-oa-grey-100">
+              <td colSpan={columnCount} className="px-3 py-3">
+                <div className="h-3.5 w-48 max-w-full rounded bg-oa-grey-200" />
+              </td>
+            </tr>
+            {Array.from({ length: childRows }).map((_, row) => {
+              const width = feedWidths[(rowOffset + row) % feedWidths.length];
+              return (
+                <tr key={row} className="border-t border-oa-grey-100 bg-white">
+                  <td className="px-3 py-2.5">
+                    <div className="mx-auto h-5 w-5 rounded-full bg-oa-grey-200" />
+                  </td>
+                  <td className="border-l-2 border-oa-grey-200 px-3 py-2.5">
+                    <div
+                      className={`ml-5 h-3.5 max-w-full rounded bg-oa-grey-200 ${width}`}
+                    />
+                  </td>
+                  {Array.from({ length: Math.max(0, columnCount - 2) }).map(
+                    (_, cell) => (
+                      <td key={cell} className="px-3 py-2.5">
+                        <div className="mx-auto h-3.5 w-10 rounded bg-oa-grey-100" />
+                      </td>
+                    )
+                  )}
+                </tr>
+              );
+            })}
+          </tbody>
+        );
+        rowOffset += childRows;
+        return tbody;
+      })}
+    </>
   );
 }
 
 // Placeholder card for the mobile layout, mirroring FeedQualityDatasetCard.
 function FeedCardSkeleton() {
   return (
-    <div className="space-y-3 rounded-sm bg-white p-4 ring-1 ring-oa-grey-200">
-      <div className="h-3 w-32 rounded bg-oa-grey-200" />
-      <div className="h-5 w-5 rounded-full bg-oa-grey-200" />
-      <div className="grid grid-cols-3 gap-1.5">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="h-12 rounded-sm bg-oa-grey-100" />
-        ))}
+    <div className="motion-safe:animate-pulse overflow-hidden rounded-sm bg-white ring-1 ring-oa-grey-200">
+      <div className="bg-oa-grey-100 px-4 py-3">
+        <div className="h-3.5 w-40 rounded bg-oa-grey-200" />
+        <div className="mt-2 h-5 w-24 rounded-full bg-oa-grey-200" />
       </div>
-      <div className="h-3 w-24 rounded bg-oa-grey-200" />
+      <div className="space-y-3 border-l-2 border-oa-grey-200 py-3 pl-4 pr-4">
+        <div className="flex items-center gap-2">
+          <div className="h-5 w-5 rounded-full bg-oa-grey-200" />
+          <div className="h-3.5 w-20 rounded bg-oa-grey-200" />
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-12 rounded-sm bg-oa-grey-100" />
+          ))}
+        </div>
+        <div className="h-3 w-32 rounded bg-oa-grey-200" />
+      </div>
     </div>
   );
 }
