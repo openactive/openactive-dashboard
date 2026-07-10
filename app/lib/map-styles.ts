@@ -46,8 +46,18 @@ function resolveFeatureState(
   joinKey: FeatureJoinKey
 ) {
   const key = featureKey(d, joinKey);
-  const isSelected = key === selectedKey;
-  const inScope = !scopeSet || scopeSet.has(key);
+  const code = d.properties?.geo_code ?? "";
+  const name = d.properties?.geo_name ?? "";
+  // Match on the active join key, and also name/code so LAD highlight still
+  // works when the basemap label differs from the /areas hierarchy name.
+  const isSelected =
+    selectedKey != null &&
+    (key === selectedKey || code === selectedKey || name === selectedKey);
+  const inScope =
+    !scopeSet ||
+    scopeSet.has(key) ||
+    (code !== "" && scopeSet.has(code)) ||
+    (name !== "" && scopeSet.has(name));
   return { key, isSelected, inScope };
 }
 

@@ -64,6 +64,15 @@ export function useAreaPickerDrill(
     }
   }, [open, filters, draftAreas, draftBoundaryType, draftNhsTrusts, onChange]);
 
+  // If filters change while the picker is open (e.g. map click), keep the draft
+  // in step so closing doesn't overwrite the external selection.
+  useEffect(() => {
+    if (!open) return;
+    setDraftAreas(filters.areas);
+    setDraftBoundaryType(filters.boundaryType);
+    setDraftNhsTrusts(filters.nhsTrusts);
+  }, [open, filters.areas, filters.boundaryType, filters.nhsTrusts]);
+
   const covered = useMemo(
     () => expandRefsToDistrictNames(draftAreas, hierarchy),
     [draftAreas, hierarchy]

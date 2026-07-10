@@ -205,6 +205,28 @@ export function setDistrictSelected(
   return setDistrictsSelected(areas, hierarchy, [name], selected);
 }
 
+/**
+ * Resolve a map feature to the hierarchy district name used by filters/API.
+ * Prefers an exact name match, then falls back to matching geo_code when the
+ * basemap label differs from the /areas hierarchy label.
+ */
+export function resolveDistrictNameFromMap(
+  hierarchy: GeoHierarchy,
+  name: string,
+  code?: string
+): string | null {
+  let byCode: string | null = null;
+  for (const country of hierarchy.countries) {
+    for (const region of country.regions) {
+      for (const area of region.areas) {
+        if (area.name === name) return area.name;
+        if (code && area.geoCode === code) byCode = area.name;
+      }
+    }
+  }
+  return byCode;
+}
+
 function stateFromCounts(coveredCount: number, total: number): AreaCheckState {
   if (total === 0 || coveredCount === 0) return "unchecked";
   if (coveredCount === total) return "checked";
