@@ -23,6 +23,13 @@ import { loadNhsBasemap } from "../lib/nhs-basemap";
 import { MapZoomControls } from "./MapZoomControls";
 import { MapLegend } from "./MapLegend";
 
+/** Fired when the user clicks (or taps) a choropleth area, not when they pan. */
+export type MapAreaSelectPayload = {
+  key: string;
+  name: string;
+  boundaryType: BoundaryType;
+};
+
 interface OpportunityMapProps {
   districtCounts: DistrictCount[];
   scopeAreaNames: string[] | null;
@@ -30,7 +37,10 @@ interface OpportunityMapProps {
   boundaryType?: BoundaryType;
   isLoading?: boolean;
   onReset?: () => void;
+  onAreaSelect?: (payload: MapAreaSelectPayload) => void;
 }
+
+const CLICK_DRAG_THRESHOLD_PX = 6;
 
 export function OpportunityMap({
   districtCounts,
@@ -39,6 +49,7 @@ export function OpportunityMap({
   boundaryType = "lad",
   isLoading = false,
   onReset,
+  onAreaSelect,
 }: OpportunityMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -87,6 +98,8 @@ export function OpportunityMap({
   const selectedDistrictRef = useRef<string | null>(null);
   const dataFitKeyRef = useRef("all");
   const joinKeyRef = useRef<FeatureJoinKey>("geo_name");
+  const onAreaSelectRef = useRef(onAreaSelect);
+  const pointerDownRef = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     scopeSetRef.current = scopeAreaNames ? new Set(scopeAreaNames) : null;
@@ -94,6 +107,10 @@ export function OpportunityMap({
     dataFitKeyRef.current = dataFitKey;
     joinKeyRef.current = joinKey;
   });
+
+  useEffect(() => {
+    onAreaSelectRef.current = onAreaSelect;
+  }, [onAreaSelect]);
 
   // Load the boundary shapes for the current mode, reloading when it changes.
   // NHS uses the shared cached basemap so the map and picker share one download.
@@ -263,6 +280,29 @@ export function OpportunityMap({
       .style("cursor", "pointer")
       .attr("tabindex", -1)
       .attr("aria-hidden", "true")
+      .on("pointerdown", (event: PointerEvent) => {
+        pointerDownRef.current = { x: event.clientX, y: event.clientY };
+      })
+      .on("click", (event: MouseEvent, d) => {
+        // Ignore clicks that are really the end of a pan/drag.
+        const start = pointerDownRef.current;
+        pointerDownRef.current = null;
+        if (start) {
+          const dx = event.clientX - start.x;
+          const dy = event.clientY - start.y;
+          if (dx * dx + dy * dy > CLICK_DRAG_THRESHOLD_PX ** 2) return;
+        }
+
+        const key = d.properties?.[joinKeyRef.current];
+        const name = d.properties?.geo_name;
+        if (!key || !name) return;
+
+        onAreaSelectRef.current?.({
+          key,
+          name,
+          boundaryType: loadedBoundaryType,
+        });
+      })
       .on("mouseenter", function (_, d) {
         const name = d.properties?.geo_name ?? null;
         const key = d.properties?.[joinKeyRef.current] ?? null;
@@ -413,8 +453,9 @@ export function OpportunityMap({
 
       <figcaption className="sr-only" id="map-title">
         Choropleth map of opportunities per {boundaryNoun(loadedBoundaryType)}.
-        Use the filters to choose an area. Drag to pan and scroll or pinch to
-        zoom; zoom buttons are available after the filters in the tab order.
+        Click an area to filter by that location, or use the location filter.
+        Drag to pan and scroll or pinch to zoom; zoom buttons are available
+        after the filters in the tab order.
       </figcaption>
 
       <MapLegend
