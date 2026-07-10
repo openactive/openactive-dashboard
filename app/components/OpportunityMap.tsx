@@ -27,6 +27,7 @@ import { MapLegend } from "./MapLegend";
 export type MapAreaSelectPayload = {
   key: string;
   name: string;
+  code?: string;
   boundaryType: BoundaryType;
 };
 
@@ -72,15 +73,17 @@ export function OpportunityMap({
   const joinKey: FeatureJoinKey =
     loadedBoundaryType === "nhs" ? "geo_code" : "geo_name";
 
-  // selectedDistrict is a trust code in NHS mode (the map joins by code), so
-  // resolve it to the trust name for the legend's "Viewing …" line.
+  // selectedDistrict may be a trust/LAD code or a district name; resolve to the
+  // basemap label for the legend's "Viewing …" line.
   const selectedLabel = useMemo(() => {
-    if (!selectedDistrict || loadedBoundaryType !== "nhs") return selectedDistrict;
-    const match = geojson?.features.find(
-      (f) => f.properties?.geo_code === selectedDistrict,
-    );
+    if (!selectedDistrict) return null;
+    const match = geojson?.features.find((f) => {
+      const code = f.properties?.geo_code;
+      const name = f.properties?.geo_name;
+      return code === selectedDistrict || name === selectedDistrict;
+    });
     return match?.properties?.geo_name ?? selectedDistrict;
-  }, [selectedDistrict, loadedBoundaryType, geojson]);
+  }, [selectedDistrict, geojson]);
 
   const countByDistrict = useRef(new Map<string, number>());
   countByDistrict.current = new Map(
@@ -300,6 +303,7 @@ export function OpportunityMap({
         onAreaSelectRef.current?.({
           key,
           name,
+          code: d.properties?.geo_code,
           boundaryType: loadedBoundaryType,
         });
       })
@@ -308,7 +312,11 @@ export function OpportunityMap({
         const key = d.properties?.[joinKeyRef.current] ?? null;
         setFocusedDistrict(name);
         setFocusedCount(key ? countByDistrict.current.get(key) : undefined);
-        if (key !== selectedDistrictRef.current) {
+        if (
+          key !== selectedDistrictRef.current &&
+          d.properties?.geo_code !== selectedDistrictRef.current &&
+          d.properties?.geo_name !== selectedDistrictRef.current
+        ) {
           d3.select(this).attr("stroke", FOCUS_STROKE).attr("stroke-width", 2);
         }
       })

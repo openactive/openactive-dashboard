@@ -18,6 +18,8 @@ import {
   getAreaSelectionLabel,
   getNhsTrustLabel,
   getSelectedDistrictNames,
+  partitionAreaRefsToCodes,
+  resolveDistrictNameFromMap,
   setDistrictSelected,
 } from "../lib/area-selection";
 import {
@@ -83,7 +85,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
   // Clicking a choropleth area replaces the location filter with that place
   // LAD uses district name refs; NHS uses trust codes.
   const onMapAreaSelect = useCallback(
-    ({ key, boundaryType }: MapAreaSelectPayload) => {
+    ({ key, name, code, boundaryType }: MapAreaSelectPayload) => {
       setFilters((current) => {
         if (boundaryType === "nhs") {
           if (
@@ -101,7 +103,10 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
           };
         }
 
-        const nextAreas = setDistrictSelected([], hierarchy, key, true);
+        const districtName =
+          resolveDistrictNameFromMap(hierarchy, name, code) ?? name;
+        const nextAreas = setDistrictSelected([], hierarchy, districtName, true);
+        if (nextAreas.length === 0) return current;
         if (
           current.boundaryType === "lad" &&
           sameAreaList(current.areas, nextAreas)
@@ -223,19 +228,34 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
       : getAreaSelectionLabel(filters.areas, hierarchy);
 
   // What the map treats as "in scope". Local Authority mode scopes by district
-  // name; NHS mode scopes by the selected trust codes (the map joins by code).
+  // name and code (basemap labels can drift from /areas names); NHS by trust code.
   const mapScopeNames = useMemo(() => {
     if (filters.boundaryType === "nhs") {
       return filters.nhsTrusts.length > 0 ? filters.nhsTrusts : null;
     }
     const names = getSelectedDistrictNames(filters.areas, hierarchy);
-    return names.length > 0 ? names : null;
+    if (names.length === 0) return null;
+    const { district } = partitionAreaRefsToCodes(filters.areas, hierarchy);
+    return district.length > 0 ? [...names, ...district] : names;
   }, [filters.boundaryType, filters.nhsTrusts, filters.areas, hierarchy]);
 
   // A single chosen area/trust still gets the strong "selected" emphasis on the
   // map; broader multi-selections rely on the scope highlight instead.
-  const selectedDistrict =
-    mapScopeNames?.length === 1 ? mapScopeNames[0] : null;
+  // Prefer geo_code for a lone LAD so highlight still works when names differ.
+  const selectedDistrict = useMemo(() => {
+    if (filters.boundaryType === "nhs") {
+      return filters.nhsTrusts.length === 1 ? filters.nhsTrusts[0] : null;
+    }
+    const { country, region, district } = partitionAreaRefsToCodes(
+      filters.areas,
+      hierarchy
+    );
+    if (country.length === 0 && region.length === 0 && district.length === 1) {
+      return district[0];
+    }
+    const names = getSelectedDistrictNames(filters.areas, hierarchy);
+    return names.length === 1 ? names[0] : null;
+  }, [filters.boundaryType, filters.nhsTrusts, filters.areas, hierarchy]);
 
   const filterControlProps = useMemo(
     () => ({
