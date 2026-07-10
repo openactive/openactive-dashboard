@@ -29,7 +29,7 @@ export function getPanelTitle(drill: DrillLevel): string {
     case "nhs":
       return "NHS Trusts";
     case "root":
-      return "Choose a country";
+      return "Local authorities";
     case "country":
       return drill.country.label;
     case "region":
