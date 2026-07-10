@@ -464,7 +464,6 @@ export function OpportunityMap({
         focusedDistrict={focusedDistrict}
         focusedCount={focusedCount}
         selectedLabel={selectedLabel}
-        boundaryType={loadedBoundaryType}
       />
     </figure>
   );

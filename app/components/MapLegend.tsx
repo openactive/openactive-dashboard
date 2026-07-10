@@ -1,7 +1,6 @@
 "use client";
 
 import * as d3 from "d3";
-import { boundaryNoun, type BoundaryType } from "../lib/explore-filters";
 import { formatFullNumber } from "../lib/format";
 import { LEGEND_FROM, LEGEND_TO } from "../lib/map-styles";
 
@@ -11,7 +10,6 @@ interface MapLegendProps {
   focusedDistrict: string | null;
   focusedCount: number | undefined;
   selectedLabel: string | null;
-  boundaryType: BoundaryType;
 }
 
 const LEGEND_STOPS = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1];
@@ -22,7 +20,6 @@ export function MapLegend({
   focusedDistrict,
   focusedCount,
   selectedLabel,
-  boundaryType,
 }: MapLegendProps) {
   return (
     <div id={id} className={className} aria-live="polite" aria-atomic="true">
@@ -38,12 +35,12 @@ export function MapLegend({
         ) : selectedLabel ? (
           <>
             Viewing <span className="font-semibold text-oa-navy">{selectedLabel}</span>
-            . Drag to pan · scroll to zoom.
+            . Click another area to change · drag to pan · scroll to zoom.
           </>
         ) : (
           <span className="text-oa-grey-600">
-            Drag to pan · scroll or pinch to zoom. Use the area filter to explore{" "}
-            {boundaryNoun(boundaryType, true)}.
+            Click an area to filter, or use the location filter. Drag to pan ·
+            scroll or pinch to zoom.
           </span>
         )}
       </p>
