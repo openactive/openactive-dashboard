@@ -2,7 +2,6 @@
 
 import { describe, expect, it } from "vitest";
 import { getFocusableElements } from "../focusable";
-import { type } from "os";
 
 describe("getFocusableElements", () => {
   it("returns buttons, links, and form fields that can take focus", () => {
