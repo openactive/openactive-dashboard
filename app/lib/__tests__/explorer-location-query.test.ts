@@ -29,39 +29,29 @@ describe("buildLocationFilterQuery", () => {
     ).toEqual({});
   });
 
-  it("maps LAD country, region, and district refs to API code arrays", () => {
+  it.each([
+    {
+      name: "country",
+      areas: () => [countryRef(england.id)],
+      expected: { country: ["E92000001"] },
+    },
+    {
+      name: "region",
+      areas: () => [regionRef(england.id, northEast.id)],
+      expected: { region: ["E12000001"] },
+    },
+    {
+      name: "district",
+      areas: () => [districtRef(HARTLEPOOL.name)],
+      expected: { district: [HARTLEPOOL.geoCode] },
+    },
+  ])("maps a LAD $name ref to API codes", ({ areas, expected }) => {
     expect(
       buildLocationFilterQuery(
-        {
-          boundaryType: "lad",
-          areas: [countryRef(england.id)],
-          nhsTrusts: [],
-        },
+        { boundaryType: "lad", areas: areas(), nhsTrusts: [] },
         testHierarchy
       )
-    ).toEqual({ country: ["E92000001"] });
-
-    expect(
-      buildLocationFilterQuery(
-        {
-          boundaryType: "lad",
-          areas: [regionRef(england.id, northEast.id)],
-          nhsTrusts: [],
-        },
-        testHierarchy
-      )
-    ).toEqual({ region: ["E12000001"] });
-
-    expect(
-      buildLocationFilterQuery(
-        {
-          boundaryType: "lad",
-          areas: [districtRef(HARTLEPOOL.name)],
-          nhsTrusts: [],
-        },
-        testHierarchy
-      )
-    ).toEqual({ district: [HARTLEPOOL.geoCode] });
+    ).toEqual(expected);
   });
 
   it("includes multiple LAD code levels when mixed refs are selected", () => {
@@ -169,22 +159,18 @@ describe("buildFeedQualityQuery", () => {
 });
 
 describe("getLocationEmptyMessage", () => {
-  it("uses the correct noun for publishers, providers, and activities", () => {
-    const emptyLad = {
-      boundaryType: "lad" as const,
-      areas: [] as string[],
-      nhsTrusts: [] as string[],
-    };
+  const emptyLad = {
+    boundaryType: "lad" as const,
+    areas: [] as string[],
+    nhsTrusts: [] as string[],
+  };
 
-    expect(getLocationEmptyMessage(emptyLad, testHierarchy, "publishers")).toBe(
-      "No publishers found"
-    );
-    expect(
-      getLocationEmptyMessage(emptyLad, testHierarchy, "organizations")
-    ).toBe("No providers found");
-    expect(getLocationEmptyMessage(emptyLad, testHierarchy, "activities")).toBe(
-      "No activities found"
-    );
+  it.each([
+    ["publishers", "No publishers found"],
+    ["organizations", "No providers found"],
+    ["activities", "No activities found"],
+  ] as const)("uses the %s noun when nothing is selected", (item, message) => {
+    expect(getLocationEmptyMessage(emptyLad, testHierarchy, item)).toBe(message);
   });
 
   it("names a single LAD selection in the message", () => {
@@ -218,29 +204,29 @@ describe("getLocationEmptyMessage", () => {
     ).toBe("No activities in the selected areas");
   });
 
-  it("describes empty and selected NHS trust cases", () => {
+  it.each([
+    {
+      nhsTrusts: [] as string[],
+      item: "publishers" as const,
+      message: "No publishers found",
+    },
+    {
+      nhsTrusts: ["R0A"],
+      item: "organizations" as const,
+      message: "No providers in the selected NHS Trust",
+    },
+    {
+      nhsTrusts: ["R0A", "R1H"],
+      item: "activities" as const,
+      message: "No activities in the selected NHS Trusts",
+    },
+  ])("describes NHS selection ($message)", ({ nhsTrusts, item, message }) => {
     expect(
       getLocationEmptyMessage(
-        { boundaryType: "nhs", areas: [], nhsTrusts: [] },
+        { boundaryType: "nhs", areas: [], nhsTrusts },
         testHierarchy,
-        "publishers"
+        item
       )
-    ).toBe("No publishers found");
-
-    expect(
-      getLocationEmptyMessage(
-        { boundaryType: "nhs", areas: [], nhsTrusts: ["R0A"] },
-        testHierarchy,
-        "organizations"
-      )
-    ).toBe("No providers in the selected NHS Trust");
-
-    expect(
-      getLocationEmptyMessage(
-        { boundaryType: "nhs", areas: [], nhsTrusts: ["R0A", "R1H"] },
-        testHierarchy,
-        "activities"
-      )
-    ).toBe("No activities in the selected NHS Trusts");
+    ).toBe(message);
   });
 });

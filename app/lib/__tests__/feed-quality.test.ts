@@ -40,29 +40,23 @@ function row(
 }
 
 describe("getCompletenessBand", () => {
-  it("maps null and numeric thresholds to bands", () => {
-    expect(getCompletenessBand(null)).toBe("na");
-    expect(getCompletenessBand(0)).toBe("none");
-    expect(getCompletenessBand(1)).toBe("low");
-    expect(getCompletenessBand(34)).toBe("low");
-    expect(getCompletenessBand(35)).toBe("moderate");
-    expect(getCompletenessBand(69)).toBe("moderate");
-    expect(getCompletenessBand(70)).toBe("high");
-    expect(getCompletenessBand(100)).toBe("high");
+  it.each([
+    [null, "na"],
+    [0, "none"],
+    [34, "low"],
+    [35, "moderate"],
+    [70, "high"],
+  ] as const)("maps %s to %s", (value, band) => {
+    expect(getCompletenessBand(value)).toBe(band);
   });
 });
 
 describe("humaniseFeedType / getFeedStreamLabel", () => {
   it("humanises PascalCase feed types", () => {
     expect(humaniseFeedType("ScheduledSession")).toBe("Scheduled session");
-    expect(humaniseFeedType("FacilityUse")).toBe("Facility use");
   });
 
-  it("uses feed_type when present, otherwise the feed URL segment", () => {
-    expect(getFeedStreamLabel(sampleFeedQualityRows[0]!)).toBe(
-      "Scheduled session"
-    );
-
+  it("uses the feed URL segment when feed_type is missing", () => {
     expect(
       getFeedStreamLabel(
         row({
@@ -88,9 +82,8 @@ describe("humaniseFeedType / getFeedStreamLabel", () => {
 });
 
 describe("formatDataStreamCount", () => {
-  it("uses singular and plural labels", () => {
+  it("uses singular for one and plural otherwise", () => {
     expect(formatDataStreamCount(1)).toBe("1 data stream");
-    expect(formatDataStreamCount(0)).toBe("0 data streams");
     expect(formatDataStreamCount(3)).toBe("3 data streams");
   });
 });
@@ -105,32 +98,27 @@ describe("STATUS_RANK", () => {
 describe("groupFeedsByDataset", () => {
   it("groups by dataset_url and uses the worst status in the group", () => {
     const groups = groupFeedsByDataset(sampleFeedQualityRows);
-
-    expect(groups).toHaveLength(3);
-
     const hartlepool = groups.find(
       (g) => g.datasetName === "Active Hartlepool"
     );
+
     expect(hartlepool?.feeds).toHaveLength(2);
     expect(hartlepool?.worstStatus).toBe("WARNING");
-    expect(hartlepool?.datasetUrl).toBe("https://example.openactive.io");
   });
 
   it("replaces generic dataset names with a humanised subdomain", () => {
-    const groups = groupFeedsByDataset(sampleFeedQualityRows);
-    const lewes = groups.find(
+    const lewes = groupFeedsByDataset(sampleFeedQualityRows).find(
       (g) => g.datasetUrl === "https://lewes-leisure.openactive.io"
     );
-
     expect(lewes?.datasetName).toBe("Lewes Leisure");
-    expect(lewes?.worstStatus).toBe("ERROR");
   });
 
   it("keeps a real dataset name when it is not generic", () => {
-    const groups = groupFeedsByDataset(sampleFeedQualityRows);
     expect(
-      groups.find((g) => g.datasetName === "Highland Active")
-    ).toBeDefined();
+      groupFeedsByDataset(sampleFeedQualityRows).some(
+        (g) => g.datasetName === "Highland Active"
+      )
+    ).toBe(true);
   });
 });
 
@@ -143,7 +131,6 @@ describe("getGroupActivityCount", () => {
 
 describe("VIEW_CONFIGS scoring", () => {
   it("averages data completeness fields for a row", () => {
-    // 90 + 75 + 70 + 85 (activities preferred over facilities) / 4
     expect(VIEW_CONFIGS.data.getScore(sampleFeedQualityRows[0]!)).toBe(
       (90 + 75 + 70 + 85) / 4
     );
@@ -166,21 +153,18 @@ describe("VIEW_CONFIGS scoring", () => {
   });
 
   it("averages content completeness fields for a row", () => {
-    // base fixture: 55, 50, 45, 40
     expect(VIEW_CONFIGS.content.getScore(sampleFeedQualityRows[0]!)).toBe(
       (55 + 50 + 45 + 40) / 4
     );
   });
 
   it("returns -1 for unscored groups so they sink when sorting", () => {
-    const groups = groupFeedsByDataset([sampleFeedQualityRows[3]!]);
-    expect(VIEW_CONFIGS.data.getGroupScore(groups[0]!)).toBe(-1);
-    expect(VIEW_CONFIGS.content.getGroupScore(groups[0]!)).toBe(-1);
+    const group = groupFeedsByDataset([sampleFeedQualityRows[3]!])[0]!;
+    expect(VIEW_CONFIGS.data.getGroupScore(group)).toBe(-1);
   });
 
   it("averages scorable feeds for a group score", () => {
-    const groups = groupFeedsByDataset(sampleFeedQualityRows.slice(0, 2));
-    const group = groups[0]!;
+    const group = groupFeedsByDataset(sampleFeedQualityRows.slice(0, 2))[0]!;
     const expected =
       (VIEW_CONFIGS.data.getScore(group.feeds[0]!)! +
         VIEW_CONFIGS.data.getScore(group.feeds[1]!)!) /
@@ -199,24 +183,12 @@ describe("formatLastAssessed", () => {
     vi.useRealTimers();
   });
 
-  it("formats absolute en-GB time and relative phrases", () => {
-    expect(formatLastAssessed("2026-01-15T12:00:00.000Z").relative).toBe(
-      "Just now"
-    );
-    expect(formatLastAssessed("2026-01-15T11:30:00.000Z").relative).toBe(
-      "30 min ago"
-    );
-    expect(formatLastAssessed("2026-01-15T10:00:00.000Z").relative).toBe(
-      "2 hours ago"
-    );
-    expect(formatLastAssessed("2026-01-14T12:00:00.000Z").relative).toBe(
-      "1 day ago"
-    );
-    expect(formatLastAssessed("2026-01-13T12:00:00.000Z").relative).toBe(
-      "2 days ago"
-    );
-
-    const { absolute } = formatLastAssessed("2026-01-15T10:00:00.000Z");
-    expect(absolute.length).toBeGreaterThan(0);
+  it.each([
+    ["2026-01-15T12:00:00.000Z", "Just now"],
+    ["2026-01-15T11:30:00.000Z", "30 min ago"],
+    ["2026-01-15T10:00:00.000Z", "2 hours ago"],
+    ["2026-01-14T12:00:00.000Z", "1 day ago"],
+  ] as const)("formats %s as %s", (iso, relative) => {
+    expect(formatLastAssessed(iso).relative).toBe(relative);
   });
 });

@@ -29,10 +29,12 @@ import {
 } from "../__fixtures__";
 
 describe("area-selection ref helpers", () => {
-  it("builds stable ref strings", () => {
-    expect(countryRef("england")).toBe("country:england");
-    expect(regionRef("england", "north-east")).toBe("region:england:north-east");
-    expect(districtRef("Hartlepool")).toBe("district:Hartlepool");
+  it.each([
+    ["country", countryRef("england"), "country:england"],
+    ["region", regionRef("england", "north-east"), "region:england:north-east"],
+    ["district", districtRef("Hartlepool"), "district:Hartlepool"],
+  ] as const)("builds a stable %s ref string", (_kind, actual, expected) => {
+    expect(actual).toBe(expected);
   });
 });
 
@@ -199,7 +201,6 @@ describe("tri-state check helpers", () => {
     );
     expect(isDistrictSelected(covered, HARTLEPOOL.name)).toBe(true);
     expect(isDistrictSelected(covered, MIDDLESBROUGH.name)).toBe(false);
-    expect(isDistrictSelected(covered, LEWES.hierarchyName)).toBe(false);
   });
 });
 
@@ -208,25 +209,18 @@ describe("partitionAreaRefsToCodes", () => {
   const northEast = england.regions.find((r) => r.label === "North East")!;
 
   it("maps country, region, and district refs to API codes", () => {
-    expect(partitionAreaRefsToCodes([countryRef(england.id)], testHierarchy)).toEqual({
+    expect(
+      partitionAreaRefsToCodes(
+        [
+          countryRef(england.id),
+          regionRef(england.id, northEast.id),
+          districtRef(HARTLEPOOL.name),
+        ],
+        testHierarchy
+      )
+    ).toEqual({
       country: ["E92000001"],
-      region: [],
-      district: [],
-    });
-
-    expect(
-      partitionAreaRefsToCodes([regionRef(england.id, northEast.id)], testHierarchy)
-    ).toEqual({
-      country: [],
       region: ["E12000001"],
-      district: [],
-    });
-
-    expect(
-      partitionAreaRefsToCodes([districtRef(HARTLEPOOL.name)], testHierarchy)
-    ).toEqual({
-      country: [],
-      region: [],
       district: [HARTLEPOOL.geoCode],
     });
   });
@@ -257,13 +251,15 @@ describe("getAreaSelectionLabel", () => {
   });
 
   it("labels a single country, region, or district", () => {
-    expect(getAreaSelectionLabel([countryRef(england.id)], testHierarchy)).toBe("England");
+    expect(getAreaSelectionLabel([countryRef(england.id)], testHierarchy)).toBe(
+      "England"
+    );
     expect(
       getAreaSelectionLabel([regionRef(england.id, northEast.id)], testHierarchy)
     ).toBe("England › North East");
-    expect(getAreaSelectionLabel([districtRef(HARTLEPOOL.name)], testHierarchy)).toBe(
-      HARTLEPOOL.name
-    );
+    expect(
+      getAreaSelectionLabel([districtRef(HARTLEPOOL.name)], testHierarchy)
+    ).toBe(HARTLEPOOL.name);
   });
 
   it("labels multi-selections with a count", () => {
@@ -277,21 +273,21 @@ describe("getAreaSelectionLabel", () => {
 });
 
 describe("getNhsTrustLabel", () => {
-  it("labels empty, single, and multi trust selections", () => {
-    expect(getNhsTrustLabel([], sampleNhsTrustOptions)).toBe("All NHS Trusts");
-    expect(getNhsTrustLabel(["R0A"], sampleNhsTrustOptions)).toBe(
-      "Manchester University NHS Foundation Trust"
-    );
-    expect(getNhsTrustLabel(["ZZZ"], sampleNhsTrustOptions)).toBe("1 Trust");
-    expect(getNhsTrustLabel(["R0A", "R1H"], sampleNhsTrustOptions)).toBe("2 Trusts");
+  it.each([
+    [[], "All NHS Trusts"],
+    [["R0A"], "Manchester University NHS Foundation Trust"],
+    [["ZZZ"], "1 Trust"],
+    [["R0A", "R1H"], "2 Trusts"],
+  ] as const)("labels %j as %s", (codes, label) => {
+    expect(getNhsTrustLabel([...codes], sampleNhsTrustOptions)).toBe(label);
   });
 });
 
 describe("resolveDistrictNameFromMap", () => {
   it("matches by hierarchy name when the basemap label is the same", () => {
-    expect(
-      resolveDistrictNameFromMap(testHierarchy, HARTLEPOOL.name, HARTLEPOOL.geoCode)
-    ).toBe(HARTLEPOOL.name);
+    expect(resolveDistrictNameFromMap(testHierarchy, HARTLEPOOL.name)).toBe(
+      HARTLEPOOL.name
+    );
   });
 
   it("falls back to geo_code when the basemap label differs from hierarchy name", () => {

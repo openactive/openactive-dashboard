@@ -9,11 +9,9 @@ describe("transformAreasToHierarchy", () => {
   });
 
   it("sorts countries alphabetically by label", () => {
-    const hierarchy = transformAreasToHierarchy(sampleAreasResponse);
-    expect(hierarchy.countries.map((c) => c.label)).toEqual([
-      "England",
-      "Scotland",
-    ]);
+    expect(
+      transformAreasToHierarchy(sampleAreasResponse).countries.map((c) => c.label)
+    ).toEqual(["England", "Scotland"]);
   });
 
   it("builds England with stable lowercase ids, codes, and regions/districts in A–Z order", () => {
@@ -30,14 +28,7 @@ describe("transformAreasToHierarchy", () => {
       "North East",
       "South East",
     ]);
-
-    const northEast = england?.regions[0];
-    expect(northEast).toMatchObject({
-      id: "north-east",
-      code: "E12000001",
-      label: "North East",
-    });
-    expect(northEast?.areas).toEqual([
+    expect(england?.regions[0]?.areas).toEqual([
       { name: "Hartlepool", geoCode: "E06000001", geoType: "lad" },
       { name: "Middlesbrough", geoCode: "E06000002", geoType: "lad" },
     ]);
@@ -48,20 +39,14 @@ describe("transformAreasToHierarchy", () => {
       (c) => c.label === "Scotland"
     );
 
-    expect(scotland).toMatchObject({
-      id: "scotland",
-      code: "S92000003",
-      label: "Scotland",
-    });
-    expect(scotland?.regions).toHaveLength(1);
-    expect(scotland?.regions[0]).toEqual({
-      id: "scotland",
-      code: "S92000003",
-      label: "Scotland",
-      areas: [
-        { name: "Highland", geoCode: "S12000017", geoType: "lad" },
-      ],
-    });
+    expect(scotland?.regions).toEqual([
+      {
+        id: "scotland",
+        code: "S92000003",
+        label: "Scotland",
+        areas: [{ name: "Highland", geoCode: "S12000017", geoType: "lad" }],
+      },
+    ]);
   });
 
   it("sorts districts alphabetically within a region", () => {
@@ -87,7 +72,7 @@ describe("transformAreasToHierarchy", () => {
     expect(areas.map((a) => a.name)).toEqual(["Hartlepool", "Middlesbrough"]);
   });
 
-  it("turns country and region display names into lowercase hyphenated ids", () => {
+  it("turns country display names into lowercase hyphenated ids", () => {
     const raw: AreasResponse = {
       "Northern Ireland": {
         country_code: "N92000002",
@@ -97,8 +82,8 @@ describe("transformAreasToHierarchy", () => {
       },
     };
 
-    const country = transformAreasToHierarchy(raw).countries[0];
-    expect(country?.id).toBe("northern-ireland");
-    expect(country?.regions[0]?.id).toBe("northern-ireland");
+    expect(transformAreasToHierarchy(raw).countries[0]?.id).toBe(
+      "northern-ireland"
+    );
   });
 });

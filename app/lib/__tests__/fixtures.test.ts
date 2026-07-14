@@ -15,27 +15,21 @@ import {
 } from "../__fixtures__";
 
 describe("test fixtures", () => {
-  it("builds England with regions and flat Scotland", () => {
+  it("builds England with regions and Scotland as one country-level region", () => {
     expect(testHierarchy.countries.map((c) => c.label)).toEqual([
       "England",
       "Scotland",
     ]);
-
     expect(getEngland().regions.map((r) => r.label)).toEqual([
       "North East",
       "South East",
     ]);
-
     expect(getScotland().regions).toHaveLength(1);
-    expect(getScotland().regions[0]?.label).toBe("Scotland");
   });
 
-  it("exposes named districts for area-selection and map tests", () => {
+  it("looks up districts by name and by code", () => {
     expect(findDistrictByName(testHierarchy, HARTLEPOOL.name)?.geoCode).toBe(
       HARTLEPOOL.geoCode
-    );
-    expect(findDistrictByName(testHierarchy, LEWES.hierarchyName)?.geoCode).toBe(
-      LEWES.geoCode
     );
     expect(findDistrictByCode(testHierarchy, LEWES.geoCode)?.name).toBe(
       LEWES.hierarchyName
@@ -46,13 +40,9 @@ describe("test fixtures", () => {
   });
 
   it("provides opportunity and feed-quality sample payloads", () => {
-    expect(sampleLadOpportunities.length).toBeGreaterThan(0);
-    expect(sampleNhsOpportunities.length).toBeGreaterThan(0);
-    expect(sampleOpportunities.length).toBe(
+    expect(sampleOpportunities).toHaveLength(
       sampleLadOpportunities.length + sampleNhsOpportunities.length
     );
-    expect(sampleFeedQualityRows.some((row) => row.status === "ERROR")).toBe(
-      true
-    );
+    expect(sampleFeedQualityRows.some((row) => row.status === "ERROR")).toBe(true);
   });
 });

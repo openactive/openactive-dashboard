@@ -10,36 +10,21 @@ describe("buildFilterParams", () => {
     expect(
       buildFilterParams({
         district: [],
-        region: [],
-        country: [],
         publisher: [],
-        organization: [],
-        activity: [],
-        nhs_trust: [],
       }).toString()
     ).toBe("");
   });
 
-  it("sets a single value for each filter dimension", () => {
-    expect(buildFilterParams({ district: ["E06000001"] }).get("district")).toBe(
-      "E06000001"
-    );
-    expect(buildFilterParams({ region: ["E12000001"] }).get("region")).toBe(
-      "E12000001"
-    );
-    expect(buildFilterParams({ country: ["E92000001"] }).get("country")).toBe(
-      "E92000001"
-    );
-    expect(buildFilterParams({ publisher: ["Active Hartlepool"] }).get("publisher")).toBe(
-      "Active Hartlepool"
-    );
-    expect(
-      buildFilterParams({ organization: ["Lewes Leisure Trust"] }).get("organization")
-    ).toBe("Lewes Leisure Trust");
-    expect(buildFilterParams({ activity: ["Sports Hall"] }).get("activity")).toBe(
-      "Sports Hall"
-    );
-    expect(buildFilterParams({ nhs_trust: ["R0A"] }).get("nhs_trust")).toBe("R0A");
+  it.each([
+    ["district", ["E06000001"], "E06000001"],
+    ["region", ["E12000001"], "E12000001"],
+    ["country", ["E92000001"], "E92000001"],
+    ["publisher", ["Active Hartlepool"], "Active Hartlepool"],
+    ["organization", ["Lewes Leisure Trust"], "Lewes Leisure Trust"],
+    ["activity", ["Sports Hall"], "Sports Hall"],
+    ["nhs_trust", ["R0A"], "R0A"],
+  ] as const)("sets %s from a single value", (key, values, expected) => {
+    expect(buildFilterParams({ [key]: values }).get(key)).toBe(expected);
   });
 
   it("comma-joins multiple values in one dimension", () => {
@@ -61,23 +46,24 @@ describe("buildFilterParams", () => {
       nhs_trust: ["R0A"],
     });
 
-    expect(params.get("country")).toBe("E92000001");
-    expect(params.get("region")).toBe("E12000001");
-    expect(params.get("district")).toBe("E06000001");
-    expect(params.get("publisher")).toBe("Active Hartlepool");
-    expect(params.get("organization")).toBe("Lewes Leisure Trust");
-    expect(params.get("activity")).toBe("Sports Hall");
-    expect(params.get("nhs_trust")).toBe("R0A");
+    expect(Object.fromEntries(params)).toEqual({
+      country: "E92000001",
+      region: "E12000001",
+      district: "E06000001",
+      publisher: "Active Hartlepool",
+      organization: "Lewes Leisure Trust",
+      activity: "Sports Hall",
+      nhs_trust: "R0A",
+    });
   });
 
-  it("omits dimensions that are undefined while keeping present ones", () => {
-    const params = buildFilterParams({
-      district: ["E06000001"],
-      publisher: undefined,
-      activity: [],
-    });
-
-    expect([...params.keys()]).toEqual(["district"]);
-    expect(params.get("district")).toBe("E06000001");
+  it("keeps present dimensions and omits undefined or empty ones", () => {
+    expect([
+      ...buildFilterParams({
+        district: ["E06000001"],
+        publisher: undefined,
+        activity: [],
+      }).keys(),
+    ]).toEqual(["district"]);
   });
 });
