@@ -1,27 +1,20 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import {
-  EXPLORER_TOP_LIMIT,
-  type BoundaryType,
-  type DistrictCount,
-  type ExplorerFilters,
-  type ExplorerSummary,
-  type RankedItem,
-} from "../lib/explore-filters";
+import type { ExplorerFilters } from "../lib/explore-filters";
 import { buildLocationFilterQuery } from "../lib/explorer-location-query";
 import type { GeoHierarchy } from "../lib/geo-hierarchy";
+import {
+  EMPTY_PRESENT_NAMES,
+  EMPTY_SUMMARY,
+  reduceOpportunities,
+  type PresentNames,
+  type ReducedOpportunities,
+} from "../lib/opportunity-reduce";
 import { getOpportunities } from "../services/opportunities";
-import type {
-  Opportunity,
-  OpportunitiesQuery,
-} from "../types/opportunities";
+import type { OpportunitiesQuery } from "../types/opportunities";
 
-export type PresentNames = {
-  publishers: Set<string>;
-  organizations: Set<string>;
-  activities: Set<string>;
-};
+export type { PresentNames };
 
 type Params = {
   filters: ExplorerFilters;
@@ -30,138 +23,10 @@ type Params = {
 };
 
 type Result = {
-  summary: ExplorerSummary;
-  districtCounts: DistrictCount[];
+  summary: ReducedOpportunities["summary"];
+  districtCounts: ReducedOpportunities["districtCounts"];
   isLoading: boolean;
 };
-
-/** Rendered data plus the present-name sets used to prune stale selections. */
-type ReducedData = Omit<Result, "isLoading"> & {
-  presentNames: PresentNames;
-};
-
-const EMPTY_PRESENT_NAMES: PresentNames = {
-  publishers: new Set<string>(),
-  organizations: new Set<string>(),
-  activities: new Set<string>(),
-};
-
-const EMPTY_SUMMARY: ExplorerSummary = {
-  boundaryType: "lad",
-  totalOpportunities: 0,
-  areaCount: 0,
-  publisherCount: 0,
-  feedCount: 0,
-  organizationCount: 0,
-  activityCount: 0,
-  activityOpportunities: 0,
-  facilityOpportunities: 0,
-  topAreas: [],
-  topPublishers: [],
-  topFeeds: [],
-  topOrganizations: [],
-  topActivities: [],
-};
-
-/** Sort a name→count map descending and keep the top N entries. */
-function rankTop(map: Map<string, number>, limit: number): RankedItem[] {
-  return [...map.entries()]
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, limit);
-}
-
-/**
- * Reduce raw /opportunities rows into:
- *  - a summary (totals + unique counts + top-N breakdowns) for the panel
- *  - totals for the choropleth. Local authority mode keys these by
- *    district_name; NHS mode keys them by nhstrust_code, so each joins
- *    directly with the map shapes it draws.
- */
-function reduce(rows: Opportunity[], boundaryType: BoundaryType): ReducedData {
-  const countByDistrict = new Map<string, number>();
-  const countByTrust = new Map<string, number>();
-  const countByTrustName = new Map<string, number>();
-  const countByPublisher = new Map<string, number>();
-  const countByFeed = new Map<string, number>();
-  const countByOrganization = new Map<string, number>();
-  const countByActivity = new Map<string, number>();
-  let totalOpportunities = 0;
-  let activityOpportunities = 0;
-  let facilityOpportunities = 0;
-
-  const bump = (m: Map<string, number>, key: string, n: number) =>
-    m.set(key, (m.get(key) ?? 0) + n);
-
-  const bumpFromJsonArray = (
-    m: Map<string, number>,
-    raw: string,
-    n: number
-  ) => {
-    const parsed: unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return;
-    for (const v of parsed) {
-      if (typeof v === "string" && v.trim()) bump(m, v, n);
-    }
-  };
-
-  for (const row of rows) {
-    const n = row.opportunity_count;
-    totalOpportunities += n;
-    if (row.is_activity) activityOpportunities += n;
-    else facilityOpportunities += n;
-
-    if (row.district_name) bump(countByDistrict, row.district_name, n);
-    if (boundaryType === "nhs" && row.nhstrust_code) {
-      bump(countByTrust, row.nhstrust_code, n);
-    }
-    if (boundaryType === "nhs" && row.nhstrust_name) {
-      bump(countByTrustName, row.nhstrust_name, n);
-    }
-    if (row.publisher) bump(countByPublisher, row.publisher, n);
-    if (row.provider) bump(countByFeed, row.provider, n);
-    if (row.organization_names) bumpFromJsonArray(countByOrganization, row.organization_names, n);
-    if (row.activity_or_facility) bumpFromJsonArray(countByActivity, row.activity_or_facility, n);
-  }
-
-  // The choropleth joins the map shapes it draws by different keys: district
-  // names for local authorities, trust codes for NHS.
-  const choroplethCounts =
-    boundaryType === "nhs" ? countByTrust : countByDistrict;
-  const districtCounts: DistrictCount[] = [...choroplethCounts.entries()]
-    .map(([district, count]) => ({ district, count }))
-    .sort((a, b) => b.count - a.count);
-
-  // The summary's "area" metric counts what the user is exploring: local
-  // authority districts, or NHS Trusts (by name, so the breakdown is readable).
-  const summaryAreaCounts =
-    boundaryType === "nhs" ? countByTrustName : countByDistrict;
-
-  return {
-    summary: {
-      boundaryType,
-      totalOpportunities,
-      areaCount: summaryAreaCounts.size,
-      publisherCount: countByPublisher.size,
-      feedCount: countByFeed.size,
-      organizationCount: countByOrganization.size,
-      activityCount: countByActivity.size,
-      activityOpportunities,
-      facilityOpportunities,
-      topAreas: rankTop(summaryAreaCounts, EXPLORER_TOP_LIMIT),
-      topPublishers: rankTop(countByPublisher, EXPLORER_TOP_LIMIT),
-      topFeeds: rankTop(countByFeed, EXPLORER_TOP_LIMIT),
-      topOrganizations: rankTop(countByOrganization, EXPLORER_TOP_LIMIT),
-      topActivities: rankTop(countByActivity, EXPLORER_TOP_LIMIT),
-    },
-    districtCounts,
-    presentNames: {
-      publishers: new Set(countByPublisher.keys()),
-      organizations: new Set(countByOrganization.keys()),
-      activities: new Set(countByActivity.keys()),
-    },
-  };
-}
 
 /**
  * Fetch /opportunities for the current filters and reduce the response
@@ -181,7 +46,7 @@ export function useReactiveOpportunities({
   });
   const [isLoading, setIsLoading] = useState(true);
 
-  const cacheRef = useRef<Map<string, Promise<ReducedData>>>(new Map());
+  const cacheRef = useRef<Map<string, Promise<ReducedOpportunities>>>(new Map());
   const onResolvedRef = useRef(onResolved);
   useEffect(() => {
     onResolvedRef.current = onResolved;
@@ -210,7 +75,7 @@ export function useReactiveOpportunities({
                 districtCounts: [],
                 presentNames: EMPTY_PRESENT_NAMES,
               }
-            : reduce(rows, filters.boundaryType)
+            : reduceOpportunities(rows, filters.boundaryType)
         )
         .catch((err) => {
           cacheRef.current.delete(cacheKey);
