@@ -24,6 +24,26 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
+## Testing
+
+Unit tests use [Vitest](https://vitest.dev/).
+
+```bash
+npm test          # run once
+npm run test:watch  # watch mode
+```
+
+### Layout
+
+- Tests live in `__tests__/` folders next to the code they cover, e.g.
+  `app/lib/__tests__/`, `app/services/__tests__/`.
+- Shared sample data lives in `app/lib/__fixtures__/` (hierarchy, API payloads).
+  Import fixtures in tests; do not put test files inside `__fixtures__/`.
+
+```ts
+import { testHierarchy, HARTLEPOOL } from "@/app/lib/__fixtures__";
+```
+
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
 ## Learn More
