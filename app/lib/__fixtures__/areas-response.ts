@@ -17,6 +17,10 @@ export const sampleAreasResponse: AreasResponse = {
               district_name: "Hartlepool",
               district_code: "E06000001",
             },
+            {
+              district_name: "Middlesbrough",
+              district_code: "E06000002",
+            },
           ],
         },
       },

@@ -15,6 +15,13 @@ export const HARTLEPOOL = {
   regionLabel: "North East",
 } as const;
 
+export const MIDDLESBROUGH = {
+  name: "Middlesbrough",
+  geoCode: "E06000002",
+  countryLabel: "England",
+  regionLabel: "North East",
+} as const;
+
 /** Basemap label can differ from /areas hierarchy name — see resolveDistrictNameFromMap. */
 export const LEWES = {
   hierarchyName: "Lewes District",

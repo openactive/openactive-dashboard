@@ -5,6 +5,7 @@ export {
 export {
   testHierarchy,
   HARTLEPOOL,
+  MIDDLESBROUGH,
   LEWES,
   HIGHLAND,
   sampleNhsTrustOptions,
