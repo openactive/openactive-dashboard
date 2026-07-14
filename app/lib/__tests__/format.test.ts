@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatFullNumber } from "./format";
+import { formatFullNumber } from "../format";
 
 describe("format (smoke)", () => {
   it("formats numbers with en-GB grouping", () => {
