@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 describe("apiFetch", () => {
-  let apiFetch: typeof import("../../services/api-client").apiFetch;
+  let apiFetch: typeof import("../api-client").apiFetch;
 
   beforeEach(async () => {
     vi.resetModules();
@@ -10,7 +10,7 @@ describe("apiFetch", () => {
     process.env.OPENACTIVE_API_BASE_URL = "https://api.example.com/";
     process.env.OPENACTIVE_API_TOKEN = "test-token";
 
-    ({ apiFetch } = await import("../../services/api-client"));
+    ({ apiFetch } = await import("../api-client"));
   });
 
   afterEach(() => {
