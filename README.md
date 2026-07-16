@@ -33,6 +33,8 @@ npm test          # run once
 npm run test:watch  # watch mode
 ```
 
+CI runs `npm test` on pull requests and pushes to `main` (see `.github/workflows/test.yml`).
+
 ### Layout
 
 - Tests live in `__tests__/` folders next to the code they cover, e.g.
