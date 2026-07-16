@@ -36,10 +36,10 @@ const STAT_DEFS: StatDef[] = [
     format: (d) => formatNumber(d.number_of_activities),
   },
   {
-    key: "percentage_of_local_authorities",
-    label: "Of local authorities",
+    key: "number_of_facilities",
+    label: "Facilities",
     textColor: "text-oa-magenta-on-navy",
-    format: (d) => `${d.percentage_of_local_authorities}%`,
+    format: (d) => formatNumber(d.number_of_facilities),
   },
 ];
 
