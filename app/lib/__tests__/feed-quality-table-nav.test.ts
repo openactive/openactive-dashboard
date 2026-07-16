@@ -1,12 +1,11 @@
 /** @vitest-environment jsdom */
 
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   focusAdjacentFeedQualityNav,
   focusFirstFeedQualityNav,
   getFeedQualityNavTargets,
 } from "../feed-quality-table-nav";
-import { afterEach } from "node:test";
 
 function visibleNavButton(label: string) {
   const button = document.createElement("button");
