@@ -4,7 +4,6 @@ export interface EcosystemSummaryResponse {
   number_of_activities: number;
   number_of_facility_types: number;
   number_of_facilities: number;
-  percentage_of_local_authorities: number;
   number_of_activity_providers: number;
   date: string;
 }
