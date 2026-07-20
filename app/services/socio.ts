@@ -7,7 +7,7 @@ import type { SocioQuery, SocioResponse } from "../types/socio";
 /**
  * Server Action: fetch socio-economic context per area (population, IMD,
  * Active Lives). With no filters, every area is returned. District, region,
- * and country codes are matched against `area_code` (OR).
+ * and country codes are matched against `area_code`.
  */
 export async function getSocioContext(
   query: SocioQuery = {}
