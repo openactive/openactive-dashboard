@@ -128,6 +128,8 @@ export function useLocationScopedFilterOptions({
   }, [
     enabled,
     filters.areas,
+    filters.boundaryType,
+    filters.nhsTrusts,
     hierarchy,
     item,
     allLabel,

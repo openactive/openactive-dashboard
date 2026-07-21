@@ -8,6 +8,7 @@ import {
   DEFAULT_EXPLORER_FILTERS,
   FILTER_EMPTY_VALUE,
   FILTER_LOADING_VALUE,
+  type BoundaryType,
 } from "../../lib/explore-filters";
 import { testHierarchy } from "../../lib/__fixtures__";
 
@@ -108,6 +109,47 @@ describe("useLocationScopedFilterOptions", () => {
     ]);
     expect(result.current.some((o) => o.value === FILTER_LOADING_VALUE)).toBe(
       false,
+    );
+  });
+
+  it("refetches with nhs_trust=all when boundary switches to NHS with no trust", async () => {
+    fetchNames.mockResolvedValue(["NHS Publisher"]);
+
+    const { rerender } = renderHook(
+      ({ filters }) => useLocationScopedFilterOptions({
+        ...baseProps,
+        filters,
+        fetchNames,
+      }),
+      {
+        initialProps: {
+          filters: {
+            areas: [] as string[],
+            boundaryType: "lad" as BoundaryType,
+            nhsTrusts: [] as string[],
+          },
+        },
+      },
+    );
+
+    await waitFor(() => {
+      expect(fetchNames).toHaveBeenCalledTimes(1);
+    });
+
+    rerender({
+      filters: {
+        areas: [] as string[],
+        boundaryType: "nhs" as const,
+        nhsTrusts: [] as string[],
+      },
+    });
+
+    await waitFor(() => {
+      expect(fetchNames).toHaveBeenCalledTimes(2);
+    });
+
+    expect(fetchNames).toHaveBeenCalledWith(
+      expect.objectContaining({ nhs_trust: [ALL_FILTER] }),
     );
   });
 });

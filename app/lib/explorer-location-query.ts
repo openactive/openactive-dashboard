@@ -1,4 +1,4 @@
-import type { ExplorerFilters } from "./explore-filters";
+import { ALL_FILTER, type ExplorerFilters } from "./explore-filters";
 import type { GeoHierarchy } from "./geo-hierarchy";
 import {
   getAreaSelectionLabel,
@@ -13,19 +13,22 @@ export type LocationScopedItem = "publishers" | "activities" | "organizations";
  * Build the location filter for the API.
  *
  * In "lad" mode, maps the selected area refs to district/region/country code
- * arrays. In "nhs" mode, ignores areas and filters by the selected trust codes.
+ * arrays. In "nhs" mode, ignores areas and filters by trust codes; an empty
+ * selection sends nhs_trus=all so that the API can return NHS-scoped aggregates.
  */
 export function buildLocationFilterQuery(
   filters: Pick<ExplorerFilters, "areas" | "boundaryType" | "nhsTrusts">,
-  hierarchy: GeoHierarchy
+  hierarchy: GeoHierarchy,
 ): ActivitiesQuery {
   if (filters.boundaryType === "nhs") {
-    return filters.nhsTrusts.length ? { nhs_trust: filters.nhsTrusts } : {};
+    return {
+      nhs_trust: filters.nhsTrusts.length ? filters.nhsTrusts : [ALL_FILTER],
+    };
   }
 
   const { country, region, district } = partitionAreaRefsToCodes(
     filters.areas,
-    hierarchy
+    hierarchy,
   );
   return {
     ...(district.length ? { district } : {}),
@@ -41,14 +44,21 @@ export function buildLocationFilterQuery(
 export function buildFeedQualityQuery(
   filters: Pick<
     ExplorerFilters,
-    "areas" | "boundaryType" | "nhsTrusts" | "publisher" | "organization" | "activity"
+    | "areas"
+    | "boundaryType"
+    | "nhsTrusts"
+    | "publisher"
+    | "organization"
+    | "activity"
   >,
-  hierarchy: GeoHierarchy
+  hierarchy: GeoHierarchy,
 ): FilterQuery {
   return {
     ...buildLocationFilterQuery(filters, hierarchy),
     ...(filters.publisher.length ? { publisher: filters.publisher } : {}),
-    ...(filters.organization.length ? { organization: filters.organization } : {}),
+    ...(filters.organization.length
+      ? { organization: filters.organization }
+      : {}),
     ...(filters.activity.length ? { activity: filters.activity } : {}),
   };
 }
@@ -57,7 +67,7 @@ export function buildFeedQualityQuery(
 export function getLocationEmptyMessage(
   filters: Pick<ExplorerFilters, "areas" | "boundaryType" | "nhsTrusts">,
   hierarchy: GeoHierarchy,
-  item: LocationScopedItem
+  item: LocationScopedItem,
 ): string {
   const noun =
     item === "publishers"

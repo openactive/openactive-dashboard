@@ -46,7 +46,9 @@ export function useReactiveOpportunities({
   });
   const [isLoading, setIsLoading] = useState(true);
 
-  const cacheRef = useRef<Map<string, Promise<ReducedOpportunities>>>(new Map());
+  const cacheRef = useRef<Map<string, Promise<ReducedOpportunities>>>(
+    new Map(),
+  );
   const onResolvedRef = useRef(onResolved);
   useEffect(() => {
     onResolvedRef.current = onResolved;
@@ -56,12 +58,17 @@ export function useReactiveOpportunities({
   const query: OpportunitiesQuery = {
     ...locationQuery,
     ...(filters.publisher.length > 0 ? { publisher: filters.publisher } : {}),
-    ...(filters.organization.length > 0 ? { organization: filters.organization } : {}),
+    ...(filters.organization.length > 0
+      ? { organization: filters.organization }
+      : {}),
     ...(filters.activity.length > 0 ? { activity: filters.activity } : {}),
   };
-  // boundaryType is part of the key because NHS-with-no-trust and
-  // LAD-with-no-area produce the same query but need different choropleth keys.
-  const cacheKey = JSON.stringify({ query, boundaryType: filters.boundaryType });
+  // boundaryType stays in the cache key so reduceOpportunities uses the
+  // correct choropleth join (district names in LAD mode vs trust codes in NHS).
+  const cacheKey = JSON.stringify({
+    query,
+    boundaryType: filters.boundaryType,
+  });
 
   useEffect(() => {
     let promise = cacheRef.current.get(cacheKey);
@@ -71,11 +78,14 @@ export function useReactiveOpportunities({
         .then((rows) =>
           rows.length === 0
             ? {
-                summary: { ...EMPTY_SUMMARY, boundaryType: filters.boundaryType },
+                summary: {
+                  ...EMPTY_SUMMARY,
+                  boundaryType: filters.boundaryType,
+                },
                 districtCounts: [],
                 presentNames: EMPTY_PRESENT_NAMES,
               }
-            : reduceOpportunities(rows, filters.boundaryType)
+            : reduceOpportunities(rows, filters.boundaryType),
         )
         .catch((err) => {
           cacheRef.current.delete(cacheKey);

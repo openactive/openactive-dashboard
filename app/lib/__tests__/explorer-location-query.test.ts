@@ -1,14 +1,11 @@
 import { describe, expect, it } from "vitest";
-import {
-  countryRef,
-  districtRef,
-  regionRef,
-} from "../area-selection";
+import { countryRef, districtRef, regionRef } from "../area-selection";
 import {
   buildFeedQualityQuery,
   buildLocationFilterQuery,
   getLocationEmptyMessage,
 } from "../explorer-location-query";
+import { ALL_FILTER } from "../explore-filters";
 import {
   getEngland,
   HARTLEPOOL,
@@ -24,8 +21,8 @@ describe("buildLocationFilterQuery", () => {
     expect(
       buildLocationFilterQuery(
         { boundaryType: "lad", areas: [], nhsTrusts: ["R0A"] },
-        testHierarchy
-      )
+        testHierarchy,
+      ),
     ).toEqual({});
   });
 
@@ -49,8 +46,8 @@ describe("buildLocationFilterQuery", () => {
     expect(
       buildLocationFilterQuery(
         { boundaryType: "lad", areas: areas(), nhsTrusts: [] },
-        testHierarchy
-      )
+        testHierarchy,
+      ),
     ).toEqual(expected);
   });
 
@@ -65,8 +62,8 @@ describe("buildLocationFilterQuery", () => {
           ],
           nhsTrusts: [],
         },
-        testHierarchy
-      )
+        testHierarchy,
+      ),
     ).toEqual({
       region: ["E12000001"],
       district: ["E06000059"],
@@ -81,12 +78,12 @@ describe("buildLocationFilterQuery", () => {
           areas: [countryRef(england.id)],
           nhsTrusts: ["R0A", "R1H"],
         },
-        testHierarchy
-      )
+        testHierarchy,
+      ),
     ).toEqual({ nhs_trust: ["R0A", "R1H"] });
   });
 
-  it("returns an empty query when NHS has no trusts selected", () => {
+  it("returns nhs_trust=all when NHS has no trusts selected", () => {
     expect(
       buildLocationFilterQuery(
         {
@@ -94,9 +91,9 @@ describe("buildLocationFilterQuery", () => {
           areas: [districtRef(HARTLEPOOL.name)],
           nhsTrusts: [],
         },
-        testHierarchy
-      )
-    ).toEqual({});
+        testHierarchy,
+      ),
+    ).toEqual({ nhs_trust: [ALL_FILTER] });
   });
 });
 
@@ -112,8 +109,8 @@ describe("buildFeedQualityQuery", () => {
           organization: ["Lewes Leisure Trust"],
           activity: ["Sports Hall"],
         },
-        testHierarchy
-      )
+        testHierarchy,
+      ),
     ).toEqual({
       district: [HARTLEPOOL.geoCode],
       publisher: ["Active Hartlepool"],
@@ -133,8 +130,8 @@ describe("buildFeedQualityQuery", () => {
           organization: [],
           activity: [],
         },
-        testHierarchy
-      )
+        testHierarchy,
+      ),
     ).toEqual({ district: [MIDDLESBROUGH.geoCode] });
   });
 
@@ -149,12 +146,28 @@ describe("buildFeedQualityQuery", () => {
           organization: [],
           activity: [],
         },
-        testHierarchy
-      )
+        testHierarchy,
+      ),
     ).toEqual({
       nhs_trust: ["R0A"],
       publisher: ["NHS Example"],
     });
+  });
+
+  it("uses nhs_trust=all for NHS mode with no specific trusts", () => {
+    expect(
+      buildFeedQualityQuery(
+        {
+          boundaryType: "nhs",
+          areas: [],
+          nhsTrusts: [],
+          publisher: [],
+          organization: [],
+          activity: [],
+        },
+        testHierarchy,
+      ),
+    ).toEqual({ nhs_trust: [ALL_FILTER] });
   });
 });
 
@@ -170,7 +183,9 @@ describe("getLocationEmptyMessage", () => {
     ["organizations", "No providers found"],
     ["activities", "No activities found"],
   ] as const)("uses the %s noun when nothing is selected", (item, message) => {
-    expect(getLocationEmptyMessage(emptyLad, testHierarchy, item)).toBe(message);
+    expect(getLocationEmptyMessage(emptyLad, testHierarchy, item)).toBe(
+      message,
+    );
   });
 
   it("names a single LAD selection in the message", () => {
@@ -182,8 +197,8 @@ describe("getLocationEmptyMessage", () => {
           nhsTrusts: [],
         },
         testHierarchy,
-        "publishers"
-      )
+        "publishers",
+      ),
     ).toBe("No publishers in Hartlepool");
   });
 
@@ -199,8 +214,8 @@ describe("getLocationEmptyMessage", () => {
           nhsTrusts: [],
         },
         testHierarchy,
-        "activities"
-      )
+        "activities",
+      ),
     ).toBe("No activities in the selected areas");
   });
 
@@ -225,8 +240,8 @@ describe("getLocationEmptyMessage", () => {
       getLocationEmptyMessage(
         { boundaryType: "nhs", areas: [], nhsTrusts },
         testHierarchy,
-        item
-      )
+        item,
+      ),
     ).toBe(message);
   });
 });

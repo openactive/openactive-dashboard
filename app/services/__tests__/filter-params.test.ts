@@ -11,7 +11,7 @@ describe("buildFilterParams", () => {
       buildFilterParams({
         district: [],
         publisher: [],
-      }).toString()
+      }).toString(),
     ).toBe("");
   });
 
@@ -31,8 +31,14 @@ describe("buildFilterParams", () => {
     expect(
       buildFilterParams({
         district: ["E06000001", "E06000002"],
-      }).get("district")
+      }).get("district"),
     ).toBe("E06000001,E06000002");
+  });
+
+  it("serializes nhs_trust=all for the all-trusts sentinel", () => {
+    expect(buildFilterParams({ nhs_trust: ["all"] }).get("nhs_trust")).toBe(
+      "all",
+    );
   });
 
   it("combines multiple dimensions into one query string", () => {
