@@ -11,6 +11,7 @@ import {
 import { EXPLORER_GLOSSARY } from "../lib/explorer-glossary";
 import type { SocioContextView } from "../lib/socio-context";
 import { GlossaryTip } from "./feed-quality/GlossaryTip";
+import { AreaContextTeaser } from "./explorer-details/AreaContextTeaser";
 import { ExplorerDetailsModal } from "./ExplorerDetailsModal";
 
 type SummaryLayout = "panel" | "sheet";
@@ -118,8 +119,13 @@ export function ExplorerSummary({
           </p>
         </header>
 
-        <div className="flex flex-1 flex-col px-5 pt-5 pb-5">
-          <p className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-widest text-oa-grey-500">
+        <div className="flex min-h-0 flex-1 flex-col px-5 pt-5 pb-5">
+          <div
+            className={
+              layout === "panel" ? "min-h-0 flex-1 overflow-y-auto" : undefined
+            }
+          >
+            <p className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-widest text-oa-grey-500">
             Opportunities
             <GlossaryTip
               entry={EXPLORER_GLOSSARY.opportunities}
@@ -183,8 +189,21 @@ export function ExplorerSummary({
             />
           </dl>
 
+          <AreaContextTeaser
+            socioContext={socioContext}
+            isSocioLoading={isSocioLoading}
+            boundaryType={summary.boundaryType}
+          />
+          </div>
+
           {showViewData && (
-            <div className="mt-auto pt-5">
+            <div
+              className={
+                layout === "panel"
+                  ? "shrink-0 border-t border-oa-grey-100 pt-4"
+                  : "mt-auto pt-5"
+              }
+            >
               <button
                 type="button"
                 onClick={() => setDetailsOpen(true)}
