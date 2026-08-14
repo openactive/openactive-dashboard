@@ -101,18 +101,20 @@ const EMPTY_BLOCKS: SocioContextBlocks = {
   showEnglandOnlyNote: false,
 };
 
+export const EMPTY_SOCIO_CONTEXT: SocioContextView = {
+  scope: "empty",
+  blocks: EMPTY_BLOCKS,
+  ladRow: null,
+  totalPopulation: null,
+  opportunitiesPer1000: null,
+};
+
 export function resolveSocioContext(
   rows: SocioAreaRow[],
   totalOpportunities: number,
 ): SocioContextView {
   if (rows.length === 0) {
-    return {
-      scope: "empty",
-      blocks: EMPTY_BLOCKS,
-      ladRow: null,
-      totalPopulation: null,
-      opportunitiesPer1000: null,
-    };
+    return EMPTY_SOCIO_CONTEXT;
   }
 
   const singleEnglandLad =
