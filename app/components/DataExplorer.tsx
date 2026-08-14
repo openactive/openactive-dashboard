@@ -5,6 +5,7 @@ import { useMediaQuery } from "../hooks/useMediaQuery";
 import { useLocationScopedFilterOptions } from "../hooks/useLocationScopedFilterOptions";
 import { useReactiveOpportunities } from "../hooks/useReactiveOpportunities";
 import type { PresentNames } from "../hooks/useReactiveOpportunities";
+import { useSocioContext } from "../hooks/useSocioContext";
 import { ExplorerFilterBar } from "./ExplorerFilterBar";
 import { ExplorerSummary } from "./ExplorerSummary";
 import {
@@ -215,6 +216,13 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
       onResolved: onOpportunitiesResolved,
     });
 
+  const { context: socioContext, isLoading: isSocioLoading } =
+    useSocioContext({
+      filters,
+      hierarchy,
+      totalOpportunities: summary.totalOpportunities,
+    });
+
   // NHS Trust names for the selection label, loaded lazily only in NHS mode
   // (the picker uses the same cached hook, so this adds no extra fetch).
   const { options: nhsOptions } = useNhsTrustOptions(
@@ -302,6 +310,8 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
             summary={summary}
             selectionLabel={selectionLabel}
             isLoading={isOpportunitiesLoading}
+            socioContext={socioContext}
+            isSocioLoading={isSocioLoading}
           />
         </aside>
 
@@ -332,6 +342,8 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
             selectionLabel={selectionLabel}
             filterProps={filterControlProps}
             isLoading={isOpportunitiesLoading}
+            socioContext={socioContext}
+            isSocioLoading={isSocioLoading}
           />
         </div>
 

@@ -8,6 +8,7 @@ import { useFocusTrap } from "../../hooks/useFocusTrap";
 import { formatFullNumber, formatNumber } from "../../lib/format";
 import { areaMetricLabel, EXPLORER_SUMMARY_METRIC_DEFS, type ExplorerSummary } from "../../lib/explore-filters";
 import { EXPLORER_GLOSSARY } from "../../lib/explorer-glossary";
+import type { SocioContextView } from "../../lib/socio-context";
 import { StatRow } from "./StatRow";
 import { TopBreakdownTabs } from "./TopBreakdownTabs";
 
@@ -16,6 +17,8 @@ interface ExplorerDetailsModalProps {
   onClose: () => void;
   summary: ExplorerSummary;
   selectionLabel: string;
+  socioContext: SocioContextView;
+  isSocioLoading?: boolean;
 }
 
 const TITLE_ID = "explorer-details-title";
@@ -26,6 +29,8 @@ export function ExplorerDetailsModal({
   onClose,
   summary,
   selectionLabel,
+  socioContext,
+  isSocioLoading = false,
 }: ExplorerDetailsModalProps) {
   const closeRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -100,6 +105,16 @@ export function ExplorerDetailsModal({
         </header>
 
         <div className="flex-1 overflow-y-auto overscroll-contain">
+          {isSocioLoading && (
+            <p className="sr-only" role="status" aria-live="polite">
+              Loading area context
+            </p>
+          )}
+          {socioContext.scope !== "empty" && (
+            <p className="sr-only" role="status">
+              Area context data is available in this selection
+            </p>
+          )}
           <div className="grid gap-x-8 gap-y-6 px-6 py-6 sm:grid-cols-2">
             <section aria-labelledby="details-headline">
               <h3

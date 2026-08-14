@@ -4,6 +4,7 @@ import type {
   ExplorerSummary,
 } from "./explore-filters";
 import type { GeoHierarchy } from "./geo-hierarchy";
+import type { SocioContextView } from "./socio-context";
 
 export type MobilePanel = "none" | "filters" | "stats";
 
@@ -26,4 +27,6 @@ export interface ExplorerMobileChromeProps {
   selectionLabel: string;
   filterProps: ExplorerFilterControlProps;
   isLoading?: boolean;
+  socioContext: SocioContextView;
+  isSocioLoading?: boolean;
 }

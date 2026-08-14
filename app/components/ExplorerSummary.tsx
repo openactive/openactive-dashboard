@@ -9,6 +9,7 @@ import {
   type ExplorerSummary as ExplorerSummaryData,
 } from "../lib/explore-filters";
 import { EXPLORER_GLOSSARY } from "../lib/explorer-glossary";
+import type { SocioContextView } from "../lib/socio-context";
 import { GlossaryTip } from "./feed-quality/GlossaryTip";
 import { ExplorerDetailsModal } from "./ExplorerDetailsModal";
 
@@ -19,6 +20,8 @@ interface ExplorerSummaryProps {
   selectionLabel: string;
   layout?: SummaryLayout;
   isLoading?: boolean;
+  socioContext: SocioContextView;
+  isSocioLoading?: boolean;
 }
 
 function StatRow({
@@ -72,6 +75,8 @@ export function ExplorerSummary({
   selectionLabel,
   layout = "panel",
   isLoading = false,
+  socioContext,
+  isSocioLoading = false,
 }: ExplorerSummaryProps) {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const total = summary.totalOpportunities;
@@ -203,6 +208,8 @@ export function ExplorerSummary({
         onClose={() => setDetailsOpen(false)}
         summary={summary}
         selectionLabel={selectionLabel}
+        socioContext={socioContext}
+        isSocioLoading={isSocioLoading}
       />
     </>
   );
