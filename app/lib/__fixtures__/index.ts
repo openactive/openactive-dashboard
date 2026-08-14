@@ -22,4 +22,4 @@ export {
 } from "./opportunities";
 
 export { sampleFeedQualityRows } from "./feed-quality";
-export { hartlepoolSocioRow, highlandSocioRow } from "./socio";
+export { hartlepoolSocioRow, highlandSocioRow, northEastSocioRow } from "./socio";

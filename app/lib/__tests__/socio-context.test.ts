@@ -7,9 +7,14 @@ import {
   hasImdData,
   isEnglandLadRow,
   opportunitiesPer1000,
+  resolveSocioContext,
   sumPopulation,
 } from "../socio-context";
-import { hartlepoolSocioRow, highlandSocioRow } from "../__fixtures__";
+import {
+  hartlepoolSocioRow,
+  highlandSocioRow,
+  northEastSocioRow,
+} from "../__fixtures__";
 
 describe("formatSocioRate", () => {
   it("turns a decimal rate into a percentage string", () => {
@@ -83,5 +88,65 @@ describe("sumPopulation", () => {
     expect(sumPopulation([hartlepoolSocioRow, highlandSocioRow])).toBe(
       98180 + 237290,
     );
+  });
+});
+
+describe("resolveSocioContext", () => {
+  it("returns empty when there are no rows", () => {
+    const view = resolveSocioContext([], 0);
+
+    expect(view.scope).toBe("empty");
+    expect(view.blocks.showPopulation).toBe(false);
+    expect(view.ladRow).toBeNull();
+  });
+
+  it("shows all blocks for a single England local authority", () => {
+    const view = resolveSocioContext([hartlepoolSocioRow], 5000);
+
+    expect(view.scope).toBe("single-lad");
+    expect(view.ladRow).toEqual(hartlepoolSocioRow);
+    expect(view.blocks.showPopulation).toBe(true);
+    expect(view.blocks.showOpportunitiesPer1000).toBe(true);
+    expect(view.blocks.showImd).toBe(true);
+    expect(view.blocks.showAls).toBe(true);
+    expect(view.blocks.showEnglandOnlyNote).toBe(false);
+    expect(view.totalPopulation).toBe(98180);
+    expect(view.opportunitiesPer1000).toBeCloseTo(50.93, 1);
+  });
+
+  it("hides IMD and ALS for a single Scotland local authority", () => {
+    const view = resolveSocioContext([highlandSocioRow], 1000);
+
+    expect(view.scope).toBe("multi-or-aggregate");
+    expect(view.ladRow).toBeNull();
+    expect(view.blocks.showPopulation).toBe(true);
+    expect(view.blocks.showImd).toBe(false);
+    expect(view.blocks.showAls).toBe(false);
+    expect(view.blocks.showEnglandOnlyNote).toBe(true);
+    expect(view.totalPopulation).toBe(237290);
+  });
+
+  it("sums population and hides IMD and ALS for multiple local authorities", () => {
+    const view = resolveSocioContext(
+      [hartlepoolSocioRow, highlandSocioRow],
+      2000,
+    );
+
+    expect(view.scope).toBe("multi-or-aggregate");
+    expect(view.blocks.showImd).toBe(false);
+    expect(view.blocks.showAls).toBe(false);
+    expect(view.blocks.showEnglandOnlyNote).toBe(true);
+    expect(view.totalPopulation).toBe(98180 + 237290);
+  });
+
+  it("shows population only for a region aggregate row", () => {
+    const view = resolveSocioContext([northEastSocioRow], 10000);
+
+    expect(view.scope).toBe("multi-or-aggregate");
+    expect(view.blocks.showPopulation).toBe(true);
+    expect(view.blocks.showImd).toBe(false);
+    expect(view.blocks.showAls).toBe(false);
+    expect(view.blocks.showEnglandOnlyNote).toBe(true);
+    expect(view.totalPopulation).toBe(2760678);
   });
 });

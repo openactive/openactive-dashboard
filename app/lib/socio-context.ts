@@ -73,3 +73,87 @@ export function sumPopulation(rows: SocioAreaRow[]): number | null {
 
   return total > 0 ? total : null;
 }
+
+export type SocioContextScope = "single-lad" | "multi-or-aggregate" | "empty";
+
+export type SocioContextBlocks = {
+  showPopulation: boolean;
+  showOpportunitiesPer1000: boolean;
+  showImd: boolean;
+  showAls: boolean;
+  showEnglandOnlyNote: boolean;
+};
+
+export type SocioContextView = {
+  scope: SocioContextScope;
+  blocks: SocioContextBlocks;
+  /** Single LAD row when scope is single-lad; otherwise null */
+  ladRow: SocioAreaRow | null;
+  totalPopulation: number | null;
+  opportunitiesPer1000: number | null;
+};
+
+const EMPTY_BLOCKS: SocioContextBlocks = {
+  showPopulation: false,
+  showOpportunitiesPer1000: false,
+  showImd: false,
+  showAls: false,
+  showEnglandOnlyNote: false,
+};
+
+export function resolveSocioContext(
+  rows: SocioAreaRow[],
+  totalOpportunities: number,
+): SocioContextView {
+  if (rows.length === 0) {
+    return {
+      scope: "empty",
+      blocks: EMPTY_BLOCKS,
+      ladRow: null,
+      totalPopulation: null,
+      opportunitiesPer1000: null,
+    };
+  }
+
+  const singleEnglandLad =
+    rows.length === 1 && rows[0] != null && isEnglandLadRow(rows[0]);
+
+  if (singleEnglandLad) {
+    const row = rows[0]!;
+    const population = row.total_population;
+
+    return {
+      scope: "single-lad",
+      blocks: {
+        showPopulation: population != null,
+        showOpportunitiesPer1000: population != null && population > 0,
+        showImd: hasImdData(row),
+        showAls: hasAlsData(row),
+        showEnglandOnlyNote: false,
+      },
+      ladRow: row,
+      totalPopulation: population,
+      opportunitiesPer1000: opportunitiesPer1000(
+        totalOpportunities,
+        population,
+      ),
+    };
+  }
+
+  const population = sumPopulation(rows);
+  const showEnglandOnlyNote = rows.some((row) => !isEnglandLadRow(row));
+
+  return {
+    scope: "multi-or-aggregate",
+    blocks: {
+      showPopulation: population != null,
+      showOpportunitiesPer1000: population != null && population > 0,
+      showImd: false,
+      showAls: false,
+      showEnglandOnlyNote,
+    },
+    ladRow: null,
+    totalPopulation: population,
+    opportunitiesPer1000: opportunitiesPer1000(totalOpportunities, population),
+  };
+}

@@ -43,3 +43,25 @@ export const highlandSocioRow: SocioAreaRow = {
   als_active_rate_change_12m: null,
   als_inactive_rate_change_12m: null,
 };
+
+/** North East region aggregate — population only. */
+export const northEastSocioRow: SocioAreaRow = {
+  area_code: "E12000001",
+  area_name: "North East",
+  total_population: 2760678,
+  imd25_average_score: null,
+  imd25_rank_of_average_score: null,
+  imd25_pct_lsoas_in_most_deprived_10pct: null,
+  imd25_extent: null,
+  imd25_local_concentration: null,
+  als_respondents: null,
+  als_active_pop: null,
+  als_fairly_active_pop: null,
+  als_inactive_pop: null,
+  als_survey_adult_population: null,
+  als_active_rate: null,
+  als_fairly_active_rate: null,
+  als_inactive_rate: null,
+  als_active_rate_change_12m: null,
+  als_inactive_rate_change_12m: null,
+};
