@@ -299,7 +299,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
       {/* Desktop layout: panel on the left, map on the right. */}
       <div className="mt-4 hidden lg:grid lg:grid-cols-[22rem_minmax(0,1fr)] lg:gap-5 xl:grid-cols-[24rem_minmax(0,1fr)] 2xl:grid-cols-[28rem_minmax(0,1fr)]">
         <aside
-          className="h-[min(calc(100vh-11rem),760px)]"
+          className="self-start"
           aria-labelledby="explorer-summary-heading"
         >
           <h3 id="explorer-summary-heading" className="sr-only">

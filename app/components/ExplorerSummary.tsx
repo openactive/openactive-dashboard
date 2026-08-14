@@ -86,7 +86,7 @@ export function ExplorerSummary({
 
   const containerClass =
     layout === "panel"
-      ? "flex h-full flex-col overflow-hidden rounded-xl border border-oa-grey-200 bg-white shadow-[0_8px_32px_rgba(34,53,130,0.08)]"
+      ? "flex flex-col rounded-xl border border-oa-grey-200 bg-white shadow-[0_8px_32px_rgba(34,53,130,0.08)]"
       : "flex flex-col";
 
   return (
@@ -119,7 +119,14 @@ export function ExplorerSummary({
           </p>
         </header>
 
-        <div className="flex flex-1 flex-col px-5 pt-5 pb-5">
+        <div
+          className={
+            layout === "panel"
+              ? "flex flex-col"
+              : "flex flex-1 flex-col px-5 pt-5 pb-5"
+          }
+        >
+          <div className={layout === "panel" ? "px-5 pt-5" : undefined}>
           <p className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-widest text-oa-grey-500">
             Opportunities
             <GlossaryTip
@@ -189,9 +196,16 @@ export function ExplorerSummary({
             isSocioLoading={isSocioLoading}
             boundaryType={summary.boundaryType}
           />
+          </div>
 
           {showViewData && (
-            <div className="mt-auto pt-5">
+            <div
+              className={
+                layout === "panel"
+                  ? "shrink-0 border-t border-oa-grey-100 px-5 py-4"
+                  : "mt-auto pt-5"
+              }
+            >
               <button
                 type="button"
                 onClick={() => setDetailsOpen(true)}
