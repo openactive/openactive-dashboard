@@ -119,13 +119,8 @@ export function ExplorerSummary({
           </p>
         </header>
 
-        <div className="flex min-h-0 flex-1 flex-col px-5 pt-5 pb-5">
-          <div
-            className={
-              layout === "panel" ? "min-h-0 flex-1 overflow-y-auto" : undefined
-            }
-          >
-            <p className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-widest text-oa-grey-500">
+        <div className="flex flex-1 flex-col px-5 pt-5 pb-5">
+          <p className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-widest text-oa-grey-500">
             Opportunities
             <GlossaryTip
               entry={EXPLORER_GLOSSARY.opportunities}
@@ -194,16 +189,9 @@ export function ExplorerSummary({
             isSocioLoading={isSocioLoading}
             boundaryType={summary.boundaryType}
           />
-          </div>
 
           {showViewData && (
-            <div
-              className={
-                layout === "panel"
-                  ? "shrink-0 border-t border-oa-grey-100 pt-4"
-                  : "mt-auto pt-5"
-              }
-            >
+            <div className="mt-auto pt-5">
               <button
                 type="button"
                 onClick={() => setDetailsOpen(true)}
