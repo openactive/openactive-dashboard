@@ -18,6 +18,7 @@ type SocioMetricRowProps = {
   displayValue: string;
   accessibleValue?: string;
   hint?: GlossaryEntry;
+  unitHint?: GlossaryEntry;
 };
 
 function SocioMetricRow({
@@ -25,6 +26,7 @@ function SocioMetricRow({
   displayValue,
   accessibleValue,
   hint,
+  unitHint,
 }: SocioMetricRowProps) {
   return (
     <div className="flex items-baseline justify-between gap-3 py-3">
@@ -38,10 +40,15 @@ function SocioMetricRow({
           )}
         </span>
       </dt>
-      <dd className="shrink-0 text-base font-bold tabular-nums text-oa-navy">
+      <dd className="flex shrink-0 items-center gap-1 text-base font-bold tabular-nums text-oa-navy">
         <span aria-hidden="true">{displayValue}</span>
         {accessibleValue && accessibleValue !== displayValue && (
           <span className="sr-only">{accessibleValue}</span>
+        )}
+        {unitHint && (
+          <span className="shrink-0 font-normal">
+            <GlossaryTip entry={unitHint} iconClassName="h-3.5 w-3.5" />
+          </span>
         )}
       </dd>
     </div>
@@ -182,7 +189,12 @@ function renderAlsRows(row: SocioAreaRow) {
     rows.push({
       label: hint.label,
       displayValue: formatSocioRateChange(value),
+      accessibleValue: formatSocioRateChange(value).replace(
+        " pp",
+        " percentage points",
+      ),
       hint,
+      unitHint: EXPLORER_GLOSSARY.percentagePoints,
     });
   }
 

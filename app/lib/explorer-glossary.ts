@@ -110,6 +110,12 @@ export const EXPLORER_GLOSSARY = {
       "Deprivation and Active Lives data are only available for English local authorities. Population is shown for all areas.",
     category: "metric",
   },
+  percentagePoints: {
+    label: "Percentage points (pp)",
+    definition:
+      "pp means percentage points — the absolute difference between two percentages. A drop from 61% to 58% is −3 pp, not a 3% decrease.",
+    category: "metric",
+  },
 } satisfies Record<string, GlossaryEntry>;
 
 /** Glossary entries keyed by /socio response field names (and derived metrics). */
