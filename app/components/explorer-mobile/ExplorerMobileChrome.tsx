@@ -18,6 +18,8 @@ export function ExplorerMobileChrome({
   selectionLabel,
   filterProps,
   isLoading,
+  socioContext,
+  isSocioLoading,
 }: ExplorerMobileChromeProps) {
   const closePanel = useCallback(() => onPanelChange("none"), [onPanelChange]);
 
@@ -54,6 +56,8 @@ export function ExplorerMobileChrome({
               summary={summary}
               selectionLabel={selectionLabel}
               isLoading={isLoading}
+              socioContext={socioContext}
+              isSocioLoading={isSocioLoading}
             />
           )}
         </ExplorerMobileSheet>

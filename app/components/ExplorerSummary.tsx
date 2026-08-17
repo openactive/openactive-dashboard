@@ -9,7 +9,9 @@ import {
   type ExplorerSummary as ExplorerSummaryData,
 } from "../lib/explore-filters";
 import { EXPLORER_GLOSSARY } from "../lib/explorer-glossary";
+import type { SocioContextView } from "../lib/socio-context";
 import { GlossaryTip } from "./feed-quality/GlossaryTip";
+import { AreaContextTeaser } from "./explorer-details/AreaContextTeaser";
 import { ExplorerDetailsModal } from "./ExplorerDetailsModal";
 
 type SummaryLayout = "panel" | "sheet";
@@ -19,6 +21,8 @@ interface ExplorerSummaryProps {
   selectionLabel: string;
   layout?: SummaryLayout;
   isLoading?: boolean;
+  socioContext: SocioContextView;
+  isSocioLoading?: boolean;
 }
 
 function StatRow({
@@ -72,6 +76,8 @@ export function ExplorerSummary({
   selectionLabel,
   layout = "panel",
   isLoading = false,
+  socioContext,
+  isSocioLoading = false,
 }: ExplorerSummaryProps) {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const total = summary.totalOpportunities;
@@ -80,7 +86,7 @@ export function ExplorerSummary({
 
   const containerClass =
     layout === "panel"
-      ? "flex h-full flex-col overflow-hidden rounded-xl border border-oa-grey-200 bg-white shadow-[0_8px_32px_rgba(34,53,130,0.08)]"
+      ? "flex flex-col rounded-xl border border-oa-grey-200 bg-white shadow-[0_8px_32px_rgba(34,53,130,0.08)]"
       : "flex flex-col";
 
   return (
@@ -113,7 +119,14 @@ export function ExplorerSummary({
           </p>
         </header>
 
-        <div className="flex flex-1 flex-col px-5 pt-5 pb-5">
+        <div
+          className={
+            layout === "panel"
+              ? "flex flex-col"
+              : "flex flex-1 flex-col px-5 pt-5 pb-5"
+          }
+        >
+          <div className={layout === "panel" ? "px-5 pt-5" : undefined}>
           <p className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-widest text-oa-grey-500">
             Opportunities
             <GlossaryTip
@@ -178,8 +191,21 @@ export function ExplorerSummary({
             />
           </dl>
 
+          <AreaContextTeaser
+            socioContext={socioContext}
+            isSocioLoading={isSocioLoading}
+            boundaryType={summary.boundaryType}
+          />
+          </div>
+
           {showViewData && (
-            <div className="mt-auto pt-5">
+            <div
+              className={
+                layout === "panel"
+                  ? "shrink-0 border-t border-oa-grey-100 px-5 py-4"
+                  : "mt-auto pt-5"
+              }
+            >
               <button
                 type="button"
                 onClick={() => setDetailsOpen(true)}
@@ -203,6 +229,8 @@ export function ExplorerSummary({
         onClose={() => setDetailsOpen(false)}
         summary={summary}
         selectionLabel={selectionLabel}
+        socioContext={socioContext}
+        isSocioLoading={isSocioLoading}
       />
     </>
   );

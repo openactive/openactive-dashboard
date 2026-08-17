@@ -5,6 +5,7 @@ import { useMediaQuery } from "../hooks/useMediaQuery";
 import { useLocationScopedFilterOptions } from "../hooks/useLocationScopedFilterOptions";
 import { useReactiveOpportunities } from "../hooks/useReactiveOpportunities";
 import type { PresentNames } from "../hooks/useReactiveOpportunities";
+import { useSocioContext } from "../hooks/useSocioContext";
 import { ExplorerFilterBar } from "./ExplorerFilterBar";
 import { ExplorerSummary } from "./ExplorerSummary";
 import {
@@ -215,6 +216,13 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
       onResolved: onOpportunitiesResolved,
     });
 
+  const { context: socioContext, isLoading: isSocioLoading } =
+    useSocioContext({
+      filters,
+      hierarchy,
+      totalOpportunities: summary.totalOpportunities,
+    });
+
   // NHS Trust names for the selection label, loaded lazily only in NHS mode
   // (the picker uses the same cached hook, so this adds no extra fetch).
   const { options: nhsOptions } = useNhsTrustOptions(
@@ -291,7 +299,7 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
       {/* Desktop layout: panel on the left, map on the right. */}
       <div className="mt-4 hidden lg:grid lg:grid-cols-[22rem_minmax(0,1fr)] lg:gap-5 xl:grid-cols-[24rem_minmax(0,1fr)] 2xl:grid-cols-[28rem_minmax(0,1fr)]">
         <aside
-          className="h-[min(calc(100vh-13rem),640px)]"
+          className="self-start"
           aria-labelledby="explorer-summary-heading"
         >
           <h3 id="explorer-summary-heading" className="sr-only">
@@ -302,10 +310,12 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
             summary={summary}
             selectionLabel={selectionLabel}
             isLoading={isOpportunitiesLoading}
+            socioContext={socioContext}
+            isSocioLoading={isSocioLoading}
           />
         </aside>
 
-        <div className="relative h-[min(calc(100vh-13rem),640px)] overflow-hidden rounded-xl shadow-[0_12px_48px_rgba(34,53,130,0.12)] ring-1 ring-oa-grey-300/60">
+        <div className="relative h-[min(calc(100vh-11rem),760px)] overflow-hidden rounded-xl shadow-[0_12px_48px_rgba(34,53,130,0.12)] ring-1 ring-oa-grey-300/60">
           <OpportunityMap
             districtCounts={districtCounts}
             scopeAreaNames={mapScopeNames}
@@ -332,6 +342,8 @@ export function DataExplorer({ hierarchy }: DataExplorerProps) {
             selectionLabel={selectionLabel}
             filterProps={filterControlProps}
             isLoading={isOpportunitiesLoading}
+            socioContext={socioContext}
+            isSocioLoading={isSocioLoading}
           />
         </div>
 

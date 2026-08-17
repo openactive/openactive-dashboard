@@ -8,6 +8,8 @@ import { useFocusTrap } from "../../hooks/useFocusTrap";
 import { formatFullNumber, formatNumber } from "../../lib/format";
 import { areaMetricLabel, EXPLORER_SUMMARY_METRIC_DEFS, type ExplorerSummary } from "../../lib/explore-filters";
 import { EXPLORER_GLOSSARY } from "../../lib/explorer-glossary";
+import type { SocioContextView } from "../../lib/socio-context";
+import { AreaContextSection } from "./AreaContextSection";
 import { StatRow } from "./StatRow";
 import { TopBreakdownTabs } from "./TopBreakdownTabs";
 
@@ -16,6 +18,8 @@ interface ExplorerDetailsModalProps {
   onClose: () => void;
   summary: ExplorerSummary;
   selectionLabel: string;
+  socioContext: SocioContextView;
+  isSocioLoading?: boolean;
 }
 
 const TITLE_ID = "explorer-details-title";
@@ -26,6 +30,8 @@ export function ExplorerDetailsModal({
   onClose,
   summary,
   selectionLabel,
+  socioContext,
+  isSocioLoading = false,
 }: ExplorerDetailsModalProps) {
   const closeRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -152,6 +158,12 @@ export function ExplorerDetailsModal({
               </dl>
             </section>
           </div>
+
+          <AreaContextSection
+            socioContext={socioContext}
+            isSocioLoading={isSocioLoading}
+            boundaryType={summary.boundaryType}
+          />
 
           <div className="border-t border-oa-grey-100 px-6 py-6">
             <h3 className="mb-4 text-[11px] font-semibold uppercase tracking-widest text-oa-grey-500">
