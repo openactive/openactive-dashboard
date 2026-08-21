@@ -11,7 +11,7 @@ const PUBLISHER_DEFINITION =
   "The software platform or booking system that publishes the data feed. One publisher often lists opportunities for many different providers.";
 
 export const OPPORTUNITIES_DEFINITION =
-  "Activities and facilities you can use to get active in the near future, usually within the next 2 to 4 weeks.";
+  "The total of activities and facility uses you can get active with in the near future (usually the next 2 to 4 weeks). Each session, class, event or facility use counts as one opportunity — not the number of spots or time slots available.";
 
 export const EXPLORER_GLOSSARY = {
   area: {
@@ -47,13 +47,13 @@ export const EXPLORER_GLOSSARY = {
   physicalActivity: {
     label: "Physical Activity",
     definition:
-      "Opportunities that are led sessions, classes or events.",
+      "Sessions, classes and events. Each one counts as a single opportunity, regardless of how many places are available.",
     category: "metric",
   },
   facilities: {
     label: "Facilities",
     definition:
-      "Opportunities to hire or use a space or equipment, like a court or pitch.",
+      "Spaces or equipment you can hire or use, like a court or pitch. Each facility use counts as a single opportunity, not the number of bookable time slots.",
     category: "metric",
   },
   feedPublisher: {
@@ -89,7 +89,7 @@ export const EXPLORER_GLOSSARY = {
   opportunitiesPer1000: {
     label: "Opportunities per 1,000 people",
     definition:
-      "OpenActive opportunities divided by population, scaled per thousand people. Slot-based feeds can make this figure much higher than traditional sessions or classes would suggest.",
+      "Total opportunities (activities plus facility uses) divided by population, scaled per thousand people.",
     category: "metric",
   },
   imdDeprivation: {
