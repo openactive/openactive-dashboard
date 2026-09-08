@@ -20,7 +20,7 @@ nvm use 24.11.0
 npm install
 ```
 
-Copy the API settings into `.env.local`:
+Copy [`.env.example`](.env.example) to `.env.local` and fill in:
 
 - `OPENACTIVE_API_BASE_URL`
 - `OPENACTIVE_API_TOKEN`
