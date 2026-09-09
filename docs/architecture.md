@@ -9,7 +9,9 @@ This app is a Next.js site. Almost everything lives under `app/`.
 The home page is `app/page.tsx`. Top to bottom it renders"
 
 1.**Hero** - summarized numbers for the whole ecosystem (`HeroSection`)
+
 2.**Explorer** - map, filters, and stats (`DataExplorerSection`)
+
 3.**Feed quality** - how reliable the matching feeds are (`FeedQualitySection`)
 
 Explorer and feed quality share a wrapper, `FeedQualityFilterProvider`. When you change the explorer search, feed quality uses the same filters.
@@ -54,7 +56,7 @@ Map boundaries are static files with HTTP cache headers from `serve-geojson.ts`.
 | Filter state | `app/lib/explore-filters.ts` |
 | Population / IMD / Active Lives | `app/lib/socio-context.ts` |
 | Feed quality grouping | `app/lib/feed-quality.ts` |
-| Tooltip Copy | `app/lib/ezplorer-glossary.ts` |
+| Tooltip Copy | `app/lib/explorer-glossary.ts` |
 
 That last bit is a table. In Markdown:
 
