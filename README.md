@@ -42,13 +42,11 @@ npm run lint
 npm run build
 ```
 
+```markdown
 ## Testing
 
-Unit tests use [Vitest](https://vitest.dev/).
+Unit tests use Vitest. See [`docs/testing.md`](docs/testing.md) for layout, fixtures, and CI.
 
 ```bash
-npm test          # run once
-npm run test:watch  # watch mode
-```
-
-CI runs `npm test` on pull requests and pushes to `main` (see `.github/workflows/test.yml`).
+npm test
+npm run test:watch
