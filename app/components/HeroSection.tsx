@@ -1,6 +1,9 @@
 import { HeroLottie } from "./HeroLottie";
 import { StatsStrip } from "./StatsStrip";
 
+const exploreCtaClassName =
+  "inline-flex w-full lg:w-auto items-center justify-center px-7 py-3.5 rounded-full bg-oa-blue text-white font-semibold text-sm hover:bg-oa-cyan transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-oa-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent shadow-lg shadow-oa-cyan/25";
+
 export function HeroSection() {
   return (
     <section
@@ -26,29 +29,37 @@ export function HeroSection() {
               of it all. The same data breaks down area by area, and comes with a
               clear picture of how reliable it is.
             </p>
-            <div className="mt-10 flex flex-wrap gap-4">
+            <div className="mt-10 hidden flex-wrap gap-4 lg:flex">
               <a
                 href="#data"
-                className="inline-flex items-center px-7 py-3.5 rounded-full bg-oa-blue text-white font-semibold text-sm hover:bg-oa-cyan transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-oa-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent shadow-lg shadow-oa-cyan/25"
+                className={exploreCtaClassName}
               >
                 Explore the data
               </a>
             </div>
           </div>
 
-          <div className="flex items-center justify-center" aria-hidden="true">
+          <div className="hidden items-center justify-center lg:flex"
+            aria-hidden="true"
+          >
             <div className="w-full aspect-square motion-reduce:hidden">
               <HeroLottie />
             </div>
           </div>
         </div>
 
-        <StatsStrip />
+        <div className="mt-10 lg:mt-12">
+          <StatsStrip />
+          <p className="mt-4 text-center text-sm text-white/60">
+            These numbers update every day, so you always see the latest.
+          </p>
+        </div>
 
-        {/* Daily refresh note */}
-        <p className="mt-4 text-center text-sm text-white/60">
-          These numbers update every day, so you always see the latest.
-        </p>
+        <div className="mt-10 flex flex-wrap gap-4 lg:hidden">
+          <a href="#data" className={exploreCtaClassName}>
+            Explore the data
+          </a>
+        </div>
       </div>
     </section>
   );
