@@ -6,11 +6,15 @@ Tooltip wording lives in two modules. The UI does not hard-code definitions next
 
 `GlossaryTip` in `app/components/feed-quality/GlossaryTip.tsx` is the info icon.
 
-- Opens on hover, focus, or click (click pins it open)
+- On devices that can hover (typical desktop mouse), opens on hover or focus; click pins it open
+- On touch, opens on click only — so tips do not pop up over modals and filters by accident
+- That check is `canHover()` in `app/lib/pointer.ts` (`(hover: hover) and (pointer: fine)`)
 - Shows `entry.definition` in a small panel
-- Works with keyboard (Escape closes; aria-label asks what the term means)
+- Escape closes; the button has an aria-label asking what the term means
 
-Pass it a `GlossaryEntry`: `{ label. definition, category }`.
+`FeedQualityColourKey` uses the same hover vs click rule.
+
+Pass it a `GlossaryEntry`: `{ label, definition, category }`.
 
 ## Where the copy lives
 
