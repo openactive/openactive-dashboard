@@ -13,6 +13,7 @@ import { InformationCircleIcon } from "@heroicons/react/20/solid";
 import { useClickOutside } from "../../hooks/useClickOutside";
 import { useEscapeClose } from "../../hooks/useEscapeClose";
 import type { GlossaryEntry } from "../../lib/feed-quality-glossary";
+import { canHover } from "../../lib/pointer";
 
 interface GlossaryTipProps {
   entry: GlossaryEntry;
@@ -76,6 +77,7 @@ export function GlossaryTip({
   }, [clearCloseTimer]);
 
   const openHover = useCallback(() => {
+    if (!canHover()) return;
     clearCloseTimer();
     setHovered(true);
   }, [clearCloseTimer]);
@@ -160,7 +162,10 @@ export function GlossaryTip({
           setPinned((prev) => !prev);
           setHovered(false);
         }}
-        onFocus={() => setFocused(true)}
+        onFocus={() => {
+          if (!canHover()) return;
+          setFocused(true);
+        }}
         onBlur={() => setFocused(false)}
         aria-label={`What does ${entry.label} mean?`}
         aria-describedby={open ? panelId : undefined}
