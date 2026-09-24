@@ -28,6 +28,8 @@ If the API fails, the failed key is dropped so Retry can try again.
 
 `groupFeedsByDataset` in `app/lib/feed-quality.ts` groups rows by dataset.
 
+Each group gets a `worstStatus` (the most severe status among that dataset's feeds). The summary overview and the All / Healthy / Warnings / Errors chips both count **data providers** (dataset groups) by that `worstStatus`, so their totals match the table. Individual feed statuses still show when a group is expanded.
+
 The UI has two views (`FeedQualityViewToggle`):
 
 - **Data completeness** - core fields used for headline opportunity figures (dates, location, activity or facility)
@@ -35,7 +37,7 @@ The UI has two views (`FeedQualityViewToggle`):
 
 Completeness bands (high / moderate / low / none / not assessed) are defined in `COMPLETENESS_BANDS` in the same file. Colour cells use those bands.
 
-Each feeds also has a status: `OK`, `WARNING`, or `ERROR` (shown as Healthy / Warning / Error).
+Each feed also has a status: `OK`, `WARNING`, or `ERROR` (shown as Healthy / Warning / Error).
 
 ## Opportunities column
 
