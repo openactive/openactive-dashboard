@@ -398,7 +398,7 @@ export function OpportunityMap({
     <figure className="relative flex h-full min-h-0 w-full flex-col">
       <div
         ref={containerRef}
-        className="relative h-full min-h-[480px] w-full flex-1 touch-none outline-none [-webkit-tap-highlight-color:transparent] [&_svg]:outline-none [&_svg:focus]:outline-none [&_path]:outline-none"
+        className="relative h-full min-h-120 w-full flex-1 outline-none [-webkit-tap-highlight-color:transparent] [&_svg]:outline-none [&_svg:focus]:outline-none [&_path]:outline-none"
         style={{ background: "linear-gradient(165deg, #e4ecf4 0%, #d6e2ec 45%, #c8d6e2 100%)" }}
       >
         {isAutoFramed && (
@@ -441,7 +441,7 @@ export function OpportunityMap({
 
         <svg
           ref={svgRef}
-          className={`h-full w-full touch-none cursor-grab outline-none focus:outline-none active:cursor-grabbing ${status !== "ready" ? "opacity-0" : ""}`}
+          className={`h-full w-full cursor-grab outline-none focus:outline-none active:cursor-grabbing ${status !== "ready" ? "opacity-0" : ""}`}
           aria-labelledby="map-title"
           aria-describedby={tooltipId}
           tabIndex={-1}
