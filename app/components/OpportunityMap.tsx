@@ -469,9 +469,10 @@ export function OpportunityMap({
 
       <figcaption className="sr-only" id="map-title">
         Choropleth map of opportunities per {boundaryNoun(loadedBoundaryType)}.
-        Click an area to filter by that location, or use the location filter.
-        Drag to pan and scroll or pinch to zoom; zoom buttons are available
-        after the filters in the tab order.
+        Click or tap an area to filter by that location, or use the location
+        filter. On a mouse, drag to pan and scroll to zoom. On touch, use two
+        fingers to move or zoom the map; one finger scrolls the page. Zoom
+        buttons are available after the filters in the tab order.
       </figcaption>
 
       <MapLegend

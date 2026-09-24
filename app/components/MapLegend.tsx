@@ -35,12 +35,14 @@ export function MapLegend({
         ) : selectedLabel ? (
           <>
             Viewing <span className="font-semibold text-oa-navy">{selectedLabel}</span>
-            . Click another area to change · drag to pan · scroll to zoom.
+            . Click another area to change · drag or two-finger drag to pan ·
+            scroll or pinch to zoom.
           </>
         ) : (
           <span className="text-oa-grey-600">
-            Click an area to filter, or use the location filter. Drag to pan ·
-            scroll or pinch to zoom.
+            Click an area to filter, or use the location filter. Drag or use two
+            fingers to pan · scroll or pinch to zoom. One finger scrolls the
+            page.
           </span>
         )}
       </p>
