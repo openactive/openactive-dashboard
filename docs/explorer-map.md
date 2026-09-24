@@ -41,17 +41,19 @@ Clicking an area calls `onAreaSelect` with a name, optional code, and boundary t
 
 ## Touch and scroll
 
-The map sits on a long page, so one-finger swipes must scroll the page, not steal the gesture.
+The map sits on a long page, so everyday scrolling must move the page, not the map.
 
 In `OpportunityMap.tsx`:
 
 - The map container does **not** use `touch-none`, so the browser can scroll on one finger
-- D3 zoom has a `.filter(...)` so touch pan/zoom only starts with **two or more** fingers
-- Mouse drag and wheel still pan/zoom on desktop
+- D3 zoom has a `.filter(...)` so:
+  - **touch pan/zoom** only starts with **two or more** fingers
+  - **wheel zoom** only when **Ctrl** or **Meta** is held (trackpad pinch). A normal two-finger trackpad scroll moves the page
+  - **mouse:** primary-button click-drag pans the map
 - The `+` / `-` / reset buttons always zoom
 - A short tap still selects an area (existing click vs drag threshold)
 
-Same rules on phones, tablets, and large touch screens.
+Same rules on phones, tablets, and large screens.
 
 ## What this is not
 

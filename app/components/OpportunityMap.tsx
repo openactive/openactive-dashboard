@@ -331,13 +331,19 @@ export function OpportunityMap({
     const zoom = d3
       .zoom<SVGSVGElement, unknown>()
       .scaleExtent([1, 14])
-      // One-finger touch scrolls the page; two fingers (or mouse/wheel) pan/zoom.
+      // Page scroll wins for one-finger touch and normal trackpad/mouse wheel.
+      // Map pan/zoom: primary-button drag, Ctrl/Meta+wheel (pinch), two-finger touch.
       .filter((event) => {
-        if (event.type === "wheel") return true;
+        if (event.type === "wheel") {
+          // Pinch is delivered as wheel+ctrlKey; plain two-finger scroll must
+          // reach the page, so only accept modified wheel here.
+          return event.ctrlKey || event.metaKey;
+        }
         if (event.type === "touchstart" || event.type === "touchmove") {
           return event.touches.length >= 2;
         }
-        return !event.ctrlKey && !event.button;
+        // Primary mouse button drag pans the map.
+        return event.button === 0;
       })
       .on("zoom", (event) => {
         zoomRoot.attr("transform", event.transform.toString());
@@ -470,9 +476,10 @@ export function OpportunityMap({
       <figcaption className="sr-only" id="map-title">
         Choropleth map of opportunities per {boundaryNoun(loadedBoundaryType)}.
         Click or tap an area to filter by that location, or use the location
-        filter. On a mouse, drag to pan and scroll to zoom. On touch, use two
-        fingers to move or zoom the map; one finger scrolls the page. Zoom
-        buttons are available after the filters in the tab order.
+        filter. Click and drag to pan. Pinch or hold Ctrl and scroll to zoom; on
+        touch, use two fingers to move or zoom the map. One finger or a normal
+        trackpad scroll moves the page. Zoom buttons are available after the
+        filters in the tab order.
       </figcaption>
 
       <MapLegend
