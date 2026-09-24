@@ -44,7 +44,7 @@ export function FeedQualitySection() {
 
   const filterQuery = useFeedQualityFilters();
   const hasFilters = Object.keys(filterQuery).length > 0;
-  const { rows, groups, isLoading, error, retry } = useFeedQuality(
+  const { groups, isLoading, error, retry } = useFeedQuality(
     enabled,
     filterQuery
   );
@@ -53,13 +53,13 @@ export function FeedQualitySection() {
     let okCount = 0;
     let warningCount = 0;
     let errorCount = 0;
-    for (const row of rows) {
-      if (row.status === "OK") okCount += 1;
-      else if (row.status === "WARNING") warningCount += 1;
+    for (const group of groups) {
+      if (group.worstStatus === "OK") okCount += 1;
+      else if (group.worstStatus === "WARNING") warningCount += 1;
       else errorCount += 1;
     }
-    return { total: rows.length, okCount, warningCount, errorCount };
-  }, [rows]);
+    return { total: groups.length, okCount, warningCount, errorCount };
+  }, [groups]);
 
   // True while a fresh result is loading (first load or a new filter
   // combination). Only the figures and table rows swap to placeholders — the
