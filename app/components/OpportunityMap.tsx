@@ -331,6 +331,20 @@ export function OpportunityMap({
     const zoom = d3
       .zoom<SVGSVGElement, unknown>()
       .scaleExtent([1, 14])
+      // Page scroll wins for one-finger touch and normal trackpad/mouse wheel.
+      // Map pan/zoom: primary-button drag, Ctrl/Meta+wheel (pinch), two-finger touch.
+      .filter((event) => {
+        if (event.type === "wheel") {
+          // Pinch is delivered as wheel+ctrlKey; plain two-finger scroll must
+          // reach the page, so only accept modified wheel here.
+          return event.ctrlKey || event.metaKey;
+        }
+        if (event.type === "touchstart" || event.type === "touchmove") {
+          return event.touches.length >= 2;
+        }
+        // Primary mouse button drag pans the map.
+        return event.button === 0;
+      })
       .on("zoom", (event) => {
         zoomRoot.attr("transform", event.transform.toString());
       });
@@ -398,7 +412,7 @@ export function OpportunityMap({
     <figure className="relative flex h-full min-h-0 w-full flex-col">
       <div
         ref={containerRef}
-        className="relative h-full min-h-[480px] w-full flex-1 touch-none outline-none [-webkit-tap-highlight-color:transparent] [&_svg]:outline-none [&_svg:focus]:outline-none [&_path]:outline-none"
+        className="relative h-full min-h-120 w-full flex-1 outline-none [-webkit-tap-highlight-color:transparent] [&_svg]:outline-none [&_svg:focus]:outline-none [&_path]:outline-none"
         style={{ background: "linear-gradient(165deg, #e4ecf4 0%, #d6e2ec 45%, #c8d6e2 100%)" }}
       >
         {isAutoFramed && (
@@ -441,7 +455,7 @@ export function OpportunityMap({
 
         <svg
           ref={svgRef}
-          className={`h-full w-full touch-none cursor-grab outline-none focus:outline-none active:cursor-grabbing ${status !== "ready" ? "opacity-0" : ""}`}
+          className={`h-full w-full cursor-grab outline-none focus:outline-none active:cursor-grabbing ${status !== "ready" ? "opacity-0" : ""}`}
           aria-labelledby="map-title"
           aria-describedby={tooltipId}
           tabIndex={-1}
@@ -461,9 +475,11 @@ export function OpportunityMap({
 
       <figcaption className="sr-only" id="map-title">
         Choropleth map of opportunities per {boundaryNoun(loadedBoundaryType)}.
-        Click an area to filter by that location, or use the location filter.
-        Drag to pan and scroll or pinch to zoom; zoom buttons are available
-        after the filters in the tab order.
+        Click or tap an area to filter by that location, or use the location
+        filter. Click and drag to pan. Pinch or hold Ctrl and scroll to zoom; on
+        touch, use two fingers to move or zoom the map. One finger or a normal
+        trackpad scroll moves the page. Zoom buttons are available after the
+        filters in the tab order.
       </figcaption>
 
       <MapLegend
