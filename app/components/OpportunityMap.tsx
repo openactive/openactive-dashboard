@@ -331,6 +331,14 @@ export function OpportunityMap({
     const zoom = d3
       .zoom<SVGSVGElement, unknown>()
       .scaleExtent([1, 14])
+      // One-finger touch scrolls the page; two fingers (or mouse/wheel) pan/zoom.
+      .filter((event) => {
+        if (event.type === "wheel") return true;
+        if (event.type === "touchstart" || event.type === "touchmove") {
+          return event.touches.length >= 2;
+        }
+        return !event.ctrlKey && !event.button;
+      })
       .on("zoom", (event) => {
         zoomRoot.attr("transform", event.transform.toString());
       });
