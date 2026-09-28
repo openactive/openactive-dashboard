@@ -44,7 +44,7 @@ export function FeedQualitySection() {
 
   const filterQuery = useFeedQualityFilters();
   const hasFilters = Object.keys(filterQuery).length > 0;
-  const { rows, groups, isLoading, error, retry } = useFeedQuality(
+  const { groups, isLoading, error, retry } = useFeedQuality(
     enabled,
     filterQuery
   );
@@ -53,13 +53,13 @@ export function FeedQualitySection() {
     let okCount = 0;
     let warningCount = 0;
     let errorCount = 0;
-    for (const row of rows) {
-      if (row.status === "OK") okCount += 1;
-      else if (row.status === "WARNING") warningCount += 1;
+    for (const group of groups) {
+      if (group.worstStatus === "OK") okCount += 1;
+      else if (group.worstStatus === "WARNING") warningCount += 1;
       else errorCount += 1;
     }
-    return { total: rows.length, okCount, warningCount, errorCount };
-  }, [rows]);
+    return { total: groups.length, okCount, warningCount, errorCount };
+  }, [groups]);
 
   // True while a fresh result is loading (first load or a new filter
   // combination). Only the figures and table rows swap to placeholders — the
@@ -101,7 +101,7 @@ export function FeedQualitySection() {
               role="status"
               aria-live="polite"
             >
-              Showing data streams that match your filters above.
+              Showing data providers that match your filters above.
             </p>
           )}
           {error ? (
@@ -145,7 +145,7 @@ function EmptyState() {
         No data quality data yet.
       </p>
       <p className="mt-1 text-sm text-oa-grey-600">
-        OpenActive hasn&apos;t assessed any data streams in this window. Check back
+        OpenActive hasn&apos;t assessed any data providers in this window. Check back
         once data providers have started sharing data.
       </p>
     </div>
@@ -156,7 +156,7 @@ function NoMatchesState() {
   return (
     <div className="rounded-sm bg-white p-8 text-center ring-1 ring-oa-grey-200">
       <p className="text-base font-semibold text-oa-navy">
-        No data streams match your current filters.
+        No data providers match your current filters.
       </p>
       <p className="mt-1 text-sm text-oa-grey-600">
         Try removing a filter above to widen the search.

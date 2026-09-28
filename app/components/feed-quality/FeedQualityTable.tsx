@@ -256,10 +256,10 @@ export function FeedQualityTable({
   // currently sees so screen readers know if their filter actually matched.
   const liveMessage = useMemo(() => {
     const count = filteredGroups.length;
-    const noun = count === 1 ? "data stream" : "data streams";
+    const noun = count === 1 ? "data provider" : "data providers";
     if (!hasActiveFilters) return "";
     return count === 0
-      ? "No data streams match the current filters."
+      ? "No data providers match the current filters."
       : `${count} ${noun} match the current filters.`;
   }, [filteredGroups.length, hasActiveFilters]);
 
@@ -388,7 +388,7 @@ export function FeedQualityTable({
       {!loading && filteredGroups.length === 0 ? (
         <div className="rounded-sm bg-white p-8 text-center ring-1 ring-oa-grey-200">
           <p className="text-base font-semibold text-oa-navy">
-            No data streams match those filters.
+            No data providers match those filters.
           </p>
           <p className="mt-1 text-sm text-oa-grey-600">
             {query
@@ -493,7 +493,7 @@ export function FeedQualityTable({
               aria-live="polite"
               className="px-3 py-3 text-center text-xs text-oa-grey-500"
             >
-              Loading more data streams…
+              Loading more data providers…
             </div>
           )}
           </div>
